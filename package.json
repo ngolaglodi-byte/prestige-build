@@ -19,6 +19,8 @@
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
     "@prisma/client": "^6.19.2",
+    "@types/pidusage": "^2.0.5",
+    "@types/ws": "^8.18.1",
     "diff-match-patch": "^1.0.5",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
@@ -26,12 +28,14 @@
     "next": "^14.2.35",
     "openai": "^6.22.0",
     "pg": "^8.18.0",
+    "pidusage": "^4.0.1",
     "prisma": "^6.19.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.5.0",
     "react-split": "^2.0.14",
     "svix": "^1.85.0",
+    "ws": "^8.19.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

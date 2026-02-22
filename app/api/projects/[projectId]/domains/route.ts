@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getDefaultSubdomain, normalizeDomain } from "@/lib/deploy/domainUtils";
 
 export async function GET(_req: Request, { params }: any) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { projectId } = params;
@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: any) {
 }
 
 export async function POST(req: Request, { params }: any) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { projectId } = params;

@@ -6,7 +6,7 @@ import { useLoadFile } from "@/hooks/useLoadFile";
 import { useTabs } from "@/lib/store/tabs";
 import { useFileActions } from "@/hooks/useFileActions";
 
-export function FileTree({ projectId }) {
+export function FileTree({ projectId }: { projectId: string }) {
   const { tree, selectedPath, selectFile } = useFileTree();
   const loadFile = useLoadFile(projectId);
   const { openTab } = useTabs();
@@ -35,19 +35,19 @@ export function FileTree({ projectId }) {
       <TreeNode
         node={tree}
         activeFile={selectedPath}
-        onSelect={(path) => {
+        onSelect={(path: string) => {
           selectFile(path);
           loadFile(path);
           openTab(path);
         }}
-        onRename={(oldPath) => {
+        onRename={(oldPath: string) => {
           const newName = prompt("New name:", oldPath.split("/").pop());
           if (!newName) return;
 
           const newPath = oldPath.split("/").slice(0, -1).concat(newName).join("/");
           renameFile(oldPath, newPath);
         }}
-        onDelete={(path) => {
+        onDelete={(path: string) => {
           if (confirm("Delete this file?")) {
             deleteFile(path);
           }

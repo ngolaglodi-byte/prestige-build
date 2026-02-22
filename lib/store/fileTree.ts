@@ -1,12 +1,27 @@
 import { create } from "zustand";
-import { buildFileTree } from "@/lib/utils/buildFileTree";
+import { buildFileTree, FileNode } from "@/lib/utils/buildFileTree";
 
-export const useFileTree = create((set, get) => ({
+export type { FileNode };
+
+export interface FileRecord {
+  path: string;
+  content: string;
+}
+
+interface FileTreeStore {
+  tree: FileNode | null;
+  files: FileRecord[];
+  selectedPath: string | null;
+  refreshFiles: (projectId: string) => Promise<void>;
+  selectFile: (path: string) => void;
+}
+
+export const useFileTree = create<FileTreeStore>((set) => ({
   tree: null,
   files: [],
   selectedPath: null,
 
-  refreshFiles: async (projectId) => {
+  refreshFiles: async (projectId: string) => {
     const res = await fetch(`/api/projects/${projectId}/files`);
     const data = await res.json();
 
@@ -16,5 +31,5 @@ export const useFileTree = create((set, get) => ({
     }
   },
 
-  selectFile: (path) => set({ selectedPath: path }),
+  selectFile: (path: string) => set({ selectedPath: path }),
 }));

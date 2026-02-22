@@ -4,7 +4,7 @@ import { deployProject } from "@/lib/deploy/deployManager";
 import { setDeployState } from "@/lib/deploy/deployRegistry";
 
 export async function POST(_req: Request, { params }: any) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { projectId } = params;

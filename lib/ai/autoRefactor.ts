@@ -25,8 +25,8 @@ export function autoRefactorProject() {
      * --------------------------------------------------------- */
     content = content.replace(
       /import\s+{?\s*([^}]*)\s*}?\s*from\s+['"]([^'"]+)['"];?/g,
-      (match, imports, source) => {
-        const names = imports.split(",").map((i) => i.trim());
+      (match: string, imports: string, source: string) => {
+        const names = imports.split(",").map((i: string) => i.trim());
         const unused = names.filter((name) => !new RegExp(`\\b${name}\\b`).test(content));
 
         if (unused.length === names.length) {

@@ -1,6 +1,12 @@
 "use client";
 
-export function FileActionsMenu({ onRename, onDelete }) {
+export function FileActionsMenu({
+  onRename,
+  onDelete,
+}: {
+  onRename: () => void;
+  onDelete: () => void;
+}) {
   return (
     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
       <button

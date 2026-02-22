@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { renameProjectFile } from "@/lib/projects/fileSystem";
 
 export async function PATCH(req: Request, { params }: { params: { projectId: string } }) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }

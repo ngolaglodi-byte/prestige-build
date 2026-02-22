@@ -1,7 +1,24 @@
 import { create } from "zustand";
 
-export const useAiPanel = create((set, get) => ({
-  messages: [] as { role: "user" | "assistant"; content: string }[],
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface AiPanelStore {
+  messages: Message[];
+  loading: boolean;
+  addUserMessage: (content: string) => void;
+  addAssistantMessage: (content: string) => void;
+  sendPrompt: (
+    projectId: string,
+    prompt: string,
+    filePath?: string
+  ) => Promise<Record<string, unknown> | undefined>;
+}
+
+export const useAiPanel = create<AiPanelStore>((set, get) => ({
+  messages: [],
   loading: false,
 
   addUserMessage: (content: string) =>
@@ -32,5 +49,6 @@ export const useAiPanel = create((set, get) => ({
     }
 
     set({ loading: false });
+    return data;
   },
 }));

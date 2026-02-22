@@ -1,4 +1,4 @@
-import { AIAction } from "./types";
+import { AIAction } from "./aiTypes";
 
 export function parseAIActions(text: string): AIAction[] {
   const actions: AIAction[] = [];
