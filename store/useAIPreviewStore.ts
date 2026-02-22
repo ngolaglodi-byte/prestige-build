@@ -1,22 +1,17 @@
-"use client";
+import create from 'zustand';
 
-import { create } from "zustand";
-
-interface PreviewData {
-  file: string;
-  newContent: string;
+// Define the interfaces for your state and actions
+interface AIPreviewState {
+    code: string;
+    setCode: (newCode: string) => void;
+    resetCode: () => void;
 }
 
-interface AIPreviewStore {
-  preview: PreviewData | null;
-  setPreview: (p: PreviewData) => void;
-  clearPreview: () => void;
-}
-
-export const useAIPreviewStore = create<AIPreviewStore>((set) => ({
-  preview: null,
-
-  setPreview: (p) => set({ preview: p }),
-
-  clearPreview: () => set({ preview: null }),
+// Create a Zustand store for managing code previews
+const useAIPreviewStore = create<AIPreviewState>((set) => ({
+    code: '',
+    setCode: (newCode) => set({ code: newCode }),
+    resetCode: () => set({ code: '' }),
 }));
+
+export default useAIPreviewStore;
