@@ -1,17 +1,32 @@
-import create from 'zustand';
+// store/useAIPreviewStore.ts
 
-// Define the interfaces for your state and actions
-interface AIPreviewState {
+// Interface for an AI code preview item
+interface AICodePreview {
+    id: string;
     code: string;
-    setCode: (newCode: string) => void;
-    resetCode: () => void;
+    language: string;
+    description?: string;
+    createdAt: Date;
 }
 
-// Create a Zustand store for managing code previews
-const useAIPreviewStore = create<AIPreviewState>((set) => ({
-    code: '',
-    setCode: (newCode) => set({ code: newCode }),
-    resetCode: () => set({ code: '' }),
-}));
+// Interface for the state of the AI code preview store
+interface AIPreviewStoreState {
+    previews: AICodePreview[];
+    loading: boolean;
+    error?: string;
+}
 
-export default useAIPreviewStore;
+// Interface for actions in the AI code preview store
+interface AIPreviewStoreAction {
+    type: string;
+    payload?: any;
+}
+
+// A function to initialize store state
+function initializeStoreState(): AIPreviewStoreState {
+    return {
+        previews: [],
+        loading: false,
+        error: undefined,
+    };
+}
