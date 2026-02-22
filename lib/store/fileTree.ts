@@ -1,7 +1,22 @@
 import { create } from "zustand";
 import { buildFileTree } from "@/lib/utils/buildFileTree";
 
-export const useFileTree = create((set, get) => ({
+interface FileNode {
+  name: string;
+  path: string;
+  type: "file" | "folder";
+  children: FileNode[] | null;
+}
+
+interface FileTreeStore {
+  tree: FileNode | null;
+  files: { path: string; content?: string }[];
+  selectedPath: string | null;
+  refreshFiles: (projectId: string) => Promise<void>;
+  selectFile: (path: string) => void;
+}
+
+export const useFileTree = create<FileTreeStore>((set) => ({
   tree: null,
   files: [],
   selectedPath: null,

@@ -3,7 +3,28 @@
 import { useState } from "react";
 import { FileActionsMenu } from "./FileActionsMenu";
 
-export function TreeNode({ node, activeFile, onSelect, onRename, onDelete, level }) {
+interface FileNode {
+  name: string;
+  path: string;
+  type: "file" | "folder";
+  children?: FileNode[] | null;
+}
+
+export function TreeNode({
+  node,
+  activeFile,
+  onSelect,
+  onRename,
+  onDelete,
+  level,
+}: {
+  node: FileNode;
+  activeFile: string | null;
+  onSelect: (path: string) => void;
+  onRename: (path: string) => void;
+  onDelete: (path: string) => void;
+  level: number;
+}) {
   const [open, setOpen] = useState(true);
 
   if (node.name === "") {

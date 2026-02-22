@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  turbopack: {}, // obligatoire en Next 16
-};
+const nextConfig = {};
 
 export default nextConfig;

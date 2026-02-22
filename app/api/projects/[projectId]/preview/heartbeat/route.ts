@@ -11,7 +11,9 @@ export async function POST(
   const userId = await getCurrentUserId(req);
   const { projectId } = params;
 
-  registerHeartbeat(userId, projectId);
+  if (userId) {
+    registerHeartbeat(userId, projectId);
+  }
 
   return NextResponse.json({ ok: true });
 }

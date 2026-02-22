@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 // app/admin/overview/page.tsx
 import { db } from "@/db/client";
 import { users, projects, activityLogs, subscriptions } from "@/db/schema";

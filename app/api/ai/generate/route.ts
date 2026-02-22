@@ -6,10 +6,10 @@ import { checkCredits } from "@/lib/credits/checkCredits";
 import { estimateComplexity } from "@/lib/ai/complexity";
 import { tokenRules } from "@/lib/ai/tokenRules";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_KEY ?? "" });
 
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }

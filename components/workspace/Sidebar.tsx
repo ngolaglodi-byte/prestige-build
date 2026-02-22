@@ -1,15 +1,15 @@
 "use client";
 
-import FileTree from "@/components/workspace/FileTree";
+import { FileTree } from "@/components/workspace/FileTree";
 
 export default function Sidebar({
-  tree,
-  activeFile,
-  onSelect,
+  projectId,
   onNewFile,
   onNewFolder,
-  onDelete,
-  onRename,
+}: {
+  projectId: string;
+  onNewFile: () => void;
+  onNewFolder: () => void;
 }) {
   return (
     <aside className="w-64 h-full bg-surface border-r border-border p-4 flex flex-col">
@@ -34,13 +34,7 @@ export default function Sidebar({
 
       {/* FILE TREE */}
       <div className="flex-1 overflow-auto">
-        <FileTree
-          tree={tree}
-          activeFile={activeFile}
-          onSelect={onSelect}
-          onDelete={onDelete}
-          onRename={onRename}
-        />
+        <FileTree projectId={projectId} />
       </div>
     </aside>
   );

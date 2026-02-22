@@ -85,6 +85,23 @@ model Project {
 
   user        User     @relation(fields: [userId], references: [id])
   previews    PreviewSession[]
+  files       File[]
+}
+
+// ------------------------------------------------------
+//  FILE MODEL
+// ------------------------------------------------------
+model File {
+  id        String   @id @default(cuid())
+  projectId String
+  path      String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, path], name: "projectId_path")
 }
 
 // ------------------------------------------------------
@@ -96,9 +113,14 @@ model PreviewSession {
   userId      String
   port        Int
   status      String
+  cpuPercent  Int      @default(0)
+  memoryMb    Int      @default(0)
+  startedAt   DateTime @default(now())
+  stoppedAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   project     Project  @relation(fields: [projectId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
 }
+

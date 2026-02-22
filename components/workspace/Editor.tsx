@@ -5,7 +5,7 @@ import { useEditor } from "@/lib/store/editor";
 import { useTabs } from "@/lib/store/tabs";
 import { useEffect } from "react";
 
-export function CodeEditor({ projectId }) {
+export function CodeEditor({ projectId }: { projectId: string }) {
   const { content, updateContent, saveFile, loadFile } = useEditor();
   const { activeFile } = useTabs();
 
@@ -46,7 +46,7 @@ export function CodeEditor({ projectId }) {
   );
 }
 
-function detectLanguage(path) {
+function detectLanguage(path: string) {
   if (path.endsWith(".ts")) return "typescript";
   if (path.endsWith(".tsx")) return "typescript";
   if (path.endsWith(".js")) return "javascript";

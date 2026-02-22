@@ -9,14 +9,14 @@ export async function cleanupIdlePreviews() {
   const idlePreviews = await prisma.previewSession.findMany({
     where: {
       status: "running",
-      lastActivityAt: {
+      updatedAt: {
         lt: new Date(now.getTime() - IDLE_TIMEOUT_MS),
       },
     },
   });
 
   for (const preview of idlePreviews) {
-    await stopPreviewServer(preview.port);
+    await stopPreviewServer(preview.userId, preview.projectId);
 
     await prisma.previewSession.update({
       where: { id: preview.id },

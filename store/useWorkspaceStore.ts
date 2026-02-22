@@ -1,48 +1,36 @@
-// store/useWorkspaceStore.ts
+"use client";
 
-import { ref } from 'vue';
-import { defineStore } from 'pinia';
+import { create } from "zustand";
 
-// Define interfaces for file management
-export interface FileItem {
-    id: string;
-    name: string;
-    path: string;
-    size: number;
-    lastModified: Date;
-    type: string;
+interface FileEntry {
+  content: string;
 }
 
-export interface WorkspaceState {
-    files: FileItem[];
-    currentPath: string;
-    selectedFile: FileItem | null;
+interface WorkspaceStore {
+  files: Record<string, FileEntry>;
+  setFile: (path: string, content: string) => void;
+  updateFile: (path: string, content: string) => void;
+  removeFile: (path: string) => void;
 }
 
-// Create the workspace store
-export const useWorkspaceStore = defineStore('workspace', () => {
-    const state = ref<WorkspaceState>({
-        files: [],
-        currentPath: '',
-        selectedFile: null,
-    });
+export const useWorkspaceStore = create<WorkspaceStore>((set) => ({
+  files: {},
 
-    const setFiles = (files: FileItem[]) => {
-        state.value.files = files;
-    };
+  setFile: (path, content) =>
+    set((state) => ({
+      files: { ...state.files, [path]: { content } },
+    })),
 
-    const setCurrentPath = (path: string) => {
-        state.value.currentPath = path;
-    };
+  updateFile: (path, content) =>
+    set((state) => ({
+      files: { ...state.files, [path]: { content } },
+    })),
 
-    const selectFile = (file: FileItem | null) => {
-        state.value.selectedFile = file;
-    };
+  removeFile: (path) =>
+    set((state) => {
+      const files = { ...state.files };
+      delete files[path];
+      return { files };
+    }),
+}));
 
-    return {
-        state,
-        setFiles,
-        setCurrentPath,
-        selectFile,
-    };
-});

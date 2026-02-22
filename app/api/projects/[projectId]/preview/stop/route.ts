@@ -10,7 +10,7 @@ export async function POST(
     // -----------------------------
     // 1. Auth Clerk
     // -----------------------------
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return new Response("Unauthorized", { status: 401 });
@@ -53,7 +53,7 @@ export async function POST(
     // -----------------------------
     // 5. Arrêter le serveur de preview
     // -----------------------------
-    await stopPreviewServer(preview.port);
+    await stopPreviewServer(preview.userId, preview.projectId);
 
     // -----------------------------
     // 6. Mettre à jour la preview dans Prisma

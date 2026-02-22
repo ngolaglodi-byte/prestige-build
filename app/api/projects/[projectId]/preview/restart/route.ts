@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
@@ -17,7 +17,7 @@ export async function POST(
     });
 
     if (preview) {
-      await stopPreviewServer(preview.port);
+      await stopPreviewServer(preview.userId, preview.projectId);
 
       await prisma.previewSession.update({
         where: { id: preview.id },

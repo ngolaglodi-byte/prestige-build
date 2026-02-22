@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function middleware(req) {
-  const { userId } = auth();
+export async function middleware(req: NextRequest) {
+  const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.redirect(new URL("/sign-in", req.url));

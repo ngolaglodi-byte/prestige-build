@@ -5,7 +5,7 @@ import { useFileTree } from "@/lib/store/fileTree";
 import { FileTree } from "@/components/workspace/FileTree";
 import { CodeEditor } from "@/components/workspace/Editor";
 import { Tabs } from "@/components/workspace/Tabs";
-import { AiPanel } from "@/components/workspace/AiPanel";
+import { AiPanel } from "@/components/workspace/AIPanel";
 import AIMultiFilePreview from "@/components/workspace/AIMultiFilePreview"; // IMPORTANT
 
 export default function WorkspacePage({ params }: { params: { projectId: string } }) {

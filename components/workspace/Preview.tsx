@@ -321,9 +321,7 @@ export default function Preview({
             {port &&
               !error &&
               status !== "crashed" &&
-              status !== "limited" &&
-              status !== "limit_reached" &&
-              status !== "stopped_idle" && (
+              status !== "limited" && (
                 <iframe
                   key={refreshKey}
                   src={`http://localhost:${port}`}

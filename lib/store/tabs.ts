@@ -1,7 +1,15 @@
 import { create } from "zustand";
 
-export const useTabs = create((set, get) => ({
-  openFiles: [],       // ["src/app/page.tsx", "package.json"]
+interface TabsStore {
+  openFiles: string[];
+  activeFile: string | null;
+  openTab: (path: string) => void;
+  closeTab: (path: string) => void;
+  selectTab: (path: string) => void;
+}
+
+export const useTabs = create<TabsStore>((set, get) => ({
+  openFiles: [],
   activeFile: null,
 
   openTab: (path) => {

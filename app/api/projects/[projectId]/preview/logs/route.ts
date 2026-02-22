@@ -9,6 +9,10 @@ export async function GET(
   const userId = await getCurrentUserId(req);
   const { projectId } = params;
 
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();

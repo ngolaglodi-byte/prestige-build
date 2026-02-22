@@ -8,10 +8,10 @@ import {
   writeSingleFile,
 } from "@/lib/projects/fileSystem";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_KEY ?? "" });
 
 export async function POST(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { projectId, filePath, instructions } = await req.json();

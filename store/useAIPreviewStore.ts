@@ -1,32 +1,20 @@
-// store/useAIPreviewStore.ts
+"use client";
 
-// Interface for an AI code preview item
+import { create } from "zustand";
+
 interface AICodePreview {
-    id: string;
-    code: string;
-    language: string;
-    description?: string;
-    createdAt: Date;
+  file: string;
+  newContent: string;
 }
 
-// Interface for the state of the AI code preview store
-interface AIPreviewStoreState {
-    previews: AICodePreview[];
-    loading: boolean;
-    error?: string;
+interface AIPreviewStore {
+  preview: AICodePreview | null;
+  setPreview: (preview: AICodePreview) => void;
+  clearPreview: () => void;
 }
 
-// Interface for actions in the AI code preview store
-interface AIPreviewStoreAction {
-    type: string;
-    payload?: any;
-}
-
-// A function to initialize store state
-function initializeStoreState(): AIPreviewStoreState {
-    return {
-        previews: [],
-        loading: false,
-        error: undefined,
-    };
-}
+export const useAIPreviewStore = create<AIPreviewStore>((set) => ({
+  preview: null,
+  setPreview: (preview) => set({ preview }),
+  clearPreview: () => set({ preview: null }),
+}));

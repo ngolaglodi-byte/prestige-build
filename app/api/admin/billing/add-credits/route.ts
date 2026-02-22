@@ -9,7 +9,7 @@ import { eq, sql } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
-  const { userId: adminClerkId } = auth();
+  const { userId: adminClerkId } = await auth();
 
   if (!adminClerkId) {
     return new Response("Unauthorized", { status: 401 });

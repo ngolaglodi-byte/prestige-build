@@ -1,6 +1,15 @@
 import { create } from "zustand";
 
-export const useEditor = create((set, get) => ({
+interface EditorStore {
+  content: string;
+  path: string | null;
+  loading: boolean;
+  loadFile: (projectId: string, path: string) => Promise<void>;
+  updateContent: (value: string | undefined) => void;
+  saveFile: (projectId: string) => Promise<void>;
+}
+
+export const useEditor = create<EditorStore>((set, get) => ({
   content: "",
   path: null,
   loading: false,
@@ -11,7 +20,7 @@ export const useEditor = create((set, get) => ({
     const res = await fetch(`/api/projects/${projectId}/files`);
     const data = await res.json();
 
-    const file = data.files.find((f) => f.path === path);
+    const file = data.files.find((f: { path: string }) => f.path === path);
 
     set({
       content: file?.content || "",
@@ -20,7 +29,7 @@ export const useEditor = create((set, get) => ({
     });
   },
 
-  updateContent: (value) => set({ content: value }),
+  updateContent: (value) => set({ content: value ?? "" }),
 
   saveFile: async (projectId) => {
     const { path, content } = get();

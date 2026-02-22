@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { AIAction } from "./types";
+import { AIAction } from "./aiTypes";
 
 export async function executeAIActions(projectId: string, actions: AIAction[]) {
   for (const action of actions) {

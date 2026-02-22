@@ -1,7 +1,19 @@
 import { create } from "zustand";
 
-export const useAiDiff = create((set) => ({
-  diffs: [] as { path: string; diff: string }[],
+interface AiDiff {
+  path: string;
+  diff: string;
+}
+
+interface AiDiffStore {
+  diffs: AiDiff[];
+  visible: boolean;
+  showDiffs: (diffs: AiDiff[]) => void;
+  hideDiffs: () => void;
+}
+
+export const useAiDiff = create<AiDiffStore>((set) => ({
+  diffs: [],
   visible: false,
 
   showDiffs: (diffs) => set({ diffs, visible: true }),

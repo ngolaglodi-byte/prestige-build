@@ -10,7 +10,7 @@ export function initHotReloadServer() {
 
   wss = new WebSocketServer({ port: 7071 });
 
-  wss.on("connection", (socket, req) => {
+  wss.on("connection", (socket: WebSocket, req: import("http").IncomingMessage) => {
     const url = new URL(req.url || "", "http://localhost");
     const key = url.searchParams.get("key") || "unknown";
 
