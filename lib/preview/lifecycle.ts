@@ -9,7 +9,7 @@ export async function cleanupIdlePreviews() {
   const idlePreviews = await prisma.previewSession.findMany({
     where: {
       status: "running",
-      updatedAt: {
+      lastActivityAt: {
         lt: new Date(now.getTime() - IDLE_TIMEOUT_MS),
       },
     },

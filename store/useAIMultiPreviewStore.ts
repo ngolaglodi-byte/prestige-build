@@ -9,15 +9,12 @@ export interface MultiPreviewItem {
 
 interface AIMultiPreviewStore {
   previews: MultiPreviewItem[];
-  setPreviews: (p: MultiPreviewItem[]) => void;
   showPreviews: (p: MultiPreviewItem[]) => void;
   clearPreviews: () => void;
 }
 
 export const useAIMultiPreviewStore = create<AIMultiPreviewStore>((set) => ({
   previews: [],
-
-  setPreviews: (p) => set({ previews: p }),
 
   showPreviews: (p) => set({ previews: p }),
 

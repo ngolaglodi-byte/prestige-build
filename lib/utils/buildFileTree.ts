@@ -33,10 +33,8 @@ export function buildFileTree(files: FileEntry[]): FileNode {
         if (!isFile) {
           current = node;
         }
-      } else {
-        if (!isFile) {
-          current = existing;
-        }
+      } else if (!isFile) {
+        current = existing;
       }
     });
   }

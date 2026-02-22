@@ -108,17 +108,18 @@ model File {
 //  PREVIEW SESSION MODEL
 // ------------------------------------------------------
 model PreviewSession {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  port        Int
-  status      String
-  cpuPercent  Int      @default(0)
-  memoryMb    Int      @default(0)
-  startedAt   DateTime @default(now())
-  stoppedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String    @id @default(cuid())
+  projectId       String
+  userId          String
+  port            Int
+  status          String
+  cpuPercent      Int       @default(0)
+  memoryMb        Int       @default(0)
+  startedAt       DateTime  @default(now())
+  stoppedAt       DateTime?
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   project     Project  @relation(fields: [projectId], references: [id])
   user        User     @relation(fields: [userId], references: [id])

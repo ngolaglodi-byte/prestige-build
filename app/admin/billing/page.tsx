@@ -114,12 +114,13 @@ export default async function AdminBillingPage() {
 
               <td className="p-4 flex gap-3 items-center">
                 {/* Add Credits */}
+                {s.userId && (
                 <form
                   action="/api/admin/billing/add-credits"
                   method="POST"
                   className="flex gap-2 items-center"
                 >
-                  <input type="hidden" name="userId" value={s.userId ?? ""} />
+                  <input type="hidden" name="userId" value={s.userId} />
 
                   <input
                     type="number"
@@ -144,6 +145,7 @@ export default async function AdminBillingPage() {
                     Add
                   </button>
                 </form>
+                )}
 
                 {/* Suspend */}
                 {s.status !== "suspended" && (
