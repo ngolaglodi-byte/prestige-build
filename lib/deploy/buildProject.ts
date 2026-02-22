@@ -24,13 +24,13 @@ export async function buildProject(projectId: string) {
       break;
 
     default:
-      return { success: false, logs: `Unsupported framework: ${framework}` };
+      return { success: false, outputDir: "", logs: `Unsupported framework: ${framework}` };
   }
 
   let logs = "";
   const proc = spawn(command, args, { cwd: root, shell: true });
 
-  return await new Promise((resolve) => {
+  return await new Promise<{ success: boolean; outputDir: string; logs: string }>((resolve) => {
     proc.stdout.on("data", (c) => (logs += c.toString()));
     proc.stderr.on("data", (c) => (logs += c.toString()));
 

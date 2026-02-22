@@ -10,7 +10,7 @@ export async function POST(
     // -----------------------------
     // 1. Auth Clerk
     // -----------------------------
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return new Response("Unauthorized", { status: 401 });

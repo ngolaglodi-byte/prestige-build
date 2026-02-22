@@ -5,7 +5,7 @@ import { parseAIMultiPreview } from "@/lib/ai/parseMultiPreview";
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;

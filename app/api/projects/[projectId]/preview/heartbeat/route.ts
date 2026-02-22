@@ -8,7 +8,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
-  const userId = await getCurrentUserId(req);
+  const userId = await getCurrentUserId();
   const { projectId } = params;
 
   registerHeartbeat(userId, projectId);

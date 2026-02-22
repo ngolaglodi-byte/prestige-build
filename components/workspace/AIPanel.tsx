@@ -6,6 +6,9 @@ import { useTabs } from "@/lib/store/tabs";
 import { useAiDiff } from "@/lib/store/aiDiffStore";
 import { useAIMultiPreviewStore } from "@/store/useAIMultiPreviewStore"; // IMPORTANT
 
+import { DiffItem } from "@/lib/store/aiDiffStore";
+import { MultiPreviewItem } from "@/store/useAIMultiPreviewStore";
+
 export function AiPanel({ projectId }: { projectId: string }) {
   const { messages, loading, sendPrompt } = useAiPanel();
   const { activeFile } = useTabs();
@@ -25,16 +28,16 @@ export function AiPanel({ projectId }: { projectId: string }) {
     if (!input.trim()) return;
 
     // Récupérer la réponse AI
-    const res = await sendPrompt(projectId, input, activeFile);
+    const res = await sendPrompt(projectId, input, activeFile ?? undefined);
 
     // Diff simple (un seul fichier)
     if (res?.diffs) {
-      showDiffs(res.diffs);
+      showDiffs(res.diffs as DiffItem[]);
     }
 
     // Multi‑file preview
     if (res?.previews) {
-      showMultiPreview(res.previews);
+      showMultiPreview(res.previews as MultiPreviewItem[]);
     }
 
     setInput("");

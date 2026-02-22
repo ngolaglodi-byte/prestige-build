@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // app/admin/billing/page.tsx
 import { db } from "@/db/client";
 import {
@@ -90,7 +92,7 @@ export default async function AdminBillingPage() {
         </thead>
 
         <tbody>
-          {allSubscriptions.map((s) => (
+          {allSubscriptions.filter((s) => s.userId).map((s) => (
             <tr key={s.id} className="border-t">
               <td className="p-4">
                 <div>{s.userName ?? "Unknown"}</div>
@@ -118,7 +120,7 @@ export default async function AdminBillingPage() {
                   method="POST"
                   className="flex gap-2 items-center"
                 >
-                  <input type="hidden" name="userId" value={s.userId} />
+                  <input type="hidden" name="userId" value={s.userId!} />
 
                   <input
                     type="number"

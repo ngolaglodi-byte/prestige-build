@@ -26,7 +26,7 @@ model User {
   userPlan  UserPlan?
   limits    UserLimits?
   projects  Project[]
-  previews  PreviewSession[]   // ← RELATION OPPOSÉE OBLIGATOIRE
+  previews  PreviewSession[]
 }
 
 // ------------------------------------------------------
@@ -85,20 +85,42 @@ model Project {
 
   user        User     @relation(fields: [userId], references: [id])
   previews    PreviewSession[]
+  files       File[]
+}
+
+// ------------------------------------------------------
+//  FILE MODEL
+// ------------------------------------------------------
+model File {
+  id        String   @id @default(cuid())
+  projectId String
+  path      String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, path])
 }
 
 // ------------------------------------------------------
 //  PREVIEW SESSION MODEL
 // ------------------------------------------------------
 model PreviewSession {
-  id          String   @id @default(cuid())
-  projectId   String
-  userId      String
-  port        Int
-  status      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String    @id @default(cuid())
+  projectId      String
+  userId         String
+  port           Int
+  status         String
+  cpuPercent     Float?
+  memoryMb       Float?
+  startedAt      DateTime?
+  stoppedAt      DateTime?
+  lastActivityAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  project     Project  @relation(fields: [projectId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
+  project        Project   @relation(fields: [projectId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
 }

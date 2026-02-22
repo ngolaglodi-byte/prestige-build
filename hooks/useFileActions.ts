@@ -3,12 +3,12 @@
 import { useFileTree } from "@/lib/store/fileTree";
 import { useTabs } from "@/lib/store/tabs";
 
-export function useFileActions(projectId) {
+export function useFileActions(projectId: string) {
   const { refreshFiles } = useFileTree();
   const { closeTab } = useTabs();
 
   return {
-    createFile: async (path) => {
+    createFile: async (path: string) => {
       await fetch(`/api/projects/${projectId}/files`, {
         method: "POST",
         body: JSON.stringify({ path, content: "" }),
@@ -17,7 +17,7 @@ export function useFileActions(projectId) {
       refreshFiles(projectId);
     },
 
-    renameFile: async (oldPath, newPath) => {
+    renameFile: async (oldPath: string, newPath: string) => {
       await fetch(`/api/projects/${projectId}/files`, {
         method: "PATCH",
         body: JSON.stringify({ path: oldPath, newPath }),
@@ -26,7 +26,7 @@ export function useFileActions(projectId) {
       refreshFiles(projectId);
     },
 
-    deleteFile: async (path) => {
+    deleteFile: async (path: string) => {
       await fetch(`/api/projects/${projectId}/files`, {
         method: "DELETE",
         body: JSON.stringify({ path }),

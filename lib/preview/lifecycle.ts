@@ -16,7 +16,7 @@ export async function cleanupIdlePreviews() {
   });
 
   for (const preview of idlePreviews) {
-    await stopPreviewServer(preview.port);
+    await stopPreviewServer(preview.userId, preview.projectId);
 
     await prisma.previewSession.update({
       where: { id: preview.id },

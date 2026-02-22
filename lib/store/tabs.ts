@@ -1,10 +1,18 @@
 import { create } from "zustand";
 
-export const useTabs = create((set, get) => ({
-  openFiles: [],       // ["src/app/page.tsx", "package.json"]
+interface TabsStore {
+  openFiles: string[];
+  activeFile: string | null;
+  openTab: (path: string) => void;
+  closeTab: (path: string) => void;
+  selectTab: (path: string) => void;
+}
+
+export const useTabs = create<TabsStore>((set, get) => ({
+  openFiles: [],
   activeFile: null,
 
-  openTab: (path) => {
+  openTab: (path: string) => {
     const { openFiles } = get();
 
     if (!openFiles.includes(path)) {
@@ -14,7 +22,7 @@ export const useTabs = create((set, get) => ({
     set({ activeFile: path });
   },
 
-  closeTab: (path) => {
+  closeTab: (path: string) => {
     const { openFiles, activeFile } = get();
 
     const newTabs = openFiles.filter((f) => f !== path);
@@ -26,5 +34,5 @@ export const useTabs = create((set, get) => ({
     }
   },
 
-  selectTab: (path) => set({ activeFile: path }),
+  selectTab: (path: string) => set({ activeFile: path }),
 }));
