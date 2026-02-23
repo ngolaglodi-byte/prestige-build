@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   FolderKanban,
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const { t, language } = useLanguage();
+  const loadProjectsRef = useRef<() => Promise<void>>(undefined);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
@@ -38,6 +39,8 @@ export default function DashboardPage() {
     }
     setLoading(false);
   }, []);
+
+  loadProjectsRef.current = loadProjects;
 
   async function createProject() {
     const name = prompt(t("dashboard.projectNamePrompt"));
@@ -59,8 +62,8 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    loadProjectsRef.current?.();
+  }, []);
 
   const stats = [
     {

@@ -19,18 +19,21 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("fr");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("prestige-language") as Language | null;
     if (saved === "fr" || saved === "en") {
       setLanguageState(saved);
     }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     localStorage.setItem("prestige-language", language);
     document.documentElement.lang = language;
-  }, [language]);
+  }, [language, mounted]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
