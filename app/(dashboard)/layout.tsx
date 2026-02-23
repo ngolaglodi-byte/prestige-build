@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import OnboardingModal from "@/components/OnboardingModal";
+import DashboardShell from "@/components/DashboardShell";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +11,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/sign-in");
   }
   return (
-    <>
+    <DashboardShell>
       <OnboardingModal />
       {children}
-    </>
+    </DashboardShell>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import Logo from "@/components/Logo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CreditCard, TrendingUp, ArrowUpCircle } from "lucide-react";
 
 type RatesData = {
   country: string;
@@ -144,187 +144,185 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg text-white flex flex-col">
-
-      {/* Topbar */}
-      <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
-        <Logo />
-        <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Retour au tableau de bord
-        </Link>
+    <div className="p-6 lg:p-10 max-w-3xl mx-auto fade-in">
+      <div className="mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Facturation</h1>
+        <p className="text-gray-400 mt-1 text-sm">
+          Gérez votre abonnement, vos paiements et votre utilisation.
+        </p>
       </div>
 
-      {/* Content */}
-      <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Facturation & Paiements</h1>
-
-        {/* Subscription */}
-        <div className="premium-card p-6 flex flex-col gap-4 mb-10">
-          <h2 className="text-xl font-semibold">Abonnement actuel</h2>
-
-          {loading ? (
-            <p className="text-gray-400">Chargement...</p>
-          ) : (
-            <>
-              <p className="text-gray-400">
-                Vous êtes actuellement sur le <span className="text-accent capitalize">Plan {plan === "free" ? "Gratuit" : plan}</span>.
-              </p>
-              <p className="text-gray-400">
-                Crédits restants : <span className="text-white font-semibold">{credits}</span> / {creditsMonthly}
-              </p>
-              {limits && (
-                <div className="flex flex-col gap-1 mt-2">
-                  <p className="text-sm text-gray-500">Générations IA : {limits.aiGenerations} / mois</p>
-                  <p className="text-sm text-gray-500">Espace de travail : {limits.workspaceSizeMb >= 1000 ? `${limits.workspaceSizeMb / 1000} Go` : `${limits.workspaceSizeMb} Mo`}</p>
-                  <p className="text-sm text-gray-500">Projets : {limits.maxProjects === -1 ? "Illimité" : limits.maxProjects}</p>
-                </div>
-              )}
-            </>
-          )}
+      {/* Current plan */}
+      <div className="premium-card p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <CreditCard className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-semibold">Plan actuel</h2>
         </div>
 
-        {/* Payment Method */}
-        <div className="premium-card p-6 flex flex-col gap-4 mb-10">
-          <h2 className="text-xl font-semibold">Méthode de paiement</h2>
-
-          <div className="flex gap-4">
-            <button
-              onClick={() => setMethod("mobile")}
-              className={`px-4 py-2 rounded-smooth border premium-hover transition-all ${
-                method === "mobile"
-                  ? "border-accent bg-accent/20 text-accent"
-                  : "border-border bg-surface text-gray-300 hover:text-white"
-              }`}
-            >
-              Mobile Money (PawaPay)
-            </button>
-
-            <button
-              onClick={() => setMethod("card")}
-              className={`px-4 py-2 rounded-smooth border premium-hover transition-all ${
-                method === "card"
-                  ? "border-accent bg-accent/20 text-accent"
-                  : "border-border bg-surface text-gray-300 hover:text-white"
-              }`}
-            >
-              Carte bancaire
-            </button>
-          </div>
-
-          {method === "mobile" && (
-            <div className="flex flex-col gap-4 mt-4">
-              <div>
-                <label className="text-sm text-gray-300 mb-1 block">Numéro Mobile Money</label>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+243 970 000 000"
-                  className="w-full bg-surfaceLight border border-border rounded-smooth px-4 py-2 focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              {/* Plan selection */}
-              <div>
-                <label className="text-sm text-gray-300 mb-2 block">Choisir un plan</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {PLANS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelectedPlan(p.id)}
-                      className={`p-3 rounded-smooth border text-left premium-hover transition-all ${
-                        selectedPlan === p.id
-                          ? "border-accent bg-accent/20"
-                          : "border-border bg-surface"
-                      }`}
-                    >
-                      <div className="font-semibold">{p.name}</div>
-                      <div className="text-sm text-gray-400">{p.credits} crédits</div>
-                      <div className="text-accent text-sm">
-                        {p.priceLocal.toLocaleString("fr-FR")} {currencySymbol}/mois
-                      </div>
-                      {showUsdHint && (
-                        <div className="text-xs text-gray-500">soit {p.price} $ USD</div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={handlePayment}
-                disabled={paying || !phone.trim()}
-                className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft w-fit disabled:opacity-50"
-              >
-                {paying ? "Traitement en cours..." : "Payer via Mobile Money"}
-              </button>
-
-              {payResult && (
-                <p className={`text-sm ${payResult.success ? "text-green-400" : "text-red-400"}`}>
-                  {payResult.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {method === "card" && (
-            <p className="text-gray-400 text-sm mt-4">
-              Les paiements par carte bancaire arrivent bientôt.
+        {loading ? (
+          <p className="text-gray-400 text-sm">Chargement...</p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-gray-400 text-sm">
+              Vous êtes sur le <span className="text-accent capitalize font-medium">Plan {plan === "free" ? "Gratuit" : plan}</span>.
             </p>
-          )}
-        </div>
-
-        {/* Payment History */}
-        <div className="premium-card p-6 flex flex-col gap-4 mb-10">
-          <h2 className="text-xl font-semibold">Historique des paiements</h2>
-
-          {historyLoading ? (
-            <p className="text-gray-400">Chargement...</p>
-          ) : history.length === 0 ? (
-            <p className="text-gray-400 text-sm">Aucun paiement enregistré.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {history.map((item) => (
-                <div key={item.id} className="flex items-center justify-between border-b border-border/50 pb-3">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium capitalize">{item.provider}</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(item.createdAt).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-semibold">
-                      {item.amount} {item.currency}
-                    </span>
-                    <span className={`text-xs font-medium ${statusColor(item.status)}`}>
-                      {statusLabel(item.status)}
-                    </span>
-                  </div>
+            <p className="text-gray-400 text-sm">
+              Crédits : <span className="text-white font-semibold">{credits}</span> / {creditsMonthly}
+            </p>
+            {limits && (
+              <div className="grid grid-cols-3 gap-3 mt-3">
+                <div className="bg-surface rounded-smooth p-3 text-center">
+                  <p className="text-xs text-gray-500">Générations IA</p>
+                  <p className="font-semibold text-sm">{limits.aiGenerations}/mois</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Pricing link */}
-        <div className="premium-card p-6 flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">Comparer les plans</h2>
-          <Link
-            href="/pricing"
-            className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft w-fit"
-          >
-            Voir tous les plans
-          </Link>
-        </div>
+                <div className="bg-surface rounded-smooth p-3 text-center">
+                  <p className="text-xs text-gray-500">Stockage</p>
+                  <p className="font-semibold text-sm">{limits.workspaceSizeMb >= 1000 ? `${limits.workspaceSizeMb / 1000} Go` : `${limits.workspaceSizeMb} Mo`}</p>
+                </div>
+                <div className="bg-surface rounded-smooth p-3 text-center">
+                  <p className="text-xs text-gray-500">Projets</p>
+                  <p className="font-semibold text-sm">{limits.maxProjects === -1 ? "∞" : limits.maxProjects}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Footer */}
-      <div className="mt-auto py-10 text-center text-gray-500 text-sm">
-        Prestige Build © {new Date().getFullYear()}
+      {/* Upgrade */}
+      <div className="premium-card p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <ArrowUpCircle className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-semibold">Mettre à niveau</h2>
+        </div>
+
+        <div className="flex gap-3 mb-4">
+          <button
+            onClick={() => setMethod("mobile")}
+            className={`px-4 py-2 rounded-smooth border text-sm transition-all ${
+              method === "mobile"
+                ? "border-accent bg-accent/15 text-accent"
+                : "border-border bg-surface text-gray-400 hover:text-white"
+            }`}
+          >
+            Mobile Money
+          </button>
+          <button
+            onClick={() => setMethod("card")}
+            className={`px-4 py-2 rounded-smooth border text-sm transition-all ${
+              method === "card"
+                ? "border-accent bg-accent/15 text-accent"
+                : "border-border bg-surface text-gray-400 hover:text-white"
+            }`}
+          >
+            Carte bancaire
+          </button>
+        </div>
+
+        {method === "mobile" && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-300 mb-1 block">Numéro Mobile Money</label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+243 970 000 000"
+                className="w-full bg-surface border border-border rounded-smooth px-4 py-2 text-sm focus:outline-none focus:border-accent/50 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-300 mb-2 block">Choisir un plan</label>
+              <div className="grid grid-cols-2 gap-3">
+                {PLANS.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPlan(p.id)}
+                    className={`p-3 rounded-smooth border text-left text-sm transition-all ${
+                      selectedPlan === p.id
+                        ? "border-accent bg-accent/15"
+                        : "border-border bg-surface hover:border-gray-600"
+                    }`}
+                  >
+                    <div className="font-semibold">{p.name}</div>
+                    <div className="text-xs text-gray-400">{p.credits} crédits</div>
+                    <div className="text-accent text-xs mt-1">
+                      {p.priceLocal.toLocaleString("fr-FR")} {currencySymbol}/mois
+                    </div>
+                    {showUsdHint && (
+                      <div className="text-xs text-gray-500">soit {p.price} $ USD</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handlePayment}
+              disabled={paying || !phone.trim()}
+              className="px-5 py-2.5 bg-accent hover:bg-accentDark text-white rounded-smooth text-sm font-medium transition-all disabled:opacity-50"
+            >
+              {paying ? "Traitement…" : "Payer via Mobile Money"}
+            </button>
+
+            {payResult && (
+              <p className={`text-sm ${payResult.success ? "text-green-400" : "text-red-400"}`}>
+                {payResult.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {method === "card" && (
+          <p className="text-gray-400 text-sm">
+            Les paiements par carte bancaire arrivent bientôt.
+          </p>
+        )}
+      </div>
+
+      {/* Payment history */}
+      <div className="premium-card p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <TrendingUp className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-semibold">Historique</h2>
+        </div>
+
+        {historyLoading ? (
+          <p className="text-gray-400 text-sm">Chargement...</p>
+        ) : history.length === 0 ? (
+          <p className="text-gray-400 text-sm">Aucun paiement enregistré.</p>
+        ) : (
+          <div className="space-y-3">
+            {history.map((item) => (
+              <div key={item.id} className="flex items-center justify-between border-b border-border/50 pb-3">
+                <div>
+                  <span className="text-sm font-medium capitalize">{item.provider}</span>
+                  <span className="text-xs text-gray-500 ml-2">
+                    {new Date(item.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold">{item.amount} {item.currency}</span>
+                  <span className={`text-xs font-medium ${statusColor(item.status)}`}>
+                    {statusLabel(item.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Compare plans */}
+      <div className="premium-card p-6">
+        <h2 className="text-lg font-semibold mb-3">Comparer les plans</h2>
+        <Link
+          href="/pricing"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accentDark text-white rounded-smooth text-sm font-medium transition-all"
+        >
+          Voir tous les plans
+        </Link>
       </div>
     </div>
   );
