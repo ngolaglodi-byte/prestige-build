@@ -169,7 +169,8 @@ export default function TeamPage() {
               >
                 <div>
                   <span className="font-semibold">
-                    Équipe #{inv.teamId.slice(0, 8)}
+                    {teams.find((t) => t.id === inv.teamId)?.name ||
+                      `Équipe #${inv.teamId.slice(0, 8)}`}
                   </span>
                   <span className="text-gray-400 text-sm ml-2">
                     ({ROLE_LABELS[inv.role] || inv.role})

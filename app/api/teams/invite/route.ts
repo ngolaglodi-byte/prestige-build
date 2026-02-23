@@ -35,19 +35,24 @@ export async function POST(req: Request) {
     .limit(1);
   if (!team) return new Response("Équipe introuvable", { status: 404 });
 
-  const [callerMember] = await db
-    .select()
-    .from(teamMembers)
-    .where(
-      and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
-    )
-    .limit(1);
+  // Allow if the user is the team owner directly
+  const isTeamOwner = team.ownerId === user.id;
 
-  if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
-    return new Response(
-      "Seuls les propriétaires et administrateurs peuvent inviter des membres",
-      { status: 403 }
-    );
+  if (!isTeamOwner) {
+    const [callerMember] = await db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
+      )
+      .limit(1);
+
+    if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
+      return new Response(
+        "Seuls les propriétaires et administrateurs peuvent inviter des membres",
+        { status: 403 }
+      );
+    }
   }
 
   // Check if already invited

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { teamMembers, users } from "@/db/schema";
+import { teamMembers, teams, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 // GET /api/teams/[teamId]/members — List members of a team
@@ -20,16 +20,26 @@ export async function GET(
     .limit(1);
   if (!user) return NextResponse.json({ members: [] });
 
-  // Verify the caller is a member of the team
-  const [callerMember] = await db
+  // Verify the caller is a member of the team or the team owner
+  const [team] = await db
     .select()
-    .from(teamMembers)
-    .where(
-      and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
-    )
+    .from(teams)
+    .where(eq(teams.id, teamId))
     .limit(1);
-  if (!callerMember) {
-    return new Response("Accès refusé", { status: 403 });
+
+  const isTeamOwner = team?.ownerId === user.id;
+
+  if (!isTeamOwner) {
+    const [callerMember] = await db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
+      )
+      .limit(1);
+    if (!callerMember) {
+      return new Response("Accès refusé", { status: 403 });
+    }
   }
 
   const members = await db
@@ -60,19 +70,29 @@ export async function DELETE(
   if (!memberId) return new Response("ID du membre requis", { status: 400 });
 
   // Verify the caller is owner or admin
-  const [callerMember] = await db
+  const [team] = await db
     .select()
-    .from(teamMembers)
-    .where(
-      and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
-    )
+    .from(teams)
+    .where(eq(teams.id, teamId))
     .limit(1);
 
-  if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
-    return new Response(
-      "Seuls les propriétaires et administrateurs peuvent retirer des membres",
-      { status: 403 }
-    );
+  const isTeamOwner = team?.ownerId === user.id;
+
+  if (!isTeamOwner) {
+    const [callerMember] = await db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, user.id))
+      )
+      .limit(1);
+
+    if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
+      return new Response(
+        "Seuls les propriétaires et administrateurs peuvent retirer des membres",
+        { status: 403 }
+      );
+    }
   }
 
   // Cannot remove the owner
