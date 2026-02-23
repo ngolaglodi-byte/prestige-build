@@ -8,12 +8,12 @@ function hashKey(key: string): string {
 }
 
 export async function validateApiKey(rawKey: string) {
-  const keyH = hashKey(rawKey);
+  const hashedKey = hashKey(rawKey);
 
   const [key] = await db
     .select()
     .from(apiKeys)
-    .where(and(eq(apiKeys.keyHash, keyH), eq(apiKeys.revoked, false)))
+    .where(and(eq(apiKeys.keyHash, hashedKey), eq(apiKeys.revoked, false)))
     .limit(1);
 
   if (!key) return { valid: false, error: "Invalid or revoked API key" } as const;

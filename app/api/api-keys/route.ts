@@ -41,14 +41,14 @@ export async function POST(req: Request) {
 
   const { label } = await req.json();
   const rawKey = `sk_live_${crypto.randomBytes(24).toString("hex")}`;
-  const keyH = hashKey(rawKey);
+  const hashedKey = hashKey(rawKey);
   const keyPrefix = rawKey.slice(0, 12);
 
   const [created] = await db
     .insert(apiKeys)
     .values({
       userId: user.id,
-      keyHash: keyH,
+      keyHash: hashedKey,
       keyPrefix,
       label: label ?? "Default",
     })
