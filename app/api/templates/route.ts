@@ -7,8 +7,8 @@ export async function GET(req: Request) {
   const { userId } = await auth();
 
   const { searchParams } = new URL(req.url);
-  const search = searchParams.get("search") || "";
-  const category = searchParams.get("category") || "";
+  const search = (searchParams.get("search") || "").slice(0, 200);
+  const category = (searchParams.get("category") || "").slice(0, 50);
   const scope = searchParams.get("scope") || "public"; // "public" | "mine"
   const page = Number(searchParams.get("page") || "1");
   const pageSize = Number(searchParams.get("pageSize") || "12");

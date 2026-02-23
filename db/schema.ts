@@ -251,7 +251,7 @@ export const templates = pgTable("templates", {
   isPublic: boolean("is_public").notNull().default(false),
   usageCount: integer("usage_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").default(sql`NOW()`).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // WEBHOOK CONFIGS
