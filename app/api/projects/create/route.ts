@@ -35,6 +35,12 @@ export async function POST(req: Request) {
     const now = new Date().toISOString();
     const id = randomUUID();
 
+    console.log("[projects/create] Inserting into table 'projects' (lowercase):", {
+      id,
+      user_id: userId,
+      name: name.trim(),
+    });
+
     const { data, error } = await supabase
       .from("projects")
       .insert({
@@ -48,9 +54,11 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("[projects/create] Supabase insert error:", error);
+      console.error("[projects/create] Supabase insert error on table 'projects':", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    console.log("[projects/create] Successfully inserted into 'projects' table:", data?.id);
 
     return NextResponse.json({ project: data });
   } catch (err) {

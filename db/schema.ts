@@ -22,6 +22,37 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+// PLANS (Free, Pro, Enterprise resource limits)
+export const plans = pgTable("plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  maxActivePreviews: integer("max_active_previews").notNull(),
+  maxCpuPercent: integer("max_cpu_percent").notNull(),
+  maxMemoryMb: integer("max_memory_mb").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// USER PLANS (links user to a plan)
+export const userPlans = pgTable("user_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  planId: uuid("plan_id").notNull().references(() => plans.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// USER LIMITS (per-user override of plan quotas)
+export const userLimits = pgTable("user_limits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  maxActivePreviews: integer("max_active_previews").notNull(),
+  maxCpuPercent: integer("max_cpu_percent").notNull(),
+  maxMemoryMb: integer("max_memory_mb").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // PROJECTS
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),

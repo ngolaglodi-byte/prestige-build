@@ -15,112 +15,137 @@ generator client {
 
 // ------------------------------------------------------
 //  USER MODEL
+//  Maps to the "users" table (lowercase) used by Drizzle/Supabase
 // ------------------------------------------------------
 model User {
-  id        String      @id @default(cuid())
+  id        String      @id @default(uuid())
+  clerkId   String      @unique @map("clerk_id")
   email     String      @unique
   name      String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  avatar    String?
+  role      String?     @default("user")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
 
   userPlan  UserPlan?
   limits    UserLimits?
   projects  Project[]
   previews  PreviewSession[]
+
+  @@map("users")
 }
 
 // ------------------------------------------------------
 //  PLAN MODEL
+//  Maps to the "plans" table (lowercase)
 // ------------------------------------------------------
 model Plan {
-  id                String   @id @default(cuid())
+  id                String   @id @default(uuid())
   name              String
   slug              String   @unique
-  maxActivePreviews Int
-  maxCpuPercent     Int
-  maxMemoryMb       Int
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  maxActivePreviews Int      @map("max_active_previews")
+  maxCpuPercent     Int      @map("max_cpu_percent")
+  maxMemoryMb       Int      @map("max_memory_mb")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   users             UserPlan[]
+
+  @@map("plans")
 }
 
 // ------------------------------------------------------
 //  USER PLAN
+//  Maps to the "user_plans" table (lowercase, snake_case)
 // ------------------------------------------------------
 model UserPlan {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  planId    String
-  createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  planId    String   @map("plan_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   user      User     @relation(fields: [userId], references: [id])
   plan      Plan     @relation(fields: [planId], references: [id])
+
+  @@map("user_plans")
 }
 
 // ------------------------------------------------------
 //  USER LIMITS (override des quotas par user)
+//  Maps to the "user_limits" table (lowercase, snake_case)
 // ------------------------------------------------------
 model UserLimits {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  maxActivePreviews Int
-  maxCpuPercent     Int
-  maxMemoryMb       Int
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                String   @id @default(uuid())
+  userId            String   @unique @map("user_id")
+  maxActivePreviews Int      @map("max_active_previews")
+  maxCpuPercent     Int      @map("max_cpu_percent")
+  maxMemoryMb       Int      @map("max_memory_mb")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   user              User     @relation(fields: [userId], references: [id])
+
+  @@map("user_limits")
 }
 
 // ------------------------------------------------------
 //  PROJECT MODEL
+//  Maps to the "projects" table (lowercase) — the correct table
+//  used by all API routes and Drizzle.
 // ------------------------------------------------------
 model Project {
-  id          String   @id @default(cuid())
-  userId      String
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
   name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   user        User     @relation(fields: [userId], references: [id])
   previews    PreviewSession[]
   files       File[]
+
+  @@map("projects")
 }
 
 // ------------------------------------------------------
 //  FILE MODEL
+//  Maps to the "files" table (lowercase)
 // ------------------------------------------------------
 model File {
-  id        String   @id @default(cuid())
-  projectId String
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
   path      String
   content   String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, path])
+  @@map("files")
 }
 
 // ------------------------------------------------------
 //  PREVIEW SESSION MODEL
+//  Maps to the "preview_sessions" table (lowercase, snake_case)
 // ------------------------------------------------------
 model PreviewSession {
-  id             String    @id @default(cuid())
-  projectId      String
-  userId         String
+  id             String    @id @default(uuid())
+  projectId      String    @map("project_id")
+  userId         String    @map("user_id")
   port           Int
   status         String
-  cpuPercent     Float?
-  memoryMb       Float?
-  startedAt      DateTime?
-  stoppedAt      DateTime?
-  lastActivityAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  cpuPercent     Float?    @map("cpu_percent")
+  memoryMb       Float?    @map("memory_mb")
+  startedAt      DateTime? @map("started_at")
+  stoppedAt      DateTime? @map("stopped_at")
+  lastActivityAt DateTime? @map("last_activity_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   project        Project   @relation(fields: [projectId], references: [id])
   user           User      @relation(fields: [userId], references: [id])
+
+  @@map("preview_sessions")
 }

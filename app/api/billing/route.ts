@@ -14,7 +14,7 @@ export async function GET() {
     const freePlan = getPlan("free");
     return NextResponse.json({
       plan: "free",
-      credits: 0,
+      credits: freePlan.credits,
       creditsMonthly: freePlan.credits,
       status: "active",
       renewalDate: null,
@@ -27,7 +27,7 @@ export async function GET() {
 
   return NextResponse.json({
     plan: sub?.plan ?? "free",
-    credits: sub?.creditsRemaining ?? 0,
+    credits: sub?.creditsRemaining ?? plan.credits,
     creditsMonthly: sub?.creditsMonthly ?? plan.credits,
     status: sub?.status ?? "active",
     renewalDate: sub?.renewalDate ?? null,

@@ -28,6 +28,8 @@ export async function GET(req: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log("[projects/list] Querying table 'projects' (lowercase) for userId:", userId);
+
     let query = supabase
       .from("projects")
       .select("*", { count: "exact" })
@@ -45,9 +47,11 @@ export async function GET(req: Request) {
       .range(from, to);
 
     if (error) {
-      console.error("[projects/list] Supabase query error:", error);
+      console.error("[projects/list] Supabase query error on table 'projects':", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    console.log(`[projects/list] Found ${count ?? 0} projects in 'projects' table for userId: ${userId}`);
 
     return NextResponse.json({
       projects: data || [],
