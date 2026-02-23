@@ -57,6 +57,18 @@ export async function POST(req: Request) {
   if (type === "user.created") {
     console.log("👤 [clerk/webhook] Creating user:", data.id);
 
+    // Check for duplicate user
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_id", data.id)
+      .single();
+
+    if (existingUser) {
+      console.log("⚠️ [clerk/webhook] User already exists, skipping:", data.id);
+      return new Response("User already exists", { status: 200 });
+    }
+
     const now = new Date().toISOString();
     const userId = randomUUID();
 

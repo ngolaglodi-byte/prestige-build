@@ -1,7 +1,21 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUserWithRole } from "@/lib/auth";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export const dynamic = "force-dynamic";
+
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUserWithRole();
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  if (user.role !== "admin") {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="flex h-screen">
       {/* SIDEBAR */}
