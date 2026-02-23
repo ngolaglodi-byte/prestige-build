@@ -7,6 +7,7 @@ import crypto from "crypto";
 
 const PAWAPAY_API_URL = process.env.PAWAPAY_API_URL ?? "https://api.pawapay.io";
 const PAWAPAY_API_KEY = process.env.PAWAPAY_API_KEY;
+const PAWAPAY_CORRESPONDENT = process.env.PAWAPAY_CORRESPONDENT ?? "MTN_MOMO_COD";
 
 /** Plans disponibles avec prix en USD et crédits */
 const PLANS: Record<string, { credits: number; priceUsd: number }> = {
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
           depositId,
           amount: String(selectedPlan.priceUsd),
           currency,
-          correspondent: "MTN_MOMO_COD",
+          correspondent: PAWAPAY_CORRESPONDENT,
           payer: {
             type: "MSISDN",
             address: { value: phoneNumber.replace(/\s/g, "") },

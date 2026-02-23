@@ -93,8 +93,8 @@ export default function GlobalSettingsPage() {
               onChange={(e) => handleLanguageChange(e.target.value)}
               className="bg-surfaceLight border border-border rounded-smooth px-4 py-2"
             >
-              <option value="fr">Français</option>
-              <option value="en">English</option>
+              <option value="fr" lang="fr">Français</option>
+              <option value="en" lang="en">English</option>
             </select>
           </div>
 
