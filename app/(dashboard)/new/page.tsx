@@ -9,10 +9,10 @@ export default function NewProjectPage() {
   const [template, setTemplate] = useState("react");
 
   const templates = [
-    { id: "react", label: "React App" },
-    { id: "next", label: "Next.js App" },
-    { id: "landing", label: "Landing Page" },
-    { id: "ecommerce", label: "Ecommerce Starter" },
+    { id: "react", label: "Application React" },
+    { id: "next", label: "Application Next.js" },
+    { id: "landing", label: "Page d'atterrissage" },
+    { id: "ecommerce", label: "Starter E‑commerce" },
   ];
 
   return (
@@ -22,38 +22,38 @@ export default function NewProjectPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Content */}
       <div className="flex flex-col items-center mt-20 fade-in px-6">
         <h1 className="text-4xl font-bold tracking-tight mb-4">
-          Create a New Project
+          Créer un nouveau projet
         </h1>
 
         <p className="text-gray-400 mb-10 text-center max-w-xl">
-          Choose a name and a template. Prestige Build will generate the full project structure instantly.
+          Choisissez un nom et un modèle. Prestige Build générera la structure complète du projet instantanément.
         </p>
 
-        {/* Form */}
+        {/* Formulaire */}
         <div className="premium-card p-8 w-full max-w-xl flex flex-col gap-6">
 
-          {/* Project Name */}
+          {/* Nom du projet */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300">Project Name</label>
+            <label className="text-sm text-gray-300">Nom du projet</label>
             <input
               type="text"
-              placeholder="My Awesome App"
+              placeholder="Mon super projet"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="bg-surfaceLight border border-border rounded-smooth px-4 py-2 focus:outline-none focus:border-accent"
             />
           </div>
 
-          {/* Templates */}
+          {/* Modèles */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300">Template</label>
+            <label className="text-sm text-gray-300">Modèle</label>
             <div className="grid grid-cols-2 gap-3">
               {templates.map((t) => (
                 <button
@@ -76,7 +76,7 @@ export default function NewProjectPage() {
             href="/workspace/1"
             className="w-full text-center px-4 py-3 bg-accent rounded-smooth premium-hover shadow-soft text-lg"
           >
-            Create Project
+            Créer le projet
           </Link>
         </div>
       </div>

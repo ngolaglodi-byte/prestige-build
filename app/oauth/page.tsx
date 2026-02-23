@@ -14,14 +14,14 @@ export default function OAuthConnectionsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Content */}
       <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
 
-        <h1 className="text-3xl font-bold tracking-tight mb-8">OAuth Connections</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Connexions OAuth</h1>
 
         <div className="premium-card p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -32,7 +32,7 @@ export default function OAuthConnectionsPage() {
             <div>
               <h2 className="text-lg font-semibold">GitHub</h2>
               <p className="text-gray-400 text-sm">
-                Connect your GitHub account to sync repositories and enable deployments.
+                Connectez votre compte GitHub pour synchroniser vos dépôts et activer les déploiements.
               </p>
             </div>
           </div>
@@ -45,7 +45,7 @@ export default function OAuthConnectionsPage() {
                 : "bg-surface border-border"
             }`}
           >
-            {connected ? "Connected" : "Connect"}
+            {connected ? "Connecté" : "Connecter"}
           </button>
         </div>
 

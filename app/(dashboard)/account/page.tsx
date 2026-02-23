@@ -15,22 +15,22 @@ export default function AccountSettingsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Content */}
       <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Account Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Paramètres du compte</h1>
 
         <div className="flex flex-col gap-10">
 
-          {/* Profile */}
+          {/* Profil */}
           <div className="premium-card p-6 flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Profile</h2>
+            <h2 className="text-xl font-semibold">Profil</h2>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm text-gray-300">Full Name</label>
+              <label className="text-sm text-gray-300">Nom complet</label>
               <input
                 type="text"
                 value={name}
@@ -40,7 +40,7 @@ export default function AccountSettingsPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm text-gray-300">Email</label>
+              <label className="text-sm text-gray-300">Adresse e-mail</label>
               <input
                 type="email"
                 value={email}
@@ -50,16 +50,16 @@ export default function AccountSettingsPage() {
             </div>
 
             <button className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft w-fit">
-              Save Changes
+              Enregistrer les modifications
             </button>
           </div>
 
-          {/* Password */}
+          {/* Mot de passe */}
           <div className="premium-card p-6 flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Password</h2>
+            <h2 className="text-xl font-semibold">Mot de passe</h2>
 
             <Link href="/auth/forgot" className="text-accent premium-hover">
-              Reset your password
+              Réinitialiser votre mot de passe
             </Link>
           </div>
 

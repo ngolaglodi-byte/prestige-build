@@ -2,9 +2,9 @@
 
 export default function DeploymentsPage() {
   const deployments = [
-    { id: "dep_001", status: "success", url: "https://project.vercel.app", time: "2 hours ago" },
-    { id: "dep_002", status: "building", url: "—", time: "Yesterday" },
-    { id: "dep_003", status: "failed", url: "—", time: "3 days ago" },
+    { id: "dep_001", status: "success", url: "https://project.vercel.app", time: "Il y a 2 heures" },
+    { id: "dep_002", status: "building", url: "—", time: "Hier" },
+    { id: "dep_003", status: "failed", url: "—", time: "Il y a 3 jours" },
   ];
 
   return (

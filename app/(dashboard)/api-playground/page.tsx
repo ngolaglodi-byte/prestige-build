@@ -26,26 +26,26 @@ export default function ApiPlaygroundPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Hero */}
       <div className="text-center mt-16 fade-in px-6">
         <h1 className="text-4xl font-bold tracking-tight mb-4">
-          API <span className="text-accent">Playground</span>
+          <span className="text-accent">Playground</span> API
         </h1>
         <p className="text-gray-400 max-w-xl mx-auto">
-          Test the Prestige Build API directly from your browser.
+          Testez l&apos;API Prestige Build directement depuis votre navigateur.
         </p>
       </div>
 
       {/* Playground */}
       <div className="max-w-5xl mx-auto mt-16 grid grid-cols-2 gap-6 px-6">
 
-        {/* Request */}
+        {/* Requête */}
         <div className="premium-card p-6 flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">Request</h2>
+          <h2 className="text-xl font-semibold">Requête</h2>
 
           <div className="flex gap-3">
             <select
@@ -75,13 +75,13 @@ export default function ApiPlaygroundPage() {
             onClick={runRequest}
             className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft"
           >
-            Send Request
+            Envoyer la requête
           </button>
         </div>
 
-        {/* Response */}
+        {/* Réponse */}
         <div className="premium-card p-6 flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">Response</h2>
+          <h2 className="text-xl font-semibold">Réponse</h2>
 
           <pre className="bg-surfaceLight border border-border rounded-smooth p-4 h-96 overflow-auto text-sm">
 {response}

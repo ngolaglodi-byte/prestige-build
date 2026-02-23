@@ -38,7 +38,7 @@ export default function GlobalSettingsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Dashboard
+          Tableau de bord
         </Link>
       </div>
 
@@ -94,7 +94,7 @@ export default function GlobalSettingsPage() {
               className="bg-surfaceLight border border-border rounded-smooth px-4 py-2"
             >
               <option value="fr" lang="fr">Français</option>
-              <option value="en" lang="en">English</option>
+              <option value="en" lang="en">Anglais</option>
             </select>
           </div>
 
