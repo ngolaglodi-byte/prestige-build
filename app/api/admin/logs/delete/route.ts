@@ -17,6 +17,9 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const logId = form.get("logId") as string;
+  if (!logId) {
+    return NextResponse.json({ error: "Missing logId" }, { status: 400 });
+  }
 
   await db.delete(activityLogs).where(eq(activityLogs.id, logId));
 

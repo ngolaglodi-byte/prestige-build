@@ -17,6 +17,9 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const projectId = form.get("projectId") as string;
+  if (!projectId) {
+    return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
+  }
 
   await db.delete(projects).where(eq(projects.id, projectId));
 

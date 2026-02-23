@@ -8,15 +8,24 @@ interface UserRole {
   role: string;
 }
 
+let cachedPromise: Promise<UserRole | null> | null = null;
+
+function fetchUserRole(): Promise<UserRole | null> {
+  if (!cachedPromise) {
+    cachedPromise = fetch("/api/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null);
+  }
+  return cachedPromise;
+}
+
 export function useUserRole() {
   const [user, setUser] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/me")
-      .then((res) => (res.ok ? res.json() : null))
+    fetchUserRole()
       .then((data) => setUser(data))
-      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 

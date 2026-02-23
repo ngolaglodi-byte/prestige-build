@@ -17,6 +17,9 @@ export async function POST(req: Request) {
 
   const form = await req.formData();
   const subId = form.get("subId") as string;
+  if (!subId) {
+    return NextResponse.json({ error: "Missing subId" }, { status: 400 });
+  }
 
   await db
     .update(subscriptions)
