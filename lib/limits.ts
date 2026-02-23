@@ -16,7 +16,7 @@ export type EffectiveLimits = {
  */
 export async function getUserLimits(userId: string): Promise<EffectiveLimits> {
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { clerkId: userId },
     include: {
       userPlan: {
         include: {
