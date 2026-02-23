@@ -8,13 +8,13 @@ export default function Sidebar() {
   const path = usePathname();
 
   const items = [
-    { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-    { name: "Projects", href: "/projects", icon: FolderIcon },
-    { name: "Team", href: "/team", icon: UserGroupIcon },
+    { name: "Tableau de bord", href: "/dashboard", icon: HomeIcon },
+    { name: "Projets", href: "/projects", icon: FolderIcon },
+    { name: "Équipe", href: "/team", icon: UserGroupIcon },
     { name: "Clés API", href: "/api-keys", icon: KeyIcon },
     { name: "Notifications", href: "/notifications", icon: BellIcon },
-    { name: "Usage", href: "/usage", icon: ChartBarIcon },
-    { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
+    { name: "Utilisation", href: "/usage", icon: ChartBarIcon },
+    { name: "Paramètres", href: "/settings", icon: Cog6ToothIcon },
   ];
 
   return (

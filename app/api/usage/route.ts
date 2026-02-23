@@ -1,33 +1,31 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { usageLogs, users } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getUsageSummary } from "@/lib/usage/trackUsage";
 
 export async function GET() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  if (!clerkId) return new Response("Non autorisé", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
-  if (!user) return NextResponse.json({ usage: [] });
-
-  const usage = await db
-    .select({
-      action: usageLogs.action,
-      totalTokens: sql<number>`SUM(${usageLogs.tokensUsed})`,
-      totalCredits: sql<number>`SUM(${usageLogs.creditsUsed})`,
-      count: sql<number>`COUNT(*)`,
-    })
-    .from(usageLogs)
-    .where(eq(usageLogs.userId, user.id))
-    .groupBy(usageLogs.action);
-
-  const recentLogs = await db
+  const [user] = await db
     .select()
-    .from(usageLogs)
-    .where(eq(usageLogs.userId, user.id))
-    .orderBy(sql`${usageLogs.createdAt} DESC`)
-    .limit(20);
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
 
-  return NextResponse.json({ usage, recentLogs });
+  if (!user) {
+    return NextResponse.json({
+      plan: { id: "free", name: "Gratuit", limits: { aiGenerations: 10, workspaceSizeMb: 100, maxProjects: 1 } },
+      credits: { remaining: 0, monthly: 10 },
+      aiGenerations: { used: 0, limit: 10 },
+      workspaceActions: { count: 0 },
+      usageByAction: [],
+      recentActivity: [],
+    });
+  }
+
+  const summary = await getUsageSummary(user.id);
+  return NextResponse.json(summary);
 }
