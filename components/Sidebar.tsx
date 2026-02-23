@@ -86,7 +86,7 @@ export default function Sidebar() {
                 key={item.name}
                 href={item.href}
                 onClick={() => {
-                  if (window.innerWidth < 1024) setCollapsed(true);
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) setCollapsed(true);
                 }}
                 title={collapsed ? item.name : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-smooth transition-all duration-200 group ${
