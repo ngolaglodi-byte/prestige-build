@@ -1,62 +1,235 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+type Project = {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  is_favorite: boolean;
+};
+
 export default function DashboardPage() {
-  const projects = [
-    { id: 1, name: "Landing Page AI", updated: "2 hours ago" },
-    { id: 2, name: "E‑commerce Starter", updated: "Yesterday" },
-    { id: 3, name: "Portfolio Modern", updated: "3 days ago" },
-  ];
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 6;
+
+  async function loadProjects(opts?: { page?: number; search?: string }) {
+    const currentPage = opts?.page ?? page;
+    const currentSearch = opts?.search ?? search;
+
+    setLoading(true);
+    const params = new URLSearchParams({
+      page: String(currentPage),
+      pageSize: String(pageSize),
+      search: currentSearch,
+    });
+
+    const res = await fetch(`/api/projects/list?${params.toString()}`);
+    const data = await res.json();
+
+    setProjects(data.projects || []);
+    setTotal(data.total || 0);
+    setPage(data.page || 1);
+    setLoading(false);
+  }
+
+  async function createProject() {
+    const name = prompt("Project name:");
+    if (!name) return;
+
+    setCreating(true);
+
+    await fetch("/api/projects/create", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+
+    setCreating(false);
+    loadProjects({ page: 1 }); // revenir à la première page
+  }
+
+  async function deleteProject(id: string) {
+    const ok = confirm("Delete this project?");
+    if (!ok) return;
+
+    await fetch("/api/projects/delete", {
+      method: "POST",
+      body: JSON.stringify({ id }),
+    });
+
+    loadProjects();
+  }
+
+  async function renameProject(id: string, currentName: string) {
+    const name = prompt("New project name:", currentName);
+    if (!name || name === currentName) return;
+
+    await fetch("/api/projects/rename", {
+      method: "POST",
+      body: JSON.stringify({ id, name }),
+    });
+
+    loadProjects();
+  }
+
+  async function duplicateProject(id: string) {
+    await fetch("/api/projects/duplicate", {
+      method: "POST",
+      body: JSON.stringify({ id }),
+    });
+
+    loadProjects({ page: 1 });
+  }
+
+  async function toggleFavorite(id: string, isFavorite: boolean) {
+    await fetch("/api/projects/favorite", {
+      method: "POST",
+      body: JSON.stringify({ id, isFavorite: !isFavorite }),
+    });
+
+    loadProjects();
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    loadProjects({ page: 1, search });
+  }
+
+  useEffect(() => {
+    loadProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="min-h-screen bg-bg text-white px-8 py-10 fade-in">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-12">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <button className="premium-card px-5 py-2 premium-hover">
-          New Project
+    <div className="p-10 max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold">Your Projects</h1>
+          <p className="text-gray-400 mt-1">
+            Manage, search, and organize all your Prestige Build workspaces.
+          </p>
+        </div>
+
+        <button
+          onClick={createProject}
+          disabled={creating}
+          className="self-start md:self-auto px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {creating ? "Creating..." : "New Project"}
         </button>
       </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="premium-card p-6">
-          <p className="text-sm opacity-70">Projects</p>
-          <p className="text-3xl font-bold mt-2">12</p>
-        </div>
+      <form onSubmit={handleSearchSubmit} className="mb-6 flex gap-3">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search projects..."
+          className="flex-1 px-3 py-2 rounded-lg bg-[#111] border border-white/10 text-sm"
+        />
+        <button
+          type="submit"
+          className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 text-sm"
+        >
+          Search
+        </button>
+      </form>
 
-        <div className="premium-card p-6">
-          <p className="text-sm opacity-70">AI Generations</p>
-          <p className="text-3xl font-bold mt-2">87</p>
-        </div>
+      {loading ? (
+        <p className="text-gray-400">Loading...</p>
+      ) : projects.length === 0 ? (
+        <p className="text-gray-400">No projects yet. Create one!</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                className="p-5 bg-[#0D0D0D] border border-white/10 rounded-xl flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold line-clamp-1">
+                      {project.name}
+                    </h3>
+                    <p className="text-gray-500 text-xs mt-1">
+                      Updated {new Date(project.updated_at).toLocaleString()}
+                    </p>
+                  </div>
 
-        <div className="premium-card p-6">
-          <p className="text-sm opacity-70">Time Saved</p>
-          <p className="text-3xl font-bold mt-2">14h</p>
-        </div>
-      </div>
+                  <button
+                    onClick={() => toggleFavorite(project.id, project.is_favorite)}
+                    className={`text-sm ${
+                      project.is_favorite ? "text-yellow-400" : "text-gray-500"
+                    }`}
+                    title={project.is_favorite ? "Unfavorite" : "Favorite"}
+                  >
+                    ★
+                  </button>
+                </div>
 
-      {/* RECENT PROJECTS */}
-      <h2 className="text-xl font-semibold mb-4">Recent Projects</h2>
-      <div className="space-y-4">
-        {projects.map((p) => (
-          <div
-            key={p.id}
-            className="premium-card p-4 flex items-center justify-between premium-hover"
-          >
-            <div>
-              <p className="font-medium">{p.name}</p>
-              <p className="text-sm opacity-60">Updated {p.updated}</p>
-            </div>
-
-            <button className="px-4 py-2 bg-accent rounded-smooth premium-hover">
-              Open
-            </button>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Link
+                    href={`/workspace/${project.id}`}
+                    className="px-3 py-1.5 text-xs bg-white/10 rounded-lg hover:bg-white/20"
+                  >
+                    Open
+                  </Link>
+                  <button
+                    onClick={() => renameProject(project.id, project.name)}
+                    className="px-3 py-1.5 text-xs bg-white/5 rounded-lg hover:bg-white/15"
+                  >
+                    Rename
+                  </button>
+                  <button
+                    onClick={() => duplicateProject(project.id)}
+                    className="px-3 py-1.5 text-xs bg-white/5 rounded-lg hover:bg-white/15"
+                  >
+                    Duplicate
+                  </button>
+                  <button
+                    onClick={() => deleteProject(project.id)}
+                    className="px-3 py-1.5 text-xs bg-red-600/80 rounded-lg hover:bg-red-700 text-xs"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* FOOTER */}
-      <p className="text-center opacity-50 mt-16">
-        Prestige Build © 2026 — Crafted for creators
-      </p>
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <span>
+              Page {page} of {totalPages} — {total} projects
+            </span>
+
+            <div className="flex gap-2">
+              <button
+                disabled={page <= 1}
+                onClick={() => loadProjects({ page: page - 1 })}
+                className="px-3 py-1 rounded-lg bg-white/5 disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => loadProjects({ page: page + 1 })}
+                className="px-3 py-1 rounded-lg bg-white/5 disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

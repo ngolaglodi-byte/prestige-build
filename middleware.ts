@@ -1,32 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { db } from "@/db/client";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-export async function middleware(req: NextRequest) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
-  }
-
-  const pathname = req.nextUrl.pathname;
-
-  if (pathname.startsWith("/admin")) {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId));
-
-    if (!user || user.role !== "admin") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-  }
-
-  return NextResponse.next();
-}
+export default clerkMiddleware();
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/((?!.*\\..*|_next).*)",
+    "/",
+    "/(api|trpc)(.*)",
+  ],
 };
