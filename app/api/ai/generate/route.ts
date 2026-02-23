@@ -5,6 +5,7 @@ import { checkCredits } from "@/lib/credits/checkCredits";
 import { estimateComplexity } from "@/lib/ai/complexity";
 import { tokenRules } from "@/lib/ai/tokenRules";
 import { AIProvider, type AIModel } from "@/lib/ai/provider";
+import { checkAIGenerationLimit } from "@/lib/usage/trackUsage";
 
 const provider = new AIProvider();
 
@@ -29,6 +30,19 @@ export async function POST(req: Request) {
    * --------------------------------------------------------- */
   const complexity = estimateComplexity(prompt, code);
   const { maxTokens, creditCost } = tokenRules[complexity];
+
+  /* ---------------------------------------------------------
+   * 1b. Vérifier la limite de générations IA du plan
+   * --------------------------------------------------------- */
+  const genLimit = await checkAIGenerationLimit(userId);
+  if (!genLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: `Limite de générations IA atteinte (${genLimit.used}/${genLimit.limit} ce mois-ci)`,
+      },
+      { status: 429 }
+    );
+  }
 
   /* ---------------------------------------------------------
    * 2. Vérifier crédits
