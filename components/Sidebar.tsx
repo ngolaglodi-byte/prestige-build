@@ -13,14 +13,17 @@ import {
   LifeBuoy,
   PanelLeftClose,
   PanelLeft,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Sidebar() {
   const path = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { t } = useLanguage();
+  const { isAdmin } = useUserRole();
 
   const items = [
     { name: t("sidebar.home"), href: "/dashboard", icon: Home },
@@ -104,6 +107,34 @@ export default function Sidebar() {
               </Link>
             );
           })}
+
+          {/* Admin section — only visible to admins */}
+          {isAdmin && (
+            <>
+              {!collapsed && (
+                <div className="mt-4 mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  Admin
+                </div>
+              )}
+              <Link
+                href="/admin"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) setCollapsed(true);
+                }}
+                title={collapsed ? "Admin Dashboard" : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-smooth transition-all duration-200 group ${
+                  collapsed ? "justify-center lg:justify-center" : ""
+                } ${
+                  path.startsWith("/admin")
+                    ? "bg-accent/15 text-accent font-medium"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span className="truncate text-sm">Admin Dashboard</span>}
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Footer */}

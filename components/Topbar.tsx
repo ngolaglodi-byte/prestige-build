@@ -1,14 +1,17 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, ShieldCheck } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
+import Link from "next/link";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useLanguage } from "@/context/LanguageContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Topbar() {
   useRealtimeNotifications();
   const { t } = useLanguage();
+  const { isAdmin } = useUserRole();
 
   return (
     <header className="sticky top-0 z-30 h-16 w-full border-b border-border bg-bg/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8">
@@ -27,6 +30,17 @@ export default function Topbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-4">
+        {/* Admin Dashboard link — only visible to admins */}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span className="hidden sm:inline">Admin Dashboard</span>
+          </Link>
+        )}
+
         {/* Notifications */}
         <NotificationCenter />
 
