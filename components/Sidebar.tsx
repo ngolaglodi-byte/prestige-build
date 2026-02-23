@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, FolderIcon, Cog6ToothIcon, BellIcon, KeyIcon, UserGroupIcon, ChartBarIcon, RectangleStackIcon, PuzzlePieceIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, FolderIcon, Cog6ToothIcon, BellIcon, KeyIcon, UserGroupIcon, ChartBarIcon, RectangleStackIcon, PuzzlePieceIcon, SignalIcon } from "@heroicons/react/24/outline";
 
 export default function Sidebar() {
   const path = usePathname();
@@ -14,6 +14,7 @@ export default function Sidebar() {
     { name: "Équipe", href: "/team", icon: UserGroupIcon },
     { name: "Clés API", href: "/api-keys", icon: KeyIcon },
     { name: "Intégrations", href: "/integrations", icon: PuzzlePieceIcon },
+    { name: "Webhooks", href: "/webhooks/settings", icon: SignalIcon },
     { name: "Notifications", href: "/notifications", icon: BellIcon },
     { name: "Utilisation", href: "/usage", icon: ChartBarIcon },
     { name: "Paramètres", href: "/settings", icon: Cog6ToothIcon },

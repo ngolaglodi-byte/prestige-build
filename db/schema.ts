@@ -266,6 +266,27 @@ export const webhookConfigs = pgTable("webhook_configs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// WEBHOOK LOGS
+export const webhookLogs = pgTable("webhook_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  webhookConfigId: uuid("webhook_config_id")
+    .notNull()
+    .references(() => webhookConfigs.id, { onDelete: "cascade" }),
+  event: varchar("event", { length: 100 }).notNull(),
+  endpointUrl: text("endpoint_url").notNull(),
+  payload: jsonb("payload"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  statusCode: integer("status_code"),
+  response: text("response"),
+  attempt: integer("attempt").notNull().default(1),
+  maxAttempts: integer("max_attempts").notNull().default(5),
+  nextRetryAt: timestamp("next_retry_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // INTEGRATIONS
 export const integrations = pgTable("integrations", {
   id: uuid("id").primaryKey().defaultRandom(),

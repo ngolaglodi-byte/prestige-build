@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { billingEvents, users } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { webhookLogs, users } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 
 export async function GET() {
   const { userId: clerkId } = await auth();
@@ -13,9 +13,9 @@ export async function GET() {
 
   const logs = await db
     .select()
-    .from(billingEvents)
-    .where(eq(billingEvents.userId, user.id))
-    .orderBy(sql`${billingEvents.createdAt} DESC`)
+    .from(webhookLogs)
+    .where(eq(webhookLogs.userId, user.id))
+    .orderBy(desc(webhookLogs.createdAt))
     .limit(50);
 
   return NextResponse.json({ logs });
