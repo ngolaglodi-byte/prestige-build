@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
-import { usageLogs, activityLogs, subscriptions } from "@/db/schema";
+import { usageLogs, activityLogs } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq, sql, and, gte } from "drizzle-orm";
 import { getPlan } from "@/lib/billing/plans";
 

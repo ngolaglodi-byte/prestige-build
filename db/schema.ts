@@ -8,7 +8,6 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 // USERS (Clerk sync)
 export const users = pgTable("users", {
@@ -22,74 +21,17 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-// PLANS (Free, Pro, Enterprise resource limits)
-export const plans = pgTable("plans", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 50 }).notNull().unique(),
-  maxActivePreviews: integer("max_active_previews").notNull(),
-  maxCpuPercent: integer("max_cpu_percent").notNull(),
-  maxMemoryMb: integer("max_memory_mb").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// USER PLANS (links user to a plan)
-export const userPlans = pgTable("user_plans", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
-  planId: uuid("plan_id").notNull().references(() => plans.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// USER LIMITS (per-user override of plan quotas)
-export const userLimits = pgTable("user_limits", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
-  maxActivePreviews: integer("max_active_previews").notNull(),
-  maxCpuPercent: integer("max_cpu_percent").notNull(),
-  maxMemoryMb: integer("max_memory_mb").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// PROJECTS
-export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").default(sql`NOW()`).notNull(),
-});
+// NOTE: plans, user_plans, user_limits, projects, and subscriptions are
+// managed by Supabase and are defined in db/supabase-schema.ts.
+// They are excluded here so that Drizzle does not generate migrations for them.
 
 // DOMAINS
 export const domains = pgTable("domains", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").notNull(),
   type: varchar("type", { length: 20 }).notNull(), // subdomain | custom
   host: varchar("host", { length: 255 }).notNull().unique(),
   verified: boolean("verified").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// SUBSCRIPTIONS
-export const subscriptions = pgTable("subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" })
-    .unique(),
-  plan: varchar("plan", { length: 20 }).notNull(),
-  creditsMonthly: integer("credits_monthly").notNull(),
-  creditsRemaining: integer("credits_remaining").notNull(),
-  storageLimitMb: integer("storage_limit_mb").notNull(),
-  dbLimitMb: integer("db_limit_mb").notNull(),
-  priceUsd: integer("price_usd").notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("active"),
-  renewalDate: timestamp("renewal_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -114,9 +56,7 @@ export const usageLogs = pgTable("usage_logs", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id").references(() => projects.id, {
-    onDelete: "set null",
-  }),
+  projectId: uuid("project_id"),
   tokensUsed: integer("tokens_used").notNull(),
   creditsUsed: integer("credits_used").notNull(),
   action: varchar("action", { length: 50 }).notNull(),
@@ -129,9 +69,7 @@ export const billingEvents = pgTable("billing_events", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id").references(() => projects.id, {
-    onDelete: "set null",
-  }),
+  projectId: uuid("project_id"),
   provider: varchar("provider", { length: 50 }).notNull().default("pawapay"),
   amount: integer("amount").notNull(),
   currency: varchar("currency", { length: 10 }).notNull(),
@@ -190,9 +128,7 @@ export const apiUsageLogs = pgTable("api_usage_logs", {
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
-  projectId: uuid("project_id").references(() => projects.id, {
-    onDelete: "set null",
-  }),
+  projectId: uuid("project_id"),
   action: varchar("action", { length: 100 }).notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -201,10 +137,7 @@ export const activityLogs = pgTable("activity_logs", {
 // STORAGE BUCKETS
 export const storageBuckets = pgTable("storage_buckets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" })
-    .unique(),
+  projectId: uuid("project_id").notNull().unique(),
   storageUsedMb: integer("storage_used_mb").notNull().default(0),
   storageLimitMb: integer("storage_limit_mb").notNull(),
   dbUsedMb: integer("db_used_mb").notNull().default(0),
@@ -259,9 +192,7 @@ export const teamProjects = pgTable("team_projects", {
   teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id").notNull(),
   addedBy: uuid("added_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

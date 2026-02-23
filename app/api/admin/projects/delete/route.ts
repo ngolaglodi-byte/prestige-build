@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
-import { projects, users } from "@/db/schema";
+import { users } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";

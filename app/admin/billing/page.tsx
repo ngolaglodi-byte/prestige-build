@@ -3,12 +3,12 @@ export const dynamic = "force-dynamic";
 // app/admin/billing/page.tsx
 import { db } from "@/db/client";
 import {
-  subscriptions,
   users,
   creditPurchases,
   billingEvents,
   adminCreditLogs,
 } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 
 export default async function AdminBillingPage() {

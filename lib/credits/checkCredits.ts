@@ -1,5 +1,5 @@
 import { db } from "@/db/client";
-import { subscriptions } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 
 export async function checkCredits(userId: string, required: number) {

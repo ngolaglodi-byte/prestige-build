@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 
 // app/admin/projects/page.tsx
 import { db } from "@/db/client";
-import { projects, users, storageBuckets } from "@/db/schema";
+import { users, storageBuckets } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 
 export default async function AdminProjectsPage() {

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import {
   creditPurchases,
-  subscriptions,
   billingEvents,
 } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq, sql } from "drizzle-orm";
 import { getPlan } from "@/lib/billing/plans";
 

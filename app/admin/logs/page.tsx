@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 
 // app/admin/logs/page.tsx
 import { db } from "@/db/client";
-import { activityLogs, users, projects } from "@/db/schema";
+import { activityLogs, users } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 
 export default async function AdminLogsPage() {
