@@ -30,6 +30,6 @@ export function getCnameTarget() {
 
 export function isValidCustomDomain(domain: string): boolean {
   const normalized = normalizeDomain(domain);
-  const domainRegex = /^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
+  const domainRegex = /^([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/;
   return domainRegex.test(normalized) && !normalized.endsWith(`.${BASE_DOMAIN}`);
 }

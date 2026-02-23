@@ -46,8 +46,13 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     } else {
       message = `CNAME trouvé mais ne pointe pas vers ${cnameTarget}`;
     }
-  } catch {
-    message = `Enregistrement CNAME introuvable. Ajoutez un CNAME pointant vers ${cnameTarget}`;
+  } catch (err: unknown) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === "ENOTFOUND" || code === "ENODATA") {
+      message = `Aucun enregistrement CNAME trouvé pour ${domain.host}. Ajoutez un CNAME pointant vers ${cnameTarget}`;
+    } else {
+      message = `Erreur lors de la vérification DNS. Veuillez réessayer plus tard.`;
+    }
   }
 
   if (verified) {
