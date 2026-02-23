@@ -2,11 +2,16 @@
 
 export function PromoteButton({ clerkId }: { clerkId: string }) {
   async function handlePromote() {
-    await fetch("/api/admin/promote", {
+    const res = await fetch("/api/admin/promote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ clerkId }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      alert(`Erreur: ${text}`);
+      return;
+    }
     window.location.reload();
   }
 
@@ -22,11 +27,16 @@ export function PromoteButton({ clerkId }: { clerkId: string }) {
 
 export function DemoteButton({ clerkId }: { clerkId: string }) {
   async function handleDemote() {
-    await fetch("/api/admin/demote", {
+    const res = await fetch("/api/admin/demote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ clerkId }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      alert(`Erreur: ${text}`);
+      return;
+    }
     window.location.reload();
   }
 
