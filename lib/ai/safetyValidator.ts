@@ -27,7 +27,6 @@ export interface FileAction {
 
 const DANGEROUS_PATTERNS = [
   /\.\.\//,               // Traversal de répertoire
-  /^\/(?!src|app|lib|components|public|pages|styles|hooks|store|utils|config|db|prisma|api)/,  // Chemins absolus hors arborescence projet
   /\0/,                   // Null byte injection
   /[<>"|?*]/,             // Caractères invalides dans les chemins
   /^\s*$/,                // Chemins vides
@@ -71,6 +70,15 @@ const VALID_EXTENSIONLESS_FILES = new Set([
   ".prettierrc",
   "LICENSE",
   "README",
+  "CHANGELOG",
+  "AUTHORS",
+  "CONTRIBUTING",
+  "CODEOWNERS",
+  "Vagrantfile",
+  "Brewfile",
+  "Podfile",
+  "Fastfile",
+  "Appfile",
 ]);
 
 // ---------------------------------------------------------------------------
