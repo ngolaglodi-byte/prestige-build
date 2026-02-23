@@ -11,7 +11,7 @@ export default function Sidebar() {
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
     { name: "Projects", href: "/projects", icon: FolderIcon },
     { name: "Team", href: "/team", icon: UserGroupIcon },
-    { name: "API Keys", href: "/api-keys", icon: KeyIcon },
+    { name: "Clés API", href: "/api-keys", icon: KeyIcon },
     { name: "Notifications", href: "/notifications", icon: BellIcon },
     { name: "Usage", href: "/usage", icon: ChartBarIcon },
     { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
