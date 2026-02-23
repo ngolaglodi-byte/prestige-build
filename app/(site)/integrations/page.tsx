@@ -2,58 +2,82 @@
 
 import Logo from "@/components/Logo";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type ConnectionState = {
+  github: boolean;
+  vercel: boolean;
+  supabase: boolean;
+  stripe: boolean;
+  pawapay: boolean;
+};
+
+const DEFAULT_CONNECTIONS: ConnectionState = {
+  github: false,
+  vercel: false,
+  supabase: false,
+  stripe: false,
+  pawapay: false,
+};
 
 export default function IntegrationsPage() {
-  const [connections, setConnections] = useState({
-    github: false,
-    vercel: false,
-    supabase: false,
-    stripe: false,
-    pawapay: false,
-  });
+  const [connections, setConnections] = useState<ConnectionState>(DEFAULT_CONNECTIONS);
 
-  const toggle = (key: keyof typeof connections) => {
-    setConnections({ ...connections, [key]: !connections[key] });
+  // Charger les connexions sauvegardées
+  useEffect(() => {
+    const saved = localStorage.getItem("prestige-integrations");
+    if (saved) {
+      try {
+        setConnections({ ...DEFAULT_CONNECTIONS, ...JSON.parse(saved) });
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  const toggle = (key: keyof ConnectionState) => {
+    const updated = { ...connections, [key]: !connections[key] };
+    setConnections(updated);
+    localStorage.setItem("prestige-integrations", JSON.stringify(updated));
   };
 
   const integrations = [
     {
-      id: "github",
+      id: "github" as const,
       name: "GitHub",
-      description: "Connect your GitHub account to export repositories and sync code.",
+      description: "Connectez votre compte GitHub pour exporter des dépôts et synchroniser le code.",
       connected: connections.github,
       color: "text-white",
       bg: "bg-[#24292F]",
     },
     {
-      id: "vercel",
+      id: "vercel" as const,
       name: "Vercel",
-      description: "Deploy your projects instantly with Vercel integration.",
+      description: "Déployez vos projets instantanément avec l'intégration Vercel.",
       connected: connections.vercel,
       color: "text-white",
       bg: "bg-black",
     },
     {
-      id: "supabase",
+      id: "supabase" as const,
       name: "Supabase",
-      description: "Connect your database and authentication with Supabase.",
+      description: "Connectez votre base de données et l'authentification avec Supabase.",
       connected: connections.supabase,
       color: "text-white",
       bg: "bg-green-600",
     },
     {
-      id: "stripe",
+      id: "stripe" as const,
       name: "Stripe",
-      description: "Enable payments and billing using Stripe.",
+      description: "Activez les paiements et la facturation via Stripe.",
       connected: connections.stripe,
       color: "text-white",
       bg: "bg-blue-600",
     },
     {
-      id: "pawapay",
-      name: "Pawapay",
-      description: "Receive Mobile Money payments from Africa (M-Pesa, Airtel, MTN…).",
+      id: "pawapay" as const,
+      name: "PawaPay",
+      description: "Recevez des paiements Mobile Money depuis l'Afrique (M-Pesa, Airtel, MTN…).",
       connected: connections.pawapay,
       color: "text-white",
       bg: "bg-yellow-600",
@@ -67,16 +91,16 @@ export default function IntegrationsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au Dashboard
         </Link>
       </div>
 
       {/* Content */}
       <div className="max-w-4xl mx-auto mt-16 px-6 fade-in">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Integrations</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Intégrations</h1>
 
         <p className="text-gray-400 mb-10">
-          Connect external services to enhance your Prestige Build experience.
+          Connectez des services externes pour enrichir votre expérience Prestige Build.
         </p>
 
         <div className="grid grid-cols-1 gap-6">
@@ -99,14 +123,14 @@ export default function IntegrationsPage() {
 
               {/* Right */}
               <button
-                onClick={() => toggle(i.id as keyof typeof connections)}
+                onClick={() => toggle(i.id)}
                 className={`px-4 py-2 rounded-smooth premium-hover border ${
                   i.connected
                     ? "bg-accent border-accent shadow-soft"
                     : "bg-surface border-border"
                 }`}
               >
-                {i.connected ? "Connected" : "Connect"}
+                {i.connected ? "Connecté" : "Connecter"}
               </button>
             </div>
           ))}

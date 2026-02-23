@@ -4,6 +4,13 @@ import OpenAI from "openai";
 
 export type AIModel = "claude" | "gemini" | "gpt";
 
+export interface GenerateOptions {
+  maxTokens?: number;
+  systemPrompt?: string;
+}
+
+const FALLBACK_ORDER: AIModel[] = ["gpt", "claude", "gemini"];
+
 export class AIProvider {
   private claude: Anthropic | null = null;
   private gemini: GoogleGenerativeAI | null = null;
@@ -20,32 +27,93 @@ export class AIProvider {
       this.gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     }
 
-    if (process.env.OPENAI_API_KEY) {
+    if (process.env.OPENAI_API_KEY || process.env.OPENAI_KEY) {
       this.gpt = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_KEY,
       });
     }
   }
 
-  async generate(model: AIModel, prompt: string) {
+  /** Returns which providers are available */
+  getAvailableModels(): AIModel[] {
+    const models: AIModel[] = [];
+    if (this.gpt) models.push("gpt");
+    if (this.claude) models.push("claude");
+    if (this.gemini) models.push("gemini");
+    return models;
+  }
+
+  /** Resolve the best available model, preferring the requested one */
+  resolveModel(preferred?: AIModel): AIModel {
+    if (preferred && this.isModelAvailable(preferred)) return preferred;
+    const available = this.getAvailableModels();
+    if (available.length === 0) throw new Error("No AI provider configured");
+    return available[0];
+  }
+
+  isModelAvailable(model: AIModel): boolean {
+    switch (model) {
+      case "claude": return !!this.claude;
+      case "gemini": return !!this.gemini;
+      case "gpt": return !!this.gpt;
+      default: return false;
+    }
+  }
+
+  async generate(model: AIModel, prompt: string, options?: GenerateOptions) {
     switch (model) {
       case "claude":
-        return await this.generateClaude(prompt);
+        return await this.generateClaude(prompt, options);
       case "gemini":
-        return await this.generateGemini(prompt);
+        return await this.generateGemini(prompt, options);
       case "gpt":
-        return await this.generateGPT(prompt);
+        return await this.generateGPT(prompt, options);
       default:
         throw new Error("Unknown model");
     }
   }
 
-  private async generateClaude(prompt: string) {
+  /** Generate with automatic retry and fallback to other providers */
+  async generateWithFallback(
+    preferredModel: AIModel,
+    prompt: string,
+    options?: GenerateOptions,
+    maxRetries = 1
+  ): Promise<{ result: string; model: AIModel }> {
+    const modelsToTry = [
+      preferredModel,
+      ...FALLBACK_ORDER.filter((m) => m !== preferredModel),
+    ].filter((m) => this.isModelAvailable(m));
+
+    let lastError: Error | null = null;
+
+    for (const model of modelsToTry) {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const result = await this.generate(model, prompt, options);
+          return { result, model };
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+          // Wait before retry (exponential backoff)
+          if (attempt < maxRetries) {
+            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          }
+        }
+      }
+    }
+
+    throw lastError ?? new Error("All AI providers failed");
+  }
+
+  private async generateClaude(prompt: string, options?: GenerateOptions) {
     if (!this.claude) throw new Error("Claude not configured");
+
+    const maxTokens = options?.maxTokens ?? 4000;
 
     const res = await this.claude.messages.create({
       model: "claude-3-5-sonnet-20241022",
-      max_tokens: 4000,
+      max_tokens: maxTokens,
+      ...(options?.systemPrompt ? { system: options.systemPrompt } : {}),
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -58,24 +126,33 @@ export class AIProvider {
     return text ?? "";
   }
 
-  private async generateGemini(prompt: string) {
+  private async generateGemini(prompt: string, options?: GenerateOptions) {
     if (!this.gemini) throw new Error("Gemini not configured");
 
     const model = this.gemini.getGenerativeModel({
       model: "gemini-1.5-pro",
     });
 
-    const res = await model.generateContent(prompt);
+    const fullPrompt = options?.systemPrompt
+      ? `${options.systemPrompt}\n\n${prompt}`
+      : prompt;
+    const res = await model.generateContent(fullPrompt);
     return res.response.text();
   }
 
-  private async generateGPT(prompt: string) {
+  private async generateGPT(prompt: string, options?: GenerateOptions) {
     if (!this.gpt) throw new Error("GPT not configured");
+
+    const messages: { role: "system" | "user"; content: string }[] = [];
+    if (options?.systemPrompt) {
+      messages.push({ role: "system", content: options.systemPrompt });
+    }
+    messages.push({ role: "user", content: prompt });
 
     const res = await this.gpt.chat.completions.create({
       model: "gpt-4.1",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 4000,
+      messages,
+      max_tokens: options?.maxTokens ?? 4000,
     });
 
     return res.choices[0].message.content ?? "";
