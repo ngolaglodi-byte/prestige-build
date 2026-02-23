@@ -1,6 +1,8 @@
-const processes = new Map<string, { proc: any; port: number }>();
+import { ChildProcess } from "child_process";
 
-export function registerProcess(projectId: string, proc: any, port: number) {
+const processes = new Map<string, { proc: ChildProcess; port: number }>();
+
+export function registerProcess(projectId: string, proc: ChildProcess, port: number) {
   processes.set(projectId, { proc, port });
 }
 

@@ -4,7 +4,7 @@ export default function AdminHome() {
       <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
       <p className="text-gray-600">
-        Bienvenue dans le panneau d'administration de Prestige Build.
+        Bienvenue dans le panneau d&apos;administration de Prestige Build.
       </p>
 
       <div className="grid grid-cols-3 gap-6 mt-8">

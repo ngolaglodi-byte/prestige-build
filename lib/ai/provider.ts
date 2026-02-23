@@ -51,8 +51,8 @@ export class AIProvider {
 
     // Extraction propre du texte
     const text = res.content
-      ?.filter((c: any) => c.type === "text")
-      .map((c: any) => c.text)
+      ?.filter((c: { type: string }) => c.type === "text")
+      .map((c: { type: string; text?: string }) => c.text)
       .join("\n");
 
     return text ?? "";

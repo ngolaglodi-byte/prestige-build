@@ -10,7 +10,7 @@ export function autoFixProject() {
 
   for (const path of Object.keys(files)) {
     let content = files[path].content;
-    let original = content;
+    const original = content;
 
     /* ---------------------------------------------------------
      * 1. Supprimer console.log

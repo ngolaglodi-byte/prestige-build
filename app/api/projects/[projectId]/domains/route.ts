@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getDefaultSubdomain, normalizeDomain } from "@/lib/deploy/domainUtils";
 
-export async function GET(_req: Request, { params }: any) {
+export async function GET(_req: Request, { params }: { params: { projectId: string } }) {
   const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
@@ -14,7 +14,7 @@ export async function GET(_req: Request, { params }: any) {
   });
 }
 
-export async function POST(req: Request, { params }: any) {
+export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 

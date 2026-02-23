@@ -4,7 +4,6 @@ import path from "path";
 import { buildProject } from "./buildProject";
 import { vercelRequest } from "./vercelClient";
 import { setDeployState } from "./deployRegistry";
-import { getDefaultSubdomain } from "./domainUtils";
 
 export async function deployProject(projectId: string) {
   setDeployState(projectId, {
@@ -59,7 +58,7 @@ export async function deployProject(projectId: string) {
 }
 
 async function collectFiles(dir: string) {
-  const files: any[] = [];
+  const files: { file: string; data: string }[] = [];
 
   function walk(current: string) {
     const entries = fs.readdirSync(current);

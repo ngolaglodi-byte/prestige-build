@@ -9,8 +9,8 @@ export async function buildProject(projectId: string) {
   const root = getProjectRoot(projectId);
   const framework = detectFramework(root);
 
-  let command = "npm";
-  let args = ["run", "build"];
+  const command = "npm";
+  const args = ["run", "build"];
   let outputDir = "";
 
   switch (framework) {

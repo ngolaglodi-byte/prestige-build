@@ -1,9 +1,9 @@
 // lib/preview/watcher.ts
-import chokidar from "chokidar";
+import chokidar, { FSWatcher } from "chokidar";
 import { previewManager } from "./previewManager";
 import { getProjectRoot } from "@/lib/projects/fileSystem";
 
-const watchers = new Map<string, any>();
+const watchers = new Map<string, FSWatcher>();
 
 export function startWatcher(projectId: string) {
   if (watchers.has(projectId)) return;

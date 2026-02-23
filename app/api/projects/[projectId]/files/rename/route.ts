@@ -26,7 +26,8 @@ export async function PATCH(req: Request, { params }: { params: { projectId: str
       oldPath,
       newPath,
     });
-  } catch (err: any) {
-    return new Response(`Error renaming file: ${err.message}`, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return new Response(`Error renaming file: ${message}`, { status: 500 });
   }
 }

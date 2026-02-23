@@ -5,7 +5,7 @@ import Logo from "@/components/Logo";
 import Link from "next/link";
 
 export default function ApiKeysPage() {
-  const [publicKey, setPublicKey] = useState("pk_live_xxxxxxxxxxxxx");
+  const [publicKey] = useState("pk_live_xxxxxxxxxxxxx");
   const [secretKey, setSecretKey] = useState("sk_live_xxxxxxxxxxxxx");
   const [showSecret, setShowSecret] = useState(false);
 
