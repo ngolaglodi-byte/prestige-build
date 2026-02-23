@@ -23,7 +23,7 @@ model User {
   email     String      @unique
   name      String?
   avatar    String?
-  role      String?     @default("user")
+  role      String      @default("user")
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
 
