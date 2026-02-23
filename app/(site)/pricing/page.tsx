@@ -2,12 +2,61 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { useEffect, useState } from "react";
+
+type RatesData = {
+  country: string;
+  currency: string;
+  symbol: string;
+  rate: number;
+  plans: Record<
+    string,
+    { priceUsd: number; priceLocal: number; currency: string }
+  >;
+};
+
+function formatLocal(amount: number, currency: string): string {
+  const decimals = ["XOF", "XAF", "KES", "ZMW", "NGN"].includes(currency)
+    ? 0
+    : 2;
+  const formatted = amount.toLocaleString("fr-FR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return formatted;
+}
 
 export default function PricingPage() {
+  const [rates, setRates] = useState<RatesData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/billing/rates")
+      .then((r) => r.json())
+      .then(setRates)
+      .catch(() => {});
+  }, []);
+
+  const symbol = rates?.symbol ?? "$";
+  const currency = rates?.currency ?? "USD";
+
+  function localPrice(planId: string): string {
+    if (!rates) return "…";
+    const p = rates.plans[planId];
+    if (!p) return "…";
+    return formatLocal(p.priceLocal, currency);
+  }
+
+  function usdPrice(planId: string): number {
+    if (!rates) return 0;
+    return rates.plans[planId]?.priceUsd ?? 0;
+  }
+
+  const showUsdHint = currency !== "USD";
+
   const plans = [
     {
+      id: "free",
       name: "Gratuit",
-      price: "0 $",
       description: "Idéal pour découvrir Prestige Build.",
       features: [
         "1 projet",
@@ -20,8 +69,8 @@ export default function PricingPage() {
       accent: false,
     },
     {
+      id: "pro",
       name: "Pro",
-      price: "20 $/mois",
       description: "Pour les créateurs qui veulent la puissance complète.",
       features: [
         "20 projets",
@@ -36,8 +85,8 @@ export default function PricingPage() {
       accent: true,
     },
     {
+      id: "enterprise",
       name: "Enterprise",
-      price: "70 $/mois",
       description: "Pour les équipes et grandes organisations.",
       features: [
         "Projets illimités",
@@ -85,7 +134,21 @@ export default function PricingPage() {
             }`}
           >
             <h2 className="text-2xl font-semibold mb-2">{plan.name}</h2>
-            <p className="text-4xl font-bold mb-4">{plan.price}</p>
+
+            {/* Dynamic price */}
+            <p className="text-4xl font-bold mb-1">
+              {localPrice(plan.id)} {symbol}
+              <span className="text-lg font-normal text-gray-400">/mois</span>
+            </p>
+            {showUsdHint && usdPrice(plan.id) > 0 && (
+              <p className="text-sm text-gray-500 mb-4">
+                soit {usdPrice(plan.id)} $ USD
+              </p>
+            )}
+            {(!showUsdHint || usdPrice(plan.id) === 0) && (
+              <div className="mb-4" />
+            )}
+
             <p className="text-gray-400 mb-6">{plan.description}</p>
 
             <div className="flex flex-col gap-2 mb-8">

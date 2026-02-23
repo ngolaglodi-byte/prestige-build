@@ -5,10 +5,16 @@ import { users, creditPurchases, subscriptions, billingEvents } from "@/db/schem
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { PLANS, type PlanId } from "@/lib/billing/plans";
+import {
+  currencyForCountry,
+  fetchFxRates,
+  convertPrice,
+  PAWAPAY_CORRESPONDENTS,
+  type CurrencyCode,
+} from "@/lib/billing/pricing";
 
 const PAWAPAY_API_URL = process.env.PAWAPAY_API_URL ?? "https://api.pawapay.io";
 const PAWAPAY_API_KEY = process.env.PAWAPAY_API_KEY;
-const PAWAPAY_CORRESPONDENT = process.env.PAWAPAY_CORRESPONDENT ?? "MTN_MOMO_COD";
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
@@ -16,7 +22,13 @@ export async function POST(req: Request) {
     return new Response("Non autorisé", { status: 401 });
   }
 
-  const { plan, phoneNumber, currency = "USD" } = await req.json();
+  const { plan, phoneNumber, currency: rawCurrency, country: rawCountry } = await req.json();
+
+  // Resolve country → currency → converted amount
+  const country = (typeof rawCountry === "string" ? rawCountry : "CD").toUpperCase();
+  const currency: CurrencyCode = (typeof rawCurrency === "string" && rawCurrency.length === 3)
+    ? rawCurrency.toUpperCase() as CurrencyCode
+    : currencyForCountry(country);
 
   const selectedPlan = PLANS[plan as PlanId];
   if (!selectedPlan || plan === "free") {
@@ -46,25 +58,35 @@ export async function POST(req: Request) {
 
   const depositId = crypto.randomUUID();
 
+  // Compute local amount
+  const rates = await fetchFxRates();
+  const localAmount = convertPrice(selectedPlan.priceUsd, currency, rates);
+
+  // Resolve PawaPay correspondent
+  const correspondent =
+    PAWAPAY_CORRESPONDENTS[country] ??
+    process.env.PAWAPAY_CORRESPONDENT ??
+    "MTN_MOMO_COD";
+
   // Enregistrer la tentative de paiement
   await db.insert(creditPurchases).values({
     userId: user.id,
     creditsAmount: selectedPlan.credits,
-    amountPaid: selectedPlan.priceUsd,
+    amountPaid: localAmount,
     currency,
     provider: "pawapay",
     status: "pending",
-    rawPayload: { depositId, phoneNumber, plan },
+    rawPayload: { depositId, phoneNumber, plan, country, localAmount, usdAmount: selectedPlan.priceUsd },
   });
 
   // Enregistrer l'événement de billing
   await db.insert(billingEvents).values({
     userId: user.id,
     provider: "pawapay",
-    amount: selectedPlan.priceUsd,
+    amount: localAmount,
     currency,
     status: "pending",
-    rawPayload: { depositId, phoneNumber, plan },
+    rawPayload: { depositId, phoneNumber, plan, country, localAmount, usdAmount: selectedPlan.priceUsd },
   });
 
   // Appel PawaPay API (si clé configurée)
@@ -78,9 +100,9 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           depositId,
-          amount: String(selectedPlan.priceUsd),
+          amount: String(localAmount),
           currency,
-          correspondent: PAWAPAY_CORRESPONDENT,
+          correspondent,
           payer: {
             type: "MSISDN",
             address: { value: phoneNumber.replace(/\s/g, "") },
