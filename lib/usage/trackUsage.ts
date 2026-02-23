@@ -38,6 +38,14 @@ export async function trackUsage({
 }
 
 /**
+ * Retourne le début du mois en cours en UTC.
+ */
+function getStartOfMonthUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+}
+
+/**
  * Vérifie si l'utilisateur a atteint sa limite de générations IA pour le mois en cours.
  */
 export async function checkAIGenerationLimit(userId: string): Promise<{
@@ -54,9 +62,7 @@ export async function checkAIGenerationLimit(userId: string): Promise<{
   const plan = getPlan(sub?.plan ?? "free");
   const limit = plan.limits.aiGenerations;
 
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+  const startOfMonth = getStartOfMonthUTC();
 
   const [result] = await db
     .select({ count: sql<number>`COUNT(*)` })
@@ -84,9 +90,7 @@ export async function checkAIGenerationLimit(userId: string): Promise<{
  * Récupère le résumé d'utilisation pour le mois en cours.
  */
 export async function getUsageSummary(userId: string) {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+  const startOfMonth = getStartOfMonthUTC();
 
   // Résumé par type d'action
   const usageByAction = await db

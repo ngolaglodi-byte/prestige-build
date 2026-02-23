@@ -67,7 +67,7 @@ function actionLabel(action: string): string {
 }
 
 function progressPercent(used: number, limit: number): number {
-  if (limit <= 0) return 0;
+  if (limit <= 0) return used > 0 ? 100 : 0;
   return Math.min(100, Math.round((used / limit) * 100));
 }
 
