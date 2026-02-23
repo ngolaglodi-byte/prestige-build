@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { db } from "@/db/client";
 import { webhookLogs, webhookConfigs } from "@/db/schema";
-import { eq, and, lte, sql } from "drizzle-orm";
+import { eq, and, lte } from "drizzle-orm";
 
 const MAX_ATTEMPTS = 5;
 
@@ -134,9 +134,10 @@ export async function retryWebhook(logId: string) {
     .set({ attempt: newAttempt, status: "pending", nextRetryAt: null })
     .where(eq(webhookLogs.id, logId));
 
+  const payloadData = log.payload as Record<string, unknown>;
   const payload = JSON.stringify({
     event: log.event,
-    data: log.payload,
+    data: payloadData.data ?? payloadData,
     timestamp: new Date().toISOString(),
   });
   const signature = signPayload(payload, config.signingSecret);
@@ -152,7 +153,7 @@ export async function processRetries() {
     .where(
       and(
         eq(webhookLogs.status, "retrying"),
-        lte(webhookLogs.nextRetryAt, sql`NOW()`)
+        lte(webhookLogs.nextRetryAt, new Date())
       )
     )
     .limit(20);

@@ -207,7 +207,7 @@ export default function WebhookLogsPage() {
 
                   <div className="flex justify-between">
                     <span className="text-gray-400">Endpoint</span>
-                    <span className="text-sm font-mono truncate max-w-[300px]">{selected.endpointUrl}</span>
+                    <span className="text-sm font-mono truncate max-w-[300px]" title={selected.endpointUrl}>{selected.endpointUrl}</span>
                   </div>
 
                   <div className="flex justify-between">
