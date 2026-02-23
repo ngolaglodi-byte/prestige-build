@@ -11,7 +11,7 @@ export default function NewProjectPage() {
   const templates = [
     { id: "react", label: "Application React" },
     { id: "next", label: "Application Next.js" },
-    { id: "landing", label: "Page d'atterrissage" },
+    { id: "landing", label: "Page de destination" },
     { id: "ecommerce", label: "Starter E‑commerce" },
   ];
 

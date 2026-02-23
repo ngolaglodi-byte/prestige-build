@@ -57,7 +57,7 @@ export default function LoginPage() {
 
         {/* Créer un compte */}
         <p className="text-center text-gray-400 text-sm">
-          Vous n'avez pas de compte ?{" "}
+          Vous n&apos;avez pas de compte ?{" "}
           <Link href="/auth/register" className="text-accent premium-hover">
             Créer un compte
           </Link>

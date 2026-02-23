@@ -136,9 +136,9 @@ export default function Preview({
           if (data.event === "resource_limit_exceeded") {
             setStatus("limited");
             setResourceMessage(
-              `Limite de ressources dépassée (CPU : ${Math.round(
+              `Limite de ressources dépassée (CPU\u00A0: ${Math.round(
                 data.cpu
-              )}%, RAM : ${Math.round(data.mem / (1024 * 1024))} Mo)`
+              )}\u00A0%, RAM\u00A0: ${Math.round(data.mem / (1024 * 1024))}\u00A0Mo)`
             );
           }
 

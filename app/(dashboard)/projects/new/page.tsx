@@ -25,7 +25,7 @@ export default function NewProjectPage() {
   const builtInTemplates = [
     { id: "next", label: "Starter Next.js" },
     { id: "react", label: "Starter React" },
-    { id: "landing", label: "Page d'atterrissage" },
+    { id: "landing", label: "Page de destination" },
     { id: "ecommerce", label: "Starter E\u2011commerce" },
   ];
 
