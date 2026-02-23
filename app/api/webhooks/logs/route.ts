@@ -1,0 +1,22 @@
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/db/client";
+import { billingEvents, users } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+
+export async function GET() {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+
+  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  if (!user) return NextResponse.json({ logs: [] });
+
+  const logs = await db
+    .select()
+    .from(billingEvents)
+    .where(eq(billingEvents.userId, user.id))
+    .orderBy(sql`${billingEvents.createdAt} DESC`)
+    .limit(50);
+
+  return NextResponse.json({ logs });
+}

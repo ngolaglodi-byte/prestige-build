@@ -29,6 +29,7 @@ export async function POST(req: Request) {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as { type: string; data: Record<string, any> };
   } catch (err) {
     console.error("❌ Webhook verification failed:", err);

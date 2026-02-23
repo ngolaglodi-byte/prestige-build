@@ -166,3 +166,41 @@ export const storageBuckets = pgTable("storage_buckets", {
   dbLimitMb: integer("db_limit_mb").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// NOTIFICATIONS
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 50 }).notNull().default("info"),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message"),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// TEAM MEMBERS
+export const teamMembers = pgTable("team_members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }),
+  role: varchar("role", { length: 50 }).notNull().default("member"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// WEBHOOK CONFIGS
+export const webhookConfigs = pgTable("webhook_configs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  endpointUrl: text("endpoint_url").notNull(),
+  signingSecret: varchar("signing_secret", { length: 255 }).notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
