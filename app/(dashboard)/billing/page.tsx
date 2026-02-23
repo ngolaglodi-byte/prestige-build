@@ -4,7 +4,15 @@ import Logo from "@/components/Logo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const PLANS = [
+type RatesData = {
+  country: string;
+  currency: string;
+  symbol: string;
+  rate: number;
+  plans: Record<string, { priceUsd: number; priceLocal: number; currency: string }>;
+};
+
+const BASE_PLANS = [
   { id: "pro", name: "Pro", credits: 500, price: 20 },
   { id: "enterprise", name: "Enterprise", credits: 2000, price: 70 },
 ];
@@ -37,6 +45,7 @@ export default function BillingPage() {
   const [payResult, setPayResult] = useState<{ success?: boolean; message?: string } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [rates, setRates] = useState<RatesData | null>(null);
 
   useEffect(() => {
     fetch("/api/billing")
@@ -57,7 +66,24 @@ export default function BillingPage() {
         setHistoryLoading(false);
       })
       .catch(() => setHistoryLoading(false));
+
+    fetch("/api/billing/rates")
+      .then((r) => r.json())
+      .then(setRates)
+      .catch(() => {});
   }, []);
+
+  const currencyCode = rates?.currency ?? "USD";
+  const currencySymbol = rates?.symbol ?? "$";
+  const showUsdHint = currencyCode !== "USD";
+
+  const PLANS = BASE_PLANS.map((p) => {
+    const r = rates?.plans[p.id];
+    return {
+      ...p,
+      priceLocal: r?.priceLocal ?? p.price,
+    };
+  });
 
   const handlePayment = async () => {
     if (!phone.trim()) return;
@@ -67,7 +93,12 @@ export default function BillingPage() {
       const res = await fetch("/api/billing/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: selectedPlan, phoneNumber: phone }),
+        body: JSON.stringify({
+          plan: selectedPlan,
+          phoneNumber: phone,
+          currency: currencyCode,
+          country: rates?.country,
+        }),
       });
       const data = await res.json();
       setPayResult({
@@ -209,7 +240,12 @@ export default function BillingPage() {
                     >
                       <div className="font-semibold">{p.name}</div>
                       <div className="text-sm text-gray-400">{p.credits} crédits</div>
-                      <div className="text-accent text-sm">{p.price} $/mois</div>
+                      <div className="text-accent text-sm">
+                        {p.priceLocal.toLocaleString("fr-FR")} {currencySymbol}/mois
+                      </div>
+                      {showUsdHint && (
+                        <div className="text-xs text-gray-500">soit {p.price} $ USD</div>
+                      )}
                     </button>
                   ))}
                 </div>
