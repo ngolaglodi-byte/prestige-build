@@ -15,20 +15,22 @@ import {
   PanelLeft,
 } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Sidebar() {
   const path = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useLanguage();
 
   const items = [
-    { name: "Accueil", href: "/dashboard", icon: Home },
-    { name: "Projets", href: "/projects", icon: FolderKanban },
-    { name: "Workspace", href: "/workspace", icon: LayoutDashboard },
-    { name: "Générations IA", href: "/ai-generations", icon: Sparkles },
-    { name: "Facturation", href: "/billing", icon: CreditCard },
-    { name: "Intégrations", href: "/integrations", icon: Puzzle },
-    { name: "Paramètres", href: "/settings", icon: Settings },
-    { name: "Support", href: "/support", icon: LifeBuoy },
+    { name: t("sidebar.home"), href: "/dashboard", icon: Home },
+    { name: t("sidebar.projects"), href: "/projects", icon: FolderKanban },
+    { name: t("sidebar.workspace"), href: "/workspace", icon: LayoutDashboard },
+    { name: t("sidebar.aiGenerations"), href: "/ai-generations", icon: Sparkles },
+    { name: t("sidebar.billing"), href: "/billing", icon: CreditCard },
+    { name: t("sidebar.integrations"), href: "/integrations", icon: Puzzle },
+    { name: t("sidebar.settings"), href: "/settings", icon: Settings },
+    { name: t("sidebar.support"), href: "/support", icon: LifeBuoy },
   ];
 
   return (
@@ -52,7 +54,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen bg-[#0D0D0D] border-r border-border flex flex-col transition-all duration-300 ${
+        className={`fixed top-0 left-0 z-40 h-screen bg-bg border-r border-border flex flex-col transition-all duration-300 ${
           collapsed ? "-translate-x-full lg:translate-x-0 lg:w-16" : "translate-x-0 w-64"
         }`}
       >
@@ -69,7 +71,7 @@ export default function Sidebar() {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden lg:flex p-1.5 text-gray-400 hover:text-white rounded-smooth hover:bg-white/5 transition-colors"
-            aria-label={collapsed ? "Ouvrir le menu" : "Fermer le menu"}
+            aria-label={collapsed ? t("sidebar.openMenu") : t("sidebar.closeMenu")}
           >
             {collapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
           </button>

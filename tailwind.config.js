@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
@@ -12,11 +13,13 @@ module.exports = {
         accentLight: "#818CF8",   // Indigo-400
         accentDark: "#4F46E5",    // Indigo-600
 
-        bg: "#0D0D0D",            // Fond principal Prestige Build
-        surface: "#1A1A1A",       // Cartes, panneaux
-        surfaceLight: "#222222",  // Surfaces plus claires
-        border: "#333333",        // Bordures subtiles
-        editor: "#111111",        // Fond Monaco Editor
+        bg: "var(--color-bg)",
+        surface: "var(--color-surface)",
+        surfaceLight: "var(--color-surface-light)",
+        border: "var(--color-border)",
+        editor: "var(--color-editor)",
+        foreground: "var(--color-foreground)",
+        muted: "var(--color-muted)",
       },
 
       borderRadius: {

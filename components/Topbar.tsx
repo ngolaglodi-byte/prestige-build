@@ -1,15 +1,17 @@
 "use client";
 
-import { Search, Bell } from "lucide-react";
+import { Search } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Topbar() {
   useRealtimeNotifications();
+  const { t } = useLanguage();
 
   return (
-    <header className="sticky top-0 z-30 h-16 w-full border-b border-border bg-[#0D0D0D]/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-border bg-bg/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8">
       {/* Spacer for mobile hamburger */}
       <div className="w-10 lg:hidden" />
 
@@ -18,8 +20,8 @@ export default function Topbar() {
         <Search className="w-4 h-4 text-gray-500" />
         <input
           type="text"
-          placeholder="Rechercher…"
-          className="bg-transparent outline-none text-sm w-full text-white placeholder:text-gray-500"
+          placeholder={t("topbar.search")}
+          className="bg-transparent outline-none text-sm w-full text-foreground placeholder:text-muted"
         />
       </div>
 

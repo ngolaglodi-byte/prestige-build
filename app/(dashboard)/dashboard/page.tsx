@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   FolderKanban,
@@ -11,6 +11,7 @@ import {
   Clock,
   Star,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Project = {
   id: string;
@@ -24,52 +25,60 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const { t, language } = useLanguage();
 
-  async function loadProjects() {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/projects/list?page=1&pageSize=6&search=");
       const data = await res.json();
       setProjects(data.projects || []);
     } catch {
-      // silencieux
+      // silent
     }
     setLoading(false);
-  }
+  }, []);
 
   async function createProject() {
-    const name = prompt("Nom du projet :");
+    const name = prompt(t("dashboard.projectNamePrompt"));
     if (!name) return;
     setCreating(true);
-    await fetch("/api/projects/create", {
-      method: "POST",
-      body: JSON.stringify({ name }),
-    });
+    try {
+      const res = await fetch("/api/projects/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        await loadProjects();
+      }
+    } catch {
+      // silent
+    }
     setCreating(false);
-    loadProjects();
   }
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [loadProjects]);
 
   const stats = [
     {
-      label: "Projets",
+      label: t("dashboard.projects"),
       value: projects.length,
       icon: FolderKanban,
       color: "text-blue-400",
       bg: "bg-blue-500/10",
     },
     {
-      label: "Générations IA",
+      label: t("dashboard.aiGenerations"),
       value: "—",
       icon: Sparkles,
       color: "text-purple-400",
       bg: "bg-purple-500/10",
     },
     {
-      label: "Stockage utilisé",
+      label: t("dashboard.storageUsed"),
       value: "—",
       icon: HardDrive,
       color: "text-emerald-400",
@@ -83,10 +92,10 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
-            Tableau de bord
+            {t("dashboard.title")}
           </h1>
-          <p className="text-gray-400 mt-1 text-sm">
-            Bienvenue sur Prestige Build. Voici un aperçu de votre activité.
+          <p className="text-muted mt-1 text-sm">
+            {t("dashboard.subtitle")}
           </p>
         </div>
 
@@ -96,7 +105,7 @@ export default function DashboardPage() {
           className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accentDark text-white rounded-smooth transition-all duration-200 font-medium text-sm disabled:opacity-50 self-start"
         >
           <Plus className="w-4 h-4" />
-          {creating ? "Création…" : "Nouveau Projet"}
+          {creating ? t("dashboard.creating") : t("dashboard.newProject")}
         </button>
       </div>
 
@@ -115,7 +124,7 @@ export default function DashboardPage() {
                 <Icon className={`w-6 h-6 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-sm text-gray-400">{stat.label}</p>
+                <p className="text-sm text-muted">{stat.label}</p>
                 <p className="text-2xl font-bold">{stat.value}</p>
               </div>
             </div>
@@ -126,12 +135,12 @@ export default function DashboardPage() {
       {/* Recent projects */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Projets récents</h2>
+          <h2 className="text-lg font-semibold">{t("dashboard.recentProjects")}</h2>
           <Link
             href="/projects"
             className="flex items-center gap-1 text-sm text-accent hover:text-accentLight transition-colors"
           >
-            Voir tout <ArrowRight className="w-4 h-4" />
+            {t("dashboard.viewAll")} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -146,19 +155,19 @@ export default function DashboardPage() {
           </div>
         ) : projects.length === 0 ? (
           <div className="premium-card p-10 text-center">
-            <FolderKanban className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+            <FolderKanban className="w-12 h-12 text-muted mx-auto mb-3" />
             <h3 className="text-lg font-semibold mb-1">
-              Aucun projet pour le moment
+              {t("dashboard.noProjects")}
             </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Créez votre premier projet pour commencer à construire.
+            <p className="text-muted text-sm mb-4">
+              {t("dashboard.noProjectsDesc")}
             </p>
             <button
               onClick={createProject}
               className="inline-flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accentDark text-white rounded-smooth transition-all text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
-              Créer un projet
+              {t("dashboard.createProject")}
             </button>
           </div>
         ) : (
@@ -177,11 +186,13 @@ export default function DashboardPage() {
                     <Star className="w-4 h-4 text-yellow-400 flex-shrink-0 fill-yellow-400" />
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
+                <div className="flex items-center gap-2 text-xs text-muted">
                   <Clock className="w-3.5 h-3.5" />
                   <span>
-                    Mis à jour le{" "}
-                    {new Date(project.updated_at).toLocaleDateString("fr-FR")}
+                    {t("dashboard.updatedAt")}{" "}
+                    {new Date(project.updated_at).toLocaleDateString(
+                      language === "fr" ? "fr-FR" : "en-US"
+                    )}
                   </span>
                 </div>
               </Link>
@@ -192,12 +203,12 @@ export default function DashboardPage() {
 
       {/* Activity */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Activité récente</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("dashboard.recentActivity")}</h2>
         <div className="premium-card p-6">
           <div className="flex flex-col items-center justify-center py-6 text-center">
-            <Clock className="w-10 h-10 text-gray-600 mb-3" />
-            <p className="text-gray-400 text-sm">
-              Votre activité récente apparaîtra ici.
+            <Clock className="w-10 h-10 text-muted mb-3" />
+            <p className="text-muted text-sm">
+              {t("dashboard.activityPlaceholder")}
             </p>
           </div>
         </div>

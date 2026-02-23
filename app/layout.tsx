@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import ClientProviders from "@/components/ClientProviders";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,9 +10,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const content = (
-    <html lang="fr">
-      <body className="antialiased bg-[#0D0D0D] text-white">
-        {children}
+    <html lang="fr" className="dark" suppressHydrationWarning>
+      <body className="antialiased bg-bg text-foreground transition-colors duration-200">
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );
