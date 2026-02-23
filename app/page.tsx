@@ -89,20 +89,20 @@ export default function HomePage() {
       <section className="relative overflow-hidden pt-40 pb-40">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-transparent to-transparent blur-3xl" />
         <div className="container mx-auto px-6 relative z-10 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight slide-up">
             Construisez tout avec <span className="text-blue-500">Prestige Build</span>
           </h1>
 
-          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto slide-up stagger-2">
             Votre espace de travail propulsé par l’IA pour générer, éditer, prévisualiser et déployer des applications complètes.
             Conçu pour la rapidité, la clarté et une expérience développeur premium.
           </p>
 
-          <div className="mt-10 flex justify-center gap-4">
-            <Link href="/workspace/1" className="px-8 py-4 bg-blue-600 rounded-xl hover:bg-blue-700">
+          <div className="mt-10 flex justify-center gap-4 slide-up stagger-3">
+            <Link href="/workspace/1" className="px-8 py-4 bg-blue-600 rounded-xl hover:bg-blue-700 transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5">
               Commencer à construire
             </Link>
-            <Link href="/dashboard" className="px-8 py-4 bg-white/10 rounded-xl hover:bg-white/20">
+            <Link href="/dashboard" className="px-8 py-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all duration-200 hover:-translate-y-0.5">
               Voir les projets
             </Link>
           </div>
@@ -193,21 +193,21 @@ export default function HomePage() {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-12">
-            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
+            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl premium-hover">
               <h3 className="text-2xl font-semibold mb-4">Espace de travail IA</h3>
               <p className="text-gray-400">
                 Générez, refactorisez et concevez des applications complètes avec une précision de qualité entreprise.
               </p>
             </div>
 
-            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
+            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl premium-hover">
               <h3 className="text-2xl font-semibold mb-4">Intelligence multi‑fichiers</h3>
               <p className="text-gray-400">
                 Prestige Build comprend la structure complète de votre projet, les dépendances et le contexte.
               </p>
             </div>
 
-            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
+            <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl premium-hover">
               <h3 className="text-2xl font-semibold mb-4">Sécurisé et scalable</h3>
               <p className="text-gray-400">
                 Construit avec une authentification moderne, une architecture robuste et des flux prêts pour la production.
@@ -329,21 +329,21 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-12">
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
-                “Prestige Build replaced weeks of development with minutes of clarity.”
+                “Prestige Build a remplacé des semaines de développement par des minutes de clarté.”
               </p>
               <p className="mt-4 text-blue-500 font-semibold">— Alex, ingénieur senior</p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
-                “The closest thing to having a staff of senior engineers on demand.”
+                “L’outil le plus proche d’avoir une équipe d’ingénieurs seniors à la demande.”
               </p>
               <p className="mt-4 text-blue-500 font-semibold">— Maya, directrice technique</p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
-                “From prototype to production in days instead of months.”
+                “Du prototype à la production en quelques jours au lieu de plusieurs mois.”
               </p>
               <p className="mt-4 text-blue-500 font-semibold">— Daniel, fondateur</p>
             </div>

@@ -38,17 +38,25 @@ export const useAiPanel = create<AiPanelStore>((set, get) => ({
     addUserMessage(prompt);
     set({ loading: true });
 
-    const res = await fetch(`/api/projects/${projectId}/ai`, {
-      method: "POST",
-      body: JSON.stringify({ prompt, filePath }),
-    });
+    try {
+      const res = await fetch(`/api/projects/${projectId}/ai`, {
+        method: "POST",
+        body: JSON.stringify({ prompt, filePath }),
+      });
 
-    const data = await res.json();
-    if (data.ok) {
-      addAssistantMessage(data.message);
+      const data = await res.json();
+      if (data.ok) {
+        addAssistantMessage(data.message);
+      } else {
+        addAssistantMessage(data.error ?? "Une erreur est survenue.");
+      }
+
+      set({ loading: false });
+      return data;
+    } catch {
+      addAssistantMessage("Erreur de connexion au serveur. Veuillez réessayer.");
+      set({ loading: false });
+      return undefined;
     }
-
-    set({ loading: false });
-    return data;
   },
 }));

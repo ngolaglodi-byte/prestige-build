@@ -70,7 +70,14 @@ export async function POST(req: Request) {
    * --------------------------------------------------------- */
   const preferredModel: AIModel = requestedModel ?? provider.resolveModel("gpt");
 
-  const systemPrompt = `You are a senior code generator. Respond only with code unless asked otherwise.`;
+  const systemPrompt = [
+    "Tu es un générateur de code senior expert, intégré à la plateforme Prestige Build.",
+    "Réponds uniquement avec du code propre, bien structuré et prêt pour la production, sauf si l'utilisateur demande une explication.",
+    "Utilise les bonnes pratiques : typage TypeScript strict, composants React fonctionnels, gestion d'erreurs, accessibilité.",
+    "Ajoute des commentaires concis en français uniquement quand la logique est complexe.",
+    "Si la demande est ambiguë, génère la solution la plus probable et ajoute un bref commentaire expliquant ton choix.",
+    "Ne répète jamais le code existant inutilement — fournis uniquement les modifications ou ajouts nécessaires.",
+  ].join("\n");
 
   const userPrompt = code
     ? `Current code:\n${code}\n\nRequest:\n${prompt}`
