@@ -38,11 +38,13 @@ export async function POST(req: Request) {
     );
   }
 
-  // Trouver l'achat en attente
+  // Trouver l'achat en attente correspondant au depositId
   const [purchase] = await db
     .select()
     .from(creditPurchases)
-    .where(eq(creditPurchases.status, "pending"))
+    .where(
+      sql`${creditPurchases.status} = 'pending' AND ${creditPurchases.rawPayload}->>'depositId' = ${depositId}`
+    )
     .limit(1);
 
   if (!purchase) {
