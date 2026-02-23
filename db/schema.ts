@@ -265,3 +265,16 @@ export const webhookConfigs = pgTable("webhook_configs", {
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// INTEGRATIONS
+export const integrations = pgTable("integrations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  provider: varchar("provider", { length: 50 }).notNull(), // github | vercel | supabase | webhooks
+  active: boolean("active").notNull().default(false),
+  config: jsonb("config").$type<Record<string, string>>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

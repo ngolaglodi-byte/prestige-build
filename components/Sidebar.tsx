@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, FolderIcon, Cog6ToothIcon, BellIcon, KeyIcon, UserGroupIcon, ChartBarIcon, RectangleStackIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, FolderIcon, Cog6ToothIcon, BellIcon, KeyIcon, UserGroupIcon, ChartBarIcon, RectangleStackIcon, PuzzlePieceIcon } from "@heroicons/react/24/outline";
 
 export default function Sidebar() {
   const path = usePathname();
@@ -13,6 +13,7 @@ export default function Sidebar() {
     { name: "Templates", href: "/templates", icon: RectangleStackIcon },
     { name: "Équipe", href: "/team", icon: UserGroupIcon },
     { name: "Clés API", href: "/api-keys", icon: KeyIcon },
+    { name: "Intégrations", href: "/integrations", icon: PuzzlePieceIcon },
     { name: "Notifications", href: "/notifications", icon: BellIcon },
     { name: "Utilisation", href: "/usage", icon: ChartBarIcon },
     { name: "Paramètres", href: "/settings", icon: Cog6ToothIcon },
