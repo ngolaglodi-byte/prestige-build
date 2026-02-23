@@ -10,7 +10,7 @@ import { useLogsStore } from "@/lib/store/logsStore";
 import { DiffItem } from "@/lib/store/aiDiffStore";
 import { MultiPreviewItem } from "@/store/useAIMultiPreviewStore";
 
-type AIAction = "generate" | "generate_multi" | "refactor" | "explain" | "fix";
+type AIAction = "generate" | "generate_multi" | "refactor" | "explain" | "fix" | "create_project";
 
 const AI_ACTIONS: { key: AIAction; label: string; icon: string }[] = [
   { key: "generate", label: "Générer fichier", icon: "✨" },
@@ -18,6 +18,7 @@ const AI_ACTIONS: { key: AIAction; label: string; icon: string }[] = [
   { key: "refactor", label: "Refactoriser", icon: "🔧" },
   { key: "explain", label: "Expliquer le code", icon: "💡" },
   { key: "fix", label: "Corriger les erreurs", icon: "🩹" },
+  { key: "create_project", label: "Créer un projet", icon: "🚀" },
 ];
 
 export function AiPanel({ projectId }: { projectId: string }) {
@@ -50,6 +51,8 @@ export function AiPanel({ projectId }: { projectId: string }) {
       fix: activeFile
         ? `Corrige les erreurs dans le fichier ${activeFile}`
         : "Corrige les erreurs dans ce projet",
+      create_project:
+        "Crée la structure complète d'un projet (précisez le type : nextjs, react, vue, svelte, astro, react-native, electron, tauri, fastapi, go, dashboard, ecommerce, game, template)",
     };
 
     setInput(prompts[action]);
@@ -74,6 +77,14 @@ export function AiPanel({ projectId }: { projectId: string }) {
     if (res?.previews) {
       showMultiPreview(res.previews as MultiPreviewItem[]);
       addAiLog(`Aperçu multi-fichiers : ${(res.previews as MultiPreviewItem[]).length} fichiers`);
+    }
+
+    // Avertissements de sécurité
+    if (res?.safetyWarnings) {
+      const warnings = res.safetyWarnings as string[];
+      for (const w of warnings) {
+        addAiLog(`⚠️ ${w}`);
+      }
     }
 
     if (res?.message) {

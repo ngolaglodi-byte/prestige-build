@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { auth } from "@clerk/nextjs/server";
 import { consumeCredits } from "@/lib/credits/consumeCredits";
 import { checkCredits } from "@/lib/credits/checkCredits";
@@ -7,22 +6,37 @@ import {
   readProjectFileContent,
   writeSingleFile,
 } from "@/lib/projects/fileSystem";
+import { AIProvider, type AIModel } from "@/lib/ai/provider";
+import { validatePath } from "@/lib/ai/safetyValidator";
+
+const provider = new AIProvider();
 
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  if (!process.env.OPENAI_KEY) {
-    return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 503 });
+  const available = provider.getAvailableModels();
+  if (available.length === 0) {
+    return NextResponse.json(
+      { error: "Aucun fournisseur IA configuré" },
+      { status: 503 }
+    );
   }
 
-  const client = new OpenAI({ apiKey: process.env.OPENAI_KEY });
-
-  const { projectId, filePath, instructions } = await req.json();
+  const { projectId, filePath, instructions, model: requestedModel } = await req.json();
 
   if (!projectId || !filePath || !instructions) {
     return NextResponse.json(
-      { error: "projectId, filePath and instructions are required" },
+      { error: "projectId, filePath et instructions sont requis" },
+      { status: 400 }
+    );
+  }
+
+  // Validation de sécurité du chemin
+  const pathErrors = validatePath(filePath);
+  if (pathErrors.length > 0) {
+    return NextResponse.json(
+      { error: `Chemin invalide : ${pathErrors.join(", ")}` },
       { status: 400 }
     );
   }
@@ -32,7 +46,7 @@ export async function POST(req: Request) {
   const hasCredits = await checkCredits(userId, CREDITS_COST);
   if (!hasCredits) {
     return NextResponse.json(
-      { error: "Not enough credits" },
+      { error: "Crédits insuffisants" },
       { status: 402 }
     );
   }
@@ -47,40 +61,42 @@ export async function POST(req: Request) {
     action: "ai.file.edit",
   });
 
-  const systemPrompt = `
-You are a senior code editor.
-You will receive the current content of a file and instructions.
-You MUST return ONLY the new full content of the file.
-Do NOT explain, do NOT wrap in backticks, just the raw code.
-  `;
+  const systemPrompt = [
+    "Tu es un éditeur de code senior.",
+    "Tu reçois le contenu actuel d'un fichier et des instructions de modification.",
+    "Tu DOIS retourner UNIQUEMENT le nouveau contenu complet du fichier.",
+    "N'explique pas, n'encadre pas avec des backticks, retourne uniquement le code brut.",
+    "Toutes tes réponses sont en français si des commentaires sont nécessaires.",
+  ].join("\n");
 
-  const userPrompt = `
-File path: ${filePath}
+  const userPrompt = `Chemin du fichier : ${filePath}
 
-Current content:
+Contenu actuel :
 ${currentContent}
 
-Instructions:
-${instructions}
-  `;
+Instructions :
+${instructions}`;
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4.1",
-    max_tokens: 65000, // <-- correction ici
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-  });
+  const preferredModel: AIModel = requestedModel ?? provider.resolveModel("gpt");
 
-  const newContent = completion.choices[0].message.content ?? "";
+  try {
+    const { result: newContent, model: usedModel } = await provider.generateWithFallback(
+      preferredModel,
+      userPrompt,
+      { maxTokens: 65000, systemPrompt }
+    );
 
-  writeSingleFile(projectId, filePath, newContent);
+    writeSingleFile(projectId, filePath, newContent);
 
-  return NextResponse.json({
-    success: true,
-    projectId,
-    filePath,
-    creditsUsed: CREDITS_COST,
-  });
+    return NextResponse.json({
+      success: true,
+      projectId,
+      filePath,
+      creditsUsed: CREDITS_COST,
+      model: usedModel,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Erreur IA inconnue";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }
