@@ -25,7 +25,8 @@ export async function POST(req: Request) {
   const { plan, phoneNumber, currency: rawCurrency, country: rawCountry } = await req.json();
 
   // Resolve country → currency → converted amount
-  const country = (typeof rawCountry === "string" ? rawCountry : "CD").toUpperCase();
+  const DEFAULT_COUNTRY = "CD";
+  const country = (typeof rawCountry === "string" ? rawCountry : DEFAULT_COUNTRY).toUpperCase();
   const currency: CurrencyCode = (typeof rawCurrency === "string" && rawCurrency.length === 3)
     ? rawCurrency.toUpperCase() as CurrencyCode
     : currencyForCountry(country);

@@ -134,6 +134,7 @@ export type FxRates = Record<string, number>;
 
 const FX_CACHE: { rates: FxRates | null; ts: number } = { rates: null, ts: 0 };
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL_SEC = CACHE_TTL_MS / 1000;
 
 /** Fetch live FX rates (base USD) from a free API. Results are cached for 1 h. */
 export async function fetchFxRates(): Promise<FxRates> {
@@ -156,7 +157,7 @@ export async function fetchFxRates(): Promise<FxRates> {
   try {
     const res = await fetch(
       "https://api.exchangerate-api.com/v4/latest/USD",
-      { next: { revalidate: 3600 } },
+      { next: { revalidate: CACHE_TTL_SEC } },
     );
     if (!res.ok) throw new Error("FX API error");
     const data = await res.json();
