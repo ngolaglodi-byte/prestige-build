@@ -59,6 +59,7 @@ export default function ProjectsPage() {
     setCreating(true);
     await fetch("/api/projects/create", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
     setCreating(false);
@@ -67,24 +68,24 @@ export default function ProjectsPage() {
 
   async function deleteProject(id: string) {
     if (!confirm("Supprimer ce projet ?")) return;
-    await fetch("/api/projects/delete", { method: "POST", body: JSON.stringify({ id }) });
+    await fetch("/api/projects/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     loadProjects();
   }
 
   async function renameProject(id: string, currentName: string) {
     const name = prompt("Nouveau nom du projet :", currentName);
     if (!name || name === currentName) return;
-    await fetch("/api/projects/rename", { method: "POST", body: JSON.stringify({ id, name }) });
+    await fetch("/api/projects/rename", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, name }) });
     loadProjects();
   }
 
   async function duplicateProject(id: string) {
-    await fetch("/api/projects/duplicate", { method: "POST", body: JSON.stringify({ id }) });
+    await fetch("/api/projects/duplicate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     loadProjects({ page: 1 });
   }
 
   async function toggleFavorite(id: string, isFavorite: boolean) {
-    await fetch("/api/projects/favorite", { method: "POST", body: JSON.stringify({ id, isFavorite: !isFavorite }) });
+    await fetch("/api/projects/favorite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, isFavorite: !isFavorite }) });
     loadProjects();
   }
 
