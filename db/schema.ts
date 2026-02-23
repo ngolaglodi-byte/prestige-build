@@ -237,6 +237,23 @@ export const teamProjects = pgTable("team_projects", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// TEMPLATES
+export const templates = pgTable("templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 50 }).notNull().default("Web"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  files: jsonb("files").$type<{ path: string; content: string }[]>().notNull(),
+  isPublic: boolean("is_public").notNull().default(false),
+  usageCount: integer("usage_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").default(sql`NOW()`).notNull(),
+});
+
 // WEBHOOK CONFIGS
 export const webhookConfigs = pgTable("webhook_configs", {
   id: uuid("id").primaryKey().defaultRandom(),
