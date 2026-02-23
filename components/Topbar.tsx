@@ -1,43 +1,44 @@
 "use client";
 
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
+import { Search, Bell } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 export default function Topbar() {
-  // Initialise le chargement et l'écoute temps réel des notifications
   useRealtimeNotifications();
 
   return (
-    <div className="h-16 w-full border-b border-border bg-[#111]/80 backdrop-blur-md flex items-center justify-between px-6">
+    <header className="sticky top-0 z-30 h-16 w-full border-b border-border bg-[#0D0D0D]/80 backdrop-blur-xl flex items-center justify-between px-6 lg:px-8">
+      {/* Spacer for mobile hamburger */}
+      <div className="w-10 lg:hidden" />
 
-      {/* Recherche */}
-      <div className="flex items-center gap-2 bg-surfaceLight border border-border rounded-smooth px-3 py-2 w-80">
-        <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+      {/* Search */}
+      <div className="hidden sm:flex items-center gap-2 bg-surface border border-border rounded-smooth px-3 py-2 w-72 lg:w-80 focus-within:border-accent/50 transition-colors">
+        <Search className="w-4 h-4 text-gray-500" />
         <input
           type="text"
           placeholder="Rechercher…"
-          className="bg-transparent outline-none text-sm w-full"
+          className="bg-transparent outline-none text-sm w-full text-white placeholder:text-gray-500"
         />
       </div>
 
-      {/* Côté droit */}
-      <div className="flex items-center gap-6">
-
-        {/* Centre de notifications */}
+      {/* Right side */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
         <NotificationCenter />
 
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full overflow-hidden border border-border">
-          <Image
-            src="/avatar.png"
-            alt="Avatar"
-            width={40}
-            height={40}
-          />
-        </div>
+        {/* User menu (Clerk UserButton with custom menu items) */}
+        <UserButton
+          afterSignOutUrl="/"
+          appearance={{
+            elements: {
+              avatarBox: "w-9 h-9",
+              userButtonPopoverCard: "bg-surface border border-border",
+            },
+          }}
+        />
       </div>
-    </div>
+    </header>
   );
 }
