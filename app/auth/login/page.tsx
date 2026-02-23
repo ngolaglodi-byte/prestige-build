@@ -20,24 +20,24 @@ export default function LoginPage() {
       <div className="premium-card p-8 w-full max-w-md fade-in flex flex-col gap-6">
 
         <h1 className="text-2xl font-bold tracking-tight text-center">
-          Welcome Back
+          Bon retour parmi nous
         </h1>
 
         {/* Email */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">Email</label>
+          <label className="text-sm text-gray-300">Adresse e-mail</label>
           <input
             type="email"
-            placeholder="you@example.com"
+            placeholder="vous@exemple.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="bg-surfaceLight border border-border rounded-smooth px-4 py-2 focus:outline-none focus:border-accent"
           />
         </div>
 
-        {/* Password */}
+        {/* Mot de passe */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">Password</label>
+          <label className="text-sm text-gray-300">Mot de passe</label>
           <input
             type="password"
             placeholder="••••••••••"
@@ -49,17 +49,17 @@ export default function LoginPage() {
 
         {/* CTA */}
         <button className="w-full px-4 py-3 bg-accent rounded-smooth premium-hover shadow-soft text-lg">
-          Login
+          Se connecter
         </button>
 
-        {/* Divider */}
+        {/* Séparateur */}
         <div className="h-px bg-border my-2"></div>
 
-        {/* Create Account */}
+        {/* Créer un compte */}
         <p className="text-center text-gray-400 text-sm">
-          Don’t have an account?{" "}
+          Vous n'avez pas de compte ?{" "}
           <Link href="/auth/register" className="text-accent premium-hover">
-            Create one
+            Créer un compte
           </Link>
         </p>
       </div>

@@ -6,23 +6,23 @@ import Link from "next/link";
 export default function DeveloperDocsPage() {
   const sections = [
     {
-      title: "Authentication",
-      description: "How to authenticate with your API keys.",
+      title: "Authentification",
+      description: "Comment vous authentifier avec vos clés API.",
       link: "#auth",
     },
     {
-      title: "Generate Code",
-      description: "Use the Prestige Build API to generate code programmatically.",
+      title: "Générer du code",
+      description: "Utilisez l'API Prestige Build pour générer du code de manière programmatique.",
       link: "#generate",
     },
     {
       title: "Webhooks",
-      description: "Receive events from Prestige Build, Stripe, and Pawapay.",
+      description: "Recevez des événements de Prestige Build, Stripe et Pawapay.",
       link: "#webhooks",
     },
     {
-      title: "Examples",
-      description: "Copy‑paste ready examples in JavaScript, Python, and cURL.",
+      title: "Exemples",
+      description: "Exemples prêts à copier‑coller en JavaScript, Python et cURL.",
       link: "#examples",
     },
   ];
@@ -34,17 +34,17 @@ export default function DeveloperDocsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Hero */}
       <div className="text-center mt-20 fade-in px-6">
         <h1 className="text-5xl font-bold tracking-tight mb-4">
-          Developer <span className="text-accent">Documentation</span>
+          <span className="text-accent">Documentation</span> développeur
         </h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Everything you need to integrate Prestige Build into your applications.
+          Tout ce dont vous avez besoin pour intégrer Prestige Build dans vos applications.
         </p>
       </div>
 

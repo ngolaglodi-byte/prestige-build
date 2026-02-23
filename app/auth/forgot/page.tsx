@@ -19,19 +19,19 @@ export default function ForgotPasswordPage() {
       <div className="premium-card p-8 w-full max-w-md fade-in flex flex-col gap-6">
 
         <h1 className="text-2xl font-bold tracking-tight text-center">
-          Reset Your Password
+          Réinitialiser votre mot de passe
         </h1>
 
         <p className="text-gray-400 text-sm text-center">
-          Enter your email and we’ll send you a reset link.
+          Entrez votre adresse e-mail et nous vous enverrons un lien de réinitialisation.
         </p>
 
         {/* Email */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-300">Email</label>
+          <label className="text-sm text-gray-300">Adresse e-mail</label>
           <input
             type="email"
-            placeholder="you@example.com"
+            placeholder="vous@exemple.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="bg-surfaceLight border border-border rounded-smooth px-4 py-2 focus:outline-none focus:border-accent"
@@ -40,17 +40,17 @@ export default function ForgotPasswordPage() {
 
         {/* CTA */}
         <button className="w-full px-4 py-3 bg-accent rounded-smooth premium-hover shadow-soft text-lg">
-          Send Reset Link
+          Envoyer le lien de réinitialisation
         </button>
 
-        {/* Divider */}
+        {/* Séparateur */}
         <div className="h-px bg-border my-2"></div>
 
-        {/* Back to Login */}
+        {/* Retour à la connexion */}
         <p className="text-center text-gray-400 text-sm">
-          Remember your password?{" "}
+          Vous vous souvenez de votre mot de passe ?{" "}
           <Link href="/auth/login" className="text-accent premium-hover">
-            Login
+            Se connecter
           </Link>
         </p>
       </div>

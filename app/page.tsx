@@ -10,9 +10,9 @@ export default function HomePage() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const slides = [
-    "Workspace Preview Coming Soon",
-    "AI Multi‑File Generation",
-    "Live Preview & Deployment",
+    "Aperçu de l’espace de travail bientôt disponible",
+    "Génération IA multi‑fichiers",
+    "Aperçu en direct et déploiement",
   ];
 
   useEffect(() => {
@@ -32,20 +32,20 @@ export default function HomePage() {
 
     {/* Desktop Navigation */}
     <nav className="hidden md:flex items-center gap-8 text-sm text-gray-300">
-      <a href="#why" className="hover:text-white transition">Why Prestige Build</a>
-      <a href="#features" className="hover:text-white transition">Features</a>
-      <a href="#integrations" className="hover:text-white transition">Integrations</a>
-      <a href="#pricing" className="hover:text-white transition">Pricing</a>
-      <a href="#testimonials" className="hover:text-white transition">Testimonials</a>
+      <a href="#why" className="hover:text-white transition">Pourquoi Prestige Build</a>
+      <a href="#features" className="hover:text-white transition">Fonctionnalités</a>
+      <a href="#integrations" className="hover:text-white transition">Intégrations</a>
+      <a href="#pricing" className="hover:text-white transition">Tarification</a>
+      <a href="#testimonials" className="hover:text-white transition">Témoignages</a>
     </nav>
 
     {/* Desktop Buttons */}
     <div className="hidden md:flex items-center gap-3">
       <Link href="/sign-in" className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10">
-        Sign In
+        Se connecter
       </Link>
       <Link href="/sign-up" className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
-        Sign Up
+        S’inscrire
       </Link>
     </div>
 
@@ -66,18 +66,18 @@ export default function HomePage() {
   {mobileOpen && (
     <div className="md:hidden border-t border-white/10 bg-black/90">
       <div className="px-6 py-4 space-y-3 text-sm text-gray-200">
-        <a href="#why" onClick={() => setMobileOpen(false)}>Why Prestige Build</a>
-        <a href="#features" onClick={() => setMobileOpen(false)}>Features</a>
-        <a href="#integrations" onClick={() => setMobileOpen(false)}>Integrations</a>
-        <a href="#pricing" onClick={() => setMobileOpen(false)}>Pricing</a>
-        <a href="#testimonials" onClick={() => setMobileOpen(false)}>Testimonials</a>
+        <a href="#why" onClick={() => setMobileOpen(false)}>Pourquoi Prestige Build</a>
+        <a href="#features" onClick={() => setMobileOpen(false)}>Fonctionnalités</a>
+        <a href="#integrations" onClick={() => setMobileOpen(false)}>Intégrations</a>
+        <a href="#pricing" onClick={() => setMobileOpen(false)}>Tarification</a>
+        <a href="#testimonials" onClick={() => setMobileOpen(false)}>Témoignages</a>
 
         <div className="pt-2 flex gap-3">
           <Link href="/sign-in" className="flex-1 text-center px-4 py-2 bg-white/5 rounded-lg">
-            Sign In
+            Se connecter
           </Link>
           <Link href="/sign-up" className="flex-1 text-center px-4 py-2 bg-blue-600 rounded-lg">
-            Sign Up
+            S’inscrire
           </Link>
         </div>
       </div>
@@ -90,20 +90,20 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-transparent to-transparent blur-3xl" />
         <div className="container mx-auto px-6 relative z-10 text-center">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-            Build Anything with <span className="text-blue-500">Prestige Build</span>
+            Construisez tout avec <span className="text-blue-500">Prestige Build</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-            Your AI-powered workspace to generate, edit, preview, and deploy full applications.
-            Designed for speed, clarity, and a premium developer experience.
+            Votre espace de travail propulsé par l’IA pour générer, éditer, prévisualiser et déployer des applications complètes.
+            Conçu pour la rapidité, la clarté et une expérience développeur premium.
           </p>
 
           <div className="mt-10 flex justify-center gap-4">
             <Link href="/workspace/1" className="px-8 py-4 bg-blue-600 rounded-xl hover:bg-blue-700">
-              Start Building
+              Commencer à construire
             </Link>
             <Link href="/dashboard" className="px-8 py-4 bg-white/10 rounded-xl hover:bg-white/20">
-              View Projects
+              Voir les projets
             </Link>
           </div>
         </div>
@@ -112,9 +112,9 @@ export default function HomePage() {
       {/* CAROUSEL */}
       <section className="py-24 bg-[#0A0A0A] border-t border-white/5">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">A Workspace Built for Excellence</h2>
+          <h2 className="text-4xl font-bold mb-6">Un espace de travail conçu pour l’excellence</h2>
           <p className="text-gray-400 max-w-2xl mx-auto mb-12">
-            Generate, edit, preview, and deploy full applications with unmatched clarity and precision.
+            Générez, éditez, prévisualisez et déployez des applications complètes avec une clarté et une précision inégalées.
           </p>
 
           <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
@@ -139,7 +139,7 @@ export default function HomePage() {
       {/* CLIENT LOGOS */}
       <section className="py-20 bg-[#050505]">
         <div className="container mx-auto px-6 text-center">
-          <h3 className="text-gray-400 mb-10">Trusted by teams worldwide</h3>
+          <h3 className="text-gray-400 mb-10">Adopté par des équipes dans le monde entier</h3>
 
           <div className="flex flex-wrap justify-center gap-12 opacity-80">
             <div className="text-2xl font-bold">TechNova</div>
@@ -155,30 +155,30 @@ export default function HomePage() {
       <section id="why" className="py-24 bg-[#050505] border-t border-white/5">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-10">
-            Why <span className="text-blue-500">Prestige Build</span>?
+            Pourquoi <span className="text-blue-500">Prestige Build</span> ?
           </h2>
           <p className="text-gray-400 max-w-3xl mx-auto text-center mb-16">
-            Prestige Build is not just another AI code generator. It’s a full enterprise‑grade 
-            development environment designed for reliability, clarity, and long‑term scalability.
+            Prestige Build n’est pas un simple générateur de code IA. C’est un environnement de développement
+            de qualité entreprise conçu pour la fiabilité, la clarté et la scalabilité à long terme.
           </p>
 
           <div className="grid md:grid-cols-3 gap-10">
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
-              <h3 className="text-xl font-semibold mb-3">Enterprise‑First</h3>
+              <h3 className="text-xl font-semibold mb-3">Entreprise d’abord</h3>
               <p className="text-gray-400">
-                Built with teams, compliance, and production workflows in mind from day one.
+                Conçu dès le départ pour les équipes, la conformité et les flux de production.
               </p>
             </div>
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
-              <h3 className="text-xl font-semibold mb-3">Clarity Over Chaos</h3>
+              <h3 className="text-xl font-semibold mb-3">La clarté avant le chaos</h3>
               <p className="text-gray-400">
-                Clean architecture, predictable outputs, and a workspace that feels crafted, not chaotic.
+                Architecture propre, résultats prévisibles et un espace de travail soigné, pas chaotique.
               </p>
             </div>
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
-              <h3 className="text-xl font-semibold mb-3">Future‑Proof</h3>
+              <h3 className="text-xl font-semibold mb-3">Pérenne</h3>
               <p className="text-gray-400">
-                Designed to evolve with your stack, your team, and your ambitions.
+                Conçu pour évoluer avec votre stack, votre équipe et vos ambitions.
               </p>
             </div>
           </div>
@@ -189,28 +189,28 @@ export default function HomePage() {
       <section id="features" className="py-24 bg-[#050505]">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-16">
-            Engineered for <span className="text-blue-500">Professionals</span>
+            Conçu pour les <span className="text-blue-500">professionnels</span>
           </h2>
 
           <div className="grid md:grid-cols-3 gap-12">
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
-              <h3 className="text-2xl font-semibold mb-4">AI Workspace</h3>
+              <h3 className="text-2xl font-semibold mb-4">Espace de travail IA</h3>
               <p className="text-gray-400">
-                Generate, refactor, and architect full applications with enterprise‑grade precision.
+                Générez, refactorisez et concevez des applications complètes avec une précision de qualité entreprise.
               </p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
-              <h3 className="text-2xl font-semibold mb-4">Multi‑File Intelligence</h3>
+              <h3 className="text-2xl font-semibold mb-4">Intelligence multi‑fichiers</h3>
               <p className="text-gray-400">
-                Prestige Build understands your entire project structure, dependencies, and context.
+                Prestige Build comprend la structure complète de votre projet, les dépendances et le contexte.
               </p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5 backdrop-blur-xl">
-              <h3 className="text-2xl font-semibold mb-4">Secure & Scalable</h3>
+              <h3 className="text-2xl font-semibold mb-4">Sécurisé et scalable</h3>
               <p className="text-gray-400">
-                Built with modern authentication, robust architecture, and production‑ready workflows.
+                Construit avec une authentification moderne, une architecture robuste et des flux prêts pour la production.
               </p>
             </div>
           </div>
@@ -220,27 +220,27 @@ export default function HomePage() {
       {/* INTEGRATIONS */}
       <section id="integrations" className="py-24 bg-[#0A0A0A] border-t border-white/5">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-10">Integrations</h2>
+          <h2 className="text-4xl font-bold text-center mb-10">Intégrations</h2>
           <p className="text-gray-400 max-w-3xl mx-auto text-center mb-16">
-            Connect Prestige Build with the tools your team already uses to ship faster and safer.
+            Connectez Prestige Build aux outils que votre équipe utilise déjà pour livrer plus vite et plus sûrement.
           </p>
 
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div className="p-6 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="font-semibold mb-2">GitHub</p>
-              <p className="text-gray-400 text-sm">Sync repositories and branches.</p>
+              <p className="text-gray-400 text-sm">Synchronisez les dépôts et les branches.</p>
             </div>
             <div className="p-6 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="font-semibold mb-2">Vercel</p>
-              <p className="text-gray-400 text-sm">Deploy instantly from your workspace.</p>
+              <p className="text-gray-400 text-sm">Déployez instantanément depuis votre espace de travail.</p>
             </div>
             <div className="p-6 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="font-semibold mb-2">Supabase</p>
-              <p className="text-gray-400 text-sm">Database and auth ready to go.</p>
+              <p className="text-gray-400 text-sm">Base de données et authentification prêtes à l’emploi.</p>
             </div>
             <div className="p-6 bg-[#0D0D0D] rounded-2xl border border-white/5">
-              <p className="font-semibold mb-2">Custom APIs</p>
-              <p className="text-gray-400 text-sm">Bring your own services and models.</p>
+              <p className="font-semibold mb-2">API personnalisées</p>
+              <p className="text-gray-400 text-sm">Intégrez vos propres services et modèles.</p>
             </div>
           </div>
         </div>
@@ -250,14 +250,14 @@ export default function HomePage() {
       <section className="py-24 bg-[#050505] border-t border-white/5">
         <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-4xl font-bold mb-6">Immersive Visual Experience</h2>
+            <h2 className="text-4xl font-bold mb-6">Expérience visuelle immersive</h2>
             <p className="text-gray-400 mb-4">
-              Prestige Build is designed to feel as powerful as it looks. This live 3D scene 
-              showcases the depth and precision behind your workspace.
+              Prestige Build est conçu pour être aussi puissant qu’il en a l’air. Cette scène 3D en direct
+              illustre la profondeur et la précision derrière votre espace de travail.
             </p>
             <p className="text-gray-500 text-sm">
-              Powered by WebGL and React Three Fiber, this block is ready to evolve into a full 
-              visualization of your AI workspace.
+              Propulsé par WebGL et React Three Fiber, ce bloc est prêt à évoluer vers une visualisation
+              complète de votre espace de travail IA.
             </p>
           </div>
 
@@ -273,48 +273,48 @@ export default function HomePage() {
       {/* PRICING */}
       <section id="pricing" className="py-24 bg-[#0A0A0A] border-t border-white/5">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-16">Pricing</h2>
+          <h2 className="text-4xl font-bold mb-16">Tarification</h2>
 
           <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
             <div className="p-10 bg-[#0D0D0D] rounded-2xl border border-white/5">
-              <h3 className="text-2xl font-semibold mb-4">Free</h3>
-              <p className="text-gray-400 mb-6">Perfect for beginners</p>
-              <p className="text-4xl font-bold mb-6">$0</p>
+              <h3 className="text-2xl font-semibold mb-4">Gratuit</h3>
+              <p className="text-gray-400 mb-6">Idéal pour les débutants</p>
+              <p className="text-4xl font-bold mb-6">0 $</p>
               <ul className="text-gray-400 space-y-2 mb-6">
-                <li>Basic AI generation</li>
-                <li>Limited projects</li>
-                <li>Community support</li>
+                <li>Génération IA de base</li>
+                <li>Projets limités</li>
+                <li>Support communautaire</li>
               </ul>
               <Link href="/sign-up" className="block py-3 bg-blue-600 rounded-xl font-semibold">
-                Get Started
+                Commencer
               </Link>
             </div>
 
             <div className="p-10 bg-blue-600/10 rounded-2xl border border-blue-500">
               <h3 className="text-2xl font-semibold mb-4">Pro</h3>
-              <p className="text-gray-400 mb-6">For serious developers</p>
-              <p className="text-4xl font-bold mb-6">$19/mo</p>
+              <p className="text-gray-400 mb-6">Pour les développeurs sérieux</p>
+              <p className="text-4xl font-bold mb-6">19 $/mois</p>
               <ul className="text-gray-300 space-y-2 mb-6">
-                <li>Unlimited AI generation</li>
-                <li>Full workspace access</li>
-                <li>Priority support</li>
+                <li>Génération IA illimitée</li>
+                <li>Accès complet à l’espace de travail</li>
+                <li>Support prioritaire</li>
               </ul>
               <Link href="/sign-up" className="block py-3 bg-blue-600 rounded-xl font-semibold">
-                Upgrade
+                Passer au supérieur
               </Link>
             </div>
 
             <div className="p-10 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <h3 className="text-2xl font-semibold mb-4">Enterprise</h3>
-              <p className="text-gray-400 mb-6">For teams & companies</p>
-              <p className="text-4xl font-bold mb-6">Custom</p>
+              <p className="text-gray-400 mb-6">Pour les équipes et entreprises</p>
+              <p className="text-4xl font-bold mb-6">Sur mesure</p>
               <ul className="text-gray-400 space-y-2 mb-6">
-                <li>Team collaboration</li>
-                <li>Custom AI models</li>
-                <li>Dedicated support</li>
+                <li>Collaboration d’équipe</li>
+                <li>Modèles IA personnalisés</li>
+                <li>Support dédié</li>
               </ul>
               <Link href="/contact" className="block py-3 bg-white/10 rounded-xl font-semibold">
-                Contact Sales
+                Contacter les ventes
               </Link>
             </div>
           </div>
@@ -324,28 +324,28 @@ export default function HomePage() {
       {/* TESTIMONIALS */}
       <section id="testimonials" className="py-24 bg-[#050505]">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-16">What Developers Say</h2>
+          <h2 className="text-4xl font-bold mb-16">Ce que disent les développeurs</h2>
 
           <div className="grid md:grid-cols-3 gap-12">
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
                 “Prestige Build replaced weeks of development with minutes of clarity.”
               </p>
-              <p className="mt-4 text-blue-500 font-semibold">— Alex, Senior Engineer</p>
+              <p className="mt-4 text-blue-500 font-semibold">— Alex, ingénieur senior</p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
                 “The closest thing to having a staff of senior engineers on demand.”
               </p>
-              <p className="mt-4 text-blue-500 font-semibold">— Maya, CTO</p>
+              <p className="mt-4 text-blue-500 font-semibold">— Maya, directrice technique</p>
             </div>
 
             <div className="p-8 bg-[#0D0D0D] rounded-2xl border border-white/5">
               <p className="text-gray-300 italic">
                 “From prototype to production in days instead of months.”
               </p>
-              <p className="mt-4 text-blue-500 font-semibold">— Daniel, Founder</p>
+              <p className="mt-4 text-blue-500 font-semibold">— Daniel, fondateur</p>
             </div>
           </div>
         </div>
@@ -354,10 +354,10 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer className="mt-auto py-10 border-t border-white/10 bg-black/80">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-          <p>Prestige Build © {new Date().getFullYear()} — Crafted for creators and enterprises.</p>
+          <p>Prestige Build © {new Date().getFullYear()} — Conçu pour les créateurs et les entreprises.</p>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-gray-300">Privacy</Link>
-            <Link href="/terms" className="hover:text-gray-300">Terms</Link>
+            <Link href="/privacy" className="hover:text-gray-300">Confidentialité</Link>
+            <Link href="/terms" className="hover:text-gray-300">Conditions</Link>
           </div>
         </div>
       </footer>
