@@ -136,8 +136,24 @@ export const apiKeys = pgTable("api_keys", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  key: varchar("key", { length: 255 }).notNull().unique(),
+  keyHash: varchar("key_hash", { length: 255 }).notNull().unique(),
+  keyPrefix: varchar("key_prefix", { length: 12 }).notNull(),
   label: varchar("label", { length: 255 }),
+  revoked: boolean("revoked").notNull().default(false),
+  rateLimit: integer("rate_limit").notNull().default(100),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// API USAGE TRACKING
+export const apiUsageLogs = pgTable("api_usage_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  apiKeyId: uuid("api_key_id")
+    .notNull()
+    .references(() => apiKeys.id, { onDelete: "cascade" }),
+  endpoint: varchar("endpoint", { length: 255 }).notNull(),
+  method: varchar("method", { length: 10 }).notNull(),
+  statusCode: integer("status_code").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
