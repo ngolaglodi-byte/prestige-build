@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const [member] = await db.insert(teamMembers).values({
     ownerId: user.id,
     email,
-    name: name || null,
+    name: name ?? null,
     role: role || "member",
   }).returning();
 

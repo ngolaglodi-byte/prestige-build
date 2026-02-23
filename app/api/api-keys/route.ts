@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const [created] = await db.insert(apiKeys).values({
     userId: user.id,
     key,
-    label: label || "Default",
+    label: label ?? "Default",
   }).returning();
 
   return NextResponse.json({ key: created });

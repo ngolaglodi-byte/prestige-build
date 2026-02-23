@@ -58,7 +58,7 @@ export default function UsagePage() {
                 <div className="w-full h-2 bg-surfaceLight rounded-smooth overflow-hidden">
                   <div
                     className="h-full bg-accent"
-                    style={{ width: `${Math.min(100, u.count)}%` }}
+                    style={{ width: `${Math.min(100, (u.count / 100) * 100)}%` }}
                   />
                 </div>
               </div>

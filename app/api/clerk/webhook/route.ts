@@ -40,7 +40,6 @@ export async function POST(req: Request) {
 
   const email = data.email_addresses?.[0]?.email_address ?? null;
   const name = data.first_name ?? "User";
-  // avatar available via data.image_url
 
   // ---------------------------------------------------------
   // USER CREATED
