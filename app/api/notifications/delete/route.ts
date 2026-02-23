@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { notifications } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { notifications, users } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function DELETE(req: Request) {
   const { userId: clerkId } = await auth();
@@ -11,7 +11,16 @@ export async function DELETE(req: Request) {
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  await db.delete(notifications).where(eq(notifications.id, id));
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
+  if (!user) return NextResponse.json({ deleted: false });
+
+  await db
+    .delete(notifications)
+    .where(and(eq(notifications.id, id), eq(notifications.userId, user.id)));
 
   return NextResponse.json({ deleted: true });
 }

@@ -27,25 +27,37 @@ export default function NotificationsPage() {
 
   async function handleMarkAsRead(id: string) {
     markAsRead(id);
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      body: JSON.stringify({ id }),
-      headers: { "Content-Type": "application/json" },
-    });
+    try {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id }),
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch {
+      // Réessayer au prochain chargement
+    }
   }
 
   async function handleMarkAllAsRead() {
     markAllAsRead();
-    await fetch("/api/notifications/mark-all-read", { method: "PATCH" });
+    try {
+      await fetch("/api/notifications/mark-all-read", { method: "PATCH" });
+    } catch {
+      // Réessayer au prochain chargement
+    }
   }
 
   async function handleDelete(id: string) {
     removeNotification(id);
-    await fetch("/api/notifications/delete", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
+    try {
+      await fetch("/api/notifications/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      // Réessayer au prochain chargement
+    }
   }
 
   return (

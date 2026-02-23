@@ -10,9 +10,11 @@ import {
 /**
  * Hook qui charge les notifications depuis l'API et écoute les nouvelles
  * notifications en temps réel via Supabase Realtime.
+ * Filtre les événements pour ne garder que ceux de l'utilisateur courant.
  */
 export function useRealtimeNotifications() {
   const {
+    notifications,
     setNotifications,
     addNotification,
     setLoading,
@@ -22,6 +24,9 @@ export function useRealtimeNotifications() {
     ReturnType<typeof getSupabaseBrowserClient>["channel"]
   > | null>(null);
 
+  // Garder l'ID utilisateur en ref pour le filtre realtime
+  const userIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     // 1. Charger les notifications existantes
     async function fetchNotifications() {
@@ -29,7 +34,13 @@ export function useRealtimeNotifications() {
       try {
         const res = await fetch("/api/notifications");
         const data = await res.json();
-        setNotifications(data.notifications ?? []);
+        const items: Notification[] = data.notifications ?? [];
+        setNotifications(items);
+
+        // Extraire l'userId du premier résultat pour filtrer le realtime
+        if (items.length > 0) {
+          userIdRef.current = items[0].userId;
+        }
       } catch {
         setNotifications([]);
       } finally {
@@ -53,7 +64,13 @@ export function useRealtimeNotifications() {
           },
           (payload) => {
             const newNotification = payload.new as Notification;
-            addNotification(newNotification);
+            // Ne garder que les notifications destinées à l'utilisateur courant
+            if (
+              userIdRef.current &&
+              newNotification.userId === userIdRef.current
+            ) {
+              addNotification(newNotification);
+            }
           }
         )
         .subscribe();
