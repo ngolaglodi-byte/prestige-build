@@ -2,11 +2,34 @@
 
 import Logo from "@/components/Logo";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function GlobalSettingsPage() {
   const [theme, setTheme] = useState("dark");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("fr");
+  const [saved, setSaved] = useState(false);
+
+  // Charger les préférences depuis localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("prestige-theme");
+    const savedLang = localStorage.getItem("prestige-language");
+    if (savedTheme) setTheme(savedTheme);
+    if (savedLang) setLanguage(savedLang);
+  }, []);
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value);
+    localStorage.setItem("prestige-theme", value);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value);
+    localStorage.setItem("prestige-language", value);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
     <div className="min-h-screen bg-bg text-white flex flex-col">
@@ -22,50 +45,56 @@ export default function GlobalSettingsPage() {
       {/* Content */}
       <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
 
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Paramètres</h1>
+
+        {saved && (
+          <div className="mb-4 px-4 py-2 bg-green-900/30 border border-green-600 rounded-smooth text-green-400 text-sm">
+            Préférences sauvegardées
+          </div>
+        )}
 
         <div className="flex flex-col gap-10">
 
           {/* Theme */}
           <div className="premium-card p-6 flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Appearance</h2>
+            <h2 className="text-xl font-semibold">Apparence</h2>
 
             <div className="flex gap-4">
               <button
-                onClick={() => setTheme("dark")}
+                onClick={() => handleThemeChange("dark")}
                 className={`px-4 py-2 rounded-smooth border premium-hover ${
                   theme === "dark"
                     ? "bg-accent border-accent shadow-soft"
                     : "bg-surface border-border"
                 }`}
               >
-                Dark
+                Sombre
               </button>
 
               <button
-                onClick={() => setTheme("light")}
+                onClick={() => handleThemeChange("light")}
                 className={`px-4 py-2 rounded-smooth border premium-hover ${
                   theme === "light"
                     ? "bg-accent border-accent shadow-soft"
                     : "bg-surface border-border"
                 }`}
               >
-                Light
+                Clair
               </button>
             </div>
           </div>
 
           {/* Language */}
           <div className="premium-card p-6 flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Language</h2>
+            <h2 className="text-xl font-semibold">Langue</h2>
 
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => handleLanguageChange(e.target.value)}
               className="bg-surfaceLight border border-border rounded-smooth px-4 py-2"
             >
-              <option value="en">English</option>
-              <option value="fr">Français</option>
+              <option value="fr" lang="fr">Français</option>
+              <option value="en" lang="en">English</option>
             </select>
           </div>
 
