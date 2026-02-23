@@ -34,18 +34,8 @@ export function CodeEditor({ projectId }: { projectId: string }) {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
-    // Mettre à jour les marqueurs d'erreur lors de la validation du modèle
-    monaco.editor.onDidChangeMarkers(() => {
-      const model = editor.getModel();
-      if (!model) return;
-      const markers = monaco.editor.getModelMarkers({ resource: model.uri });
-      const hasErrors = markers.some(
-        (m: editor.IMarker) => m.severity === monaco.MarkerSeverity.Error
-      );
-      if (hasErrors) {
-        // Les marqueurs d'erreur sont affichés automatiquement par Monaco
-      }
-    });
+    // Monaco affiche automatiquement les marqueurs d'erreur via la validation du modèle
+    // Les options renderValidationDecorations: "on" ci-dessous activent l'affichage
   }, []);
 
   if (!activeFile) {
