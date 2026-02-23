@@ -22,7 +22,7 @@ export default function Sidebar({
 }) {
   return (
     <aside className="w-64 h-full bg-surface border-r border-border p-4 flex flex-col">
-      <h2 className="text-lg font-semibold mb-4">Files</h2>
+      <h2 className="text-lg font-semibold mb-4">Fichiers</h2>
 
       {/* ACTIONS */}
       <div className="flex gap-2 mb-4">
@@ -30,14 +30,14 @@ export default function Sidebar({
           onClick={onNewFile}
           className="px-2 py-1 bg-accent text-black rounded text-sm"
         >
-          + File
+          + Fichier
         </button>
 
         <button
           onClick={onNewFolder}
           className="px-2 py-1 bg-accent/50 text-black rounded text-sm"
         >
-          + Folder
+          + Dossier
         </button>
       </div>
 

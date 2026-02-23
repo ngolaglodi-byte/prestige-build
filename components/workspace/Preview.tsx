@@ -163,7 +163,7 @@ export default function Preview({
       return (
         <div className="bg-yellow-900/40 border-b border-yellow-700 text-yellow-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="animate-spin h-3 w-3 border-2 border-yellow-400 border-t-transparent rounded-full"></span>
-          {status === "building" ? "Building preview…" : "Restarting preview…"}
+          {status === "building" ? "Construction de l'aperçu…" : "Redémarrage de l'aperçu…"}
         </div>
       );
     }
@@ -172,7 +172,7 @@ export default function Preview({
       return (
         <div className="bg-green-900/40 border-b border-green-700 text-green-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-green-400 rounded-full"></span>
-          Running
+          En cours d&apos;exécution
         </div>
       );
     }
@@ -181,7 +181,7 @@ export default function Preview({
       return (
         <div className="bg-red-900/40 border-b border-red-700 text-red-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-red-400 rounded-full"></span>
-          Build Error
+          Erreur de construction
         </div>
       );
     }
@@ -190,7 +190,7 @@ export default function Preview({
       return (
         <div className="bg-red-900/40 border-b border-red-700 text-red-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-red-400 rounded-full"></span>
-          Preview server crashed
+          Le serveur d&apos;aperçu a planté
         </div>
       );
     }
@@ -199,7 +199,7 @@ export default function Preview({
       return (
         <div className="bg-orange-900/40 border-b border-orange-700 text-orange-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-orange-400 rounded-full"></span>
-          Resource limit exceeded
+          Limite de ressources dépassée
         </div>
       );
     }
@@ -208,7 +208,7 @@ export default function Preview({
       return (
         <div className="bg-purple-900/40 border-b border-purple-700 text-purple-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-purple-400 rounded-full"></span>
-          Preview limit reached
+          Limite d&apos;aperçu atteinte
         </div>
       );
     }
@@ -217,7 +217,7 @@ export default function Preview({
       return (
         <div className="bg-slate-900/40 border-b border-slate-700 text-slate-300 px-4 py-2 text-xs flex items-center gap-2">
           <span className="h-2 w-2 bg-slate-400 rounded-full"></span>
-          Preview stopped due to inactivity
+          Aperçu arrêté pour inactivité
         </div>
       );
     }
@@ -233,10 +233,10 @@ export default function Preview({
         <div className="flex-1 flex items-center justify-center text-sm text-purple-200">
           <div className="text-center max-w-sm">
             <div className="text-lg font-semibold mb-2">
-              Preview limit reached
+              Limite d&apos;aperçu atteinte
             </div>
             <div>
-              Close an existing preview or upgrade your plan to start a new one.
+              Fermez un aperçu existant ou mettez à niveau votre plan pour en démarrer un nouveau.
             </div>
           </div>
         </div>
@@ -246,16 +246,16 @@ export default function Preview({
         <div className="flex-1 flex items-center justify-center text-sm text-slate-200">
           <div className="text-center max-w-sm space-y-3">
             <div className="text-lg font-semibold">
-              Preview stopped due to inactivity
+              Aperçu arrêté pour inactivité
             </div>
             <div className="text-xs text-slate-300">
-              To save resources, inactive previews are automatically stopped.
+              Pour économiser les ressources, les aperçus inactifs sont automatiquement arrêtés.
             </div>
             <button
               onClick={() => setRestartToken((k) => k + 1)}
               className="mt-2 inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-slate-700 hover:bg-slate-600 text-xs font-medium"
             >
-              Restart preview
+              Redémarrer l&apos;aperçu
             </button>
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function Preview({
           {error && (
             <div className="bg-[#2a0000] border-b border-red-700 p-4 text-red-300 text-sm h-48 overflow-auto shadow-lg">
               <div className="font-bold text-red-400 mb-2 text-sm">
-                ❌ Build Error
+                ❌ Erreur de construction
               </div>
               <pre className="whitespace-pre-wrap text-xs leading-relaxed">
                 {error}
@@ -304,15 +304,15 @@ export default function Preview({
                 <div className="text-center">
                   <div className="text-lg font-semibold mb-2">
                     {status === "crashed"
-                      ? "Preview server crashed"
+                      ? "Le serveur d'aperçu a planté"
                       : status === "limited"
-                      ? "Resource limit exceeded"
-                      : "Build Failed"}
+                      ? "Limite de ressources dépassée"
+                      : "Erreur de construction"}
                   </div>
                   <div>
                     {status === "limited"
-                      ? "Reduce resource usage or simplify the project to continue."
-                      : "Fix the issue to reload the preview."}
+                      ? "Réduisez l'utilisation des ressources ou simplifiez le projet pour continuer."
+                      : "Corrigez le problème pour recharger l'aperçu."}
                   </div>
                 </div>
               </div>

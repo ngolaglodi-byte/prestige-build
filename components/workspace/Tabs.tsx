@@ -8,7 +8,7 @@ export function Tabs() {
   if (openFiles.length === 0) {
     return (
       <div className="h-8 border-b border-white/10 flex items-center px-3 text-gray-500 text-sm">
-        No file open
+        Aucun fichier ouvert
       </div>
     );
   }

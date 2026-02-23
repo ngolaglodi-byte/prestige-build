@@ -11,12 +11,12 @@ export function AiDiffViewer({ onApply }: { onApply: () => void }) {
     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-[#111] border border-white/10 rounded-lg w-[80%] h-[80%] flex flex-col">
         <div className="p-3 border-b border-white/10 flex justify-between items-center">
-          <div className="text-sm text-gray-300">AI Suggested Changes</div>
+          <div className="text-sm text-gray-300">Modifications suggérées par l&apos;IA</div>
           <button
             onClick={hideDiffs}
             className="text-gray-400 hover:text-white text-xs"
           >
-            Close
+            Fermer
           </button>
         </div>
 
@@ -36,14 +36,14 @@ export function AiDiffViewer({ onApply }: { onApply: () => void }) {
             onClick={hideDiffs}
             className="px-3 py-1 text-xs rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
           >
-            Discard
+            Annuler
           </button>
 
           <button
             onClick={onApply}
             className="px-3 py-1 text-xs rounded bg-accent text-black"
           >
-            Apply Changes
+            Appliquer les modifications
           </button>
         </div>
       </div>

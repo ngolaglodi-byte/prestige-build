@@ -10,7 +10,7 @@ export default function DeploymentsPage() {
   return (
     <div className="fade-in max-w-3xl">
 
-      <h1 className="text-3xl font-bold tracking-tight mb-8">Deployments</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-8">Déploiements</h1>
 
       <div className="flex flex-col gap-4">
         {deployments.map((d) => (

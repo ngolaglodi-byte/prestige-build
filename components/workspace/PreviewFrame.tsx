@@ -21,7 +21,7 @@ export function PreviewFrame({ projectId }: Props) {
     start();
   }, [projectId]);
 
-  if (!port) return <div>Starting preview...</div>;
+  if (!port) return <div>Démarrage de l&apos;aperçu…</div>;
 
   return (
     <iframe

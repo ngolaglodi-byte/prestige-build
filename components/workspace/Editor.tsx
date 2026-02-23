@@ -1,13 +1,16 @@
 "use client";
 
-import Editor from "@monaco-editor/react";
+import Editor, { type Monaco } from "@monaco-editor/react";
 import { useEditor } from "@/lib/store/editor";
 import { useTabs } from "@/lib/store/tabs";
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import type { editor } from "monaco-editor";
 
 export function CodeEditor({ projectId }: { projectId: string }) {
   const { content, updateContent, saveFile, loadFile } = useEditor();
   const { activeFile } = useTabs();
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
 
   // Charger le fichier quand l'onglet actif change
   useEffect(() => {
@@ -27,10 +30,18 @@ export function CodeEditor({ projectId }: { projectId: string }) {
     return () => clearTimeout(timeout);
   }, [content, activeFile]);
 
+  const handleEditorMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+
+    // Monaco affiche automatiquement les marqueurs d'erreur via la validation du modèle
+    // Les options renderValidationDecorations: "on" ci-dessous activent l'affichage
+  }, []);
+
   if (!activeFile) {
     return (
       <div className="h-full flex items-center justify-center text-gray-400">
-        Select a file to start editing
+        Sélectionnez un fichier pour commencer l&apos;édition
       </div>
     );
   }
@@ -42,6 +53,16 @@ export function CodeEditor({ projectId }: { projectId: string }) {
       language={detectLanguage(activeFile)}
       value={content}
       onChange={(value) => updateContent(value)}
+      onMount={handleEditorMount}
+      options={{
+        minimap: { enabled: true },
+        smoothScrolling: true,
+        automaticLayout: true,
+        suggestOnTriggerCharacters: true,
+        quickSuggestions: true,
+        wordBasedSuggestions: "currentDocument",
+        renderValidationDecorations: "on",
+      }}
     />
   );
 }
@@ -54,5 +75,10 @@ function detectLanguage(path: string): string {
   if (path.endsWith(".json")) return "json";
   if (path.endsWith(".css")) return "css";
   if (path.endsWith(".html")) return "html";
+  if (path.endsWith(".md")) return "markdown";
+  if (path.endsWith(".py")) return "python";
+  if (path.endsWith(".yaml") || path.endsWith(".yml")) return "yaml";
+  if (path.endsWith(".sql")) return "sql";
+  if (path.endsWith(".sh")) return "shell";
   return "plaintext";
 }

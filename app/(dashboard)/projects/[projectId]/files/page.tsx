@@ -12,7 +12,7 @@ export default function ProjectFilesPage({ params }: { params: { projectId: stri
   return (
     <div className="fade-in max-w-3xl">
 
-      <h1 className="text-3xl font-bold tracking-tight mb-8">Files</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-8">Fichiers</h1>
 
       <div className="premium-card p-6 flex flex-col gap-4">
         {files.map((f) => (
@@ -27,7 +27,7 @@ export default function ProjectFilesPage({ params }: { params: { projectId: stri
         href={`/workspace/${params.projectId}`}
         className="mt-6 inline-block px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft"
       >
-        Open in Workspace
+        Ouvrir dans l&apos;espace de travail
       </Link>
     </div>
   );
