@@ -7,34 +7,34 @@ export default function NewProjectPage() {
   const [template, setTemplate] = useState("next");
 
   const templates = [
-    { id: "next", label: "Next.js Starter" },
-    { id: "react", label: "React Starter" },
-    { id: "landing", label: "Landing Page" },
-    { id: "ecommerce", label: "E‑commerce Starter" },
+    { id: "next", label: "Starter Next.js" },
+    { id: "react", label: "Starter React" },
+    { id: "landing", label: "Page d'atterrissage" },
+    { id: "ecommerce", label: "Starter E‑commerce" },
   ];
 
   return (
     <div className="fade-in max-w-2xl">
 
-      <h1 className="text-3xl font-bold tracking-tight mb-8">Create New Project</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-8">Créer un nouveau projet</h1>
 
       <div className="premium-card p-6 flex flex-col gap-6">
 
-        {/* Name */}
+        {/* Nom */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-400">Project Name</label>
+          <label className="text-sm text-gray-400">Nom du projet</label>
           <input
             type="text"
-            placeholder="My Awesome Project"
+            placeholder="Mon super projet"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="bg-surfaceLight border border-border rounded-smooth px-4 py-2"
           />
         </div>
 
-        {/* Templates */}
+        {/* Modèles */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-gray-400">Template</label>
+          <label className="text-sm text-gray-400">Modèle</label>
 
           <div className="grid grid-cols-2 gap-3">
             {templates.map((t) => (
@@ -53,9 +53,9 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        {/* Create */}
+        {/* Créer */}
         <button className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft w-fit">
-          Create Project
+          Créer le projet
         </button>
       </div>
     </div>

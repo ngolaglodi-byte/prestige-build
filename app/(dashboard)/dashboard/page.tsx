@@ -41,7 +41,7 @@ export default function DashboardPage() {
   }
 
   async function createProject() {
-    const name = prompt("Project name:");
+    const name = prompt("Nom du projet :");
     if (!name) return;
 
     setCreating(true);
@@ -52,11 +52,11 @@ export default function DashboardPage() {
     });
 
     setCreating(false);
-    loadProjects({ page: 1 }); // revenir à la première page
+    loadProjects({ page: 1 });
   }
 
   async function deleteProject(id: string) {
-    const ok = confirm("Delete this project?");
+    const ok = confirm("Supprimer ce projet ?");
     if (!ok) return;
 
     await fetch("/api/projects/delete", {
@@ -68,7 +68,7 @@ export default function DashboardPage() {
   }
 
   async function renameProject(id: string, currentName: string) {
-    const name = prompt("New project name:", currentName);
+    const name = prompt("Nouveau nom du projet :", currentName);
     if (!name || name === currentName) return;
 
     await fetch("/api/projects/rename", {
@@ -113,9 +113,9 @@ export default function DashboardPage() {
     <div className="p-10 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold">Your Projects</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">Vos Projets</h1>
           <p className="text-gray-400 mt-1">
-            Manage, search, and organize all your Prestige Build workspaces.
+            Gérez, recherchez et organisez tous vos espaces de travail Prestige Build.
           </p>
         </div>
 
@@ -124,7 +124,7 @@ export default function DashboardPage() {
           disabled={creating}
           className="self-start md:self-auto px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {creating ? "Creating..." : "New Project"}
+          {creating ? "Création…" : "Nouveau Projet"}
         </button>
       </div>
 
@@ -132,21 +132,21 @@ export default function DashboardPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search projects..."
+          placeholder="Rechercher des projets…"
           className="flex-1 px-3 py-2 rounded-lg bg-[#111] border border-white/10 text-sm"
         />
         <button
           type="submit"
           className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 text-sm"
         >
-          Search
+          Rechercher
         </button>
       </form>
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-gray-400">Chargement…</p>
       ) : projects.length === 0 ? (
-        <p className="text-gray-400">No projects yet. Create one!</p>
+        <p className="text-gray-400">Aucun projet pour le moment. Créez-en un !</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                       {project.name}
                     </h3>
                     <p className="text-gray-500 text-xs mt-1">
-                      Updated {new Date(project.updated_at).toLocaleString()}
+                      Mis à jour le {new Date(project.updated_at).toLocaleString("fr-FR")}
                     </p>
                   </div>
 
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                     className={`text-sm ${
                       project.is_favorite ? "text-yellow-400" : "text-gray-500"
                     }`}
-                    title={project.is_favorite ? "Unfavorite" : "Favorite"}
+                    title={project.is_favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                   >
                     ★
                   </button>
@@ -181,25 +181,25 @@ export default function DashboardPage() {
                     href={`/workspace/${project.id}`}
                     className="px-3 py-1.5 text-xs bg-white/10 rounded-lg hover:bg-white/20"
                   >
-                    Open
+                    Ouvrir
                   </Link>
                   <button
                     onClick={() => renameProject(project.id, project.name)}
                     className="px-3 py-1.5 text-xs bg-white/5 rounded-lg hover:bg-white/15"
                   >
-                    Rename
+                    Renommer
                   </button>
                   <button
                     onClick={() => duplicateProject(project.id)}
                     className="px-3 py-1.5 text-xs bg-white/5 rounded-lg hover:bg-white/15"
                   >
-                    Duplicate
+                    Dupliquer
                   </button>
                   <button
                     onClick={() => deleteProject(project.id)}
-                    className="px-3 py-1.5 text-xs bg-red-600/80 rounded-lg hover:bg-red-700 text-xs"
+                    className="px-3 py-1.5 text-xs bg-red-600/80 rounded-lg hover:bg-red-700"
                   >
-                    Delete
+                    Supprimer
                   </button>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
 
           <div className="flex items-center justify-between text-sm text-gray-400">
             <span>
-              Page {page} of {totalPages} — {total} projects
+              Page {page} sur {totalPages} — {total} projets
             </span>
 
             <div className="flex gap-2">
@@ -217,14 +217,14 @@ export default function DashboardPage() {
                 onClick={() => loadProjects({ page: page - 1 })}
                 className="px-3 py-1 rounded-lg bg-white/5 disabled:opacity-40"
               >
-                Previous
+                Précédent
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => loadProjects({ page: page + 1 })}
                 className="px-3 py-1 rounded-lg bg-white/5 disabled:opacity-40"
               >
-                Next
+                Suivant
               </button>
             </div>
           </div>

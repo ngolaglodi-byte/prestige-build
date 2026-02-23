@@ -31,10 +31,6 @@ export function WorkspaceLogs({ projectId }: { projectId: string }) {
     return () => es.close();
   }, [projectId, addBuildLog]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [currentLogs, activeTab]);
-
   const tabs: { key: LogTab; label: string }[] = [
     { key: "build", label: "Logs Build" },
     { key: "ai", label: "Logs IA" },
@@ -43,6 +39,10 @@ export function WorkspaceLogs({ projectId }: { projectId: string }) {
 
   const currentLogs: LogEntry[] =
     activeTab === "ai" ? aiLogs : activeTab === "build" ? buildLogs : errorLogs;
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [currentLogs, activeTab]);
 
   return (
     <div className="flex flex-col h-full bg-[#0d0d0d] text-white">

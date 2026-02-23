@@ -16,7 +16,7 @@ export function FileActionsMenu({
         }}
         className="text-xs text-blue-400 hover:text-blue-200"
       >
-        Rename
+        Renommer
       </button>
 
       <button
@@ -26,7 +26,7 @@ export function FileActionsMenu({
         }}
         className="text-xs text-red-400 hover:text-red-200"
       >
-        Delete
+        Supprimer
       </button>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
@@ -12,6 +12,10 @@ import { CodeEditor } from "@/components/workspace/Editor";
 import { AiDiffViewer } from "@/components/workspace/AiDiffViewer";
 import AIMultiFilePreview from "@/components/workspace/AIMultiFilePreview";
 import AICodePreview from "@/components/workspace/AICodePreview";
+import { PreviewFrame } from "@/components/workspace/PreviewFrame";
+import { WorkspaceLogs } from "@/components/workspace/WorkspaceLogs";
+
+type BottomTab = "preview" | "logs";
 
 export default function WorkspacePage() {
   const params = useParams();
@@ -20,6 +24,7 @@ export default function WorkspacePage() {
   const { refreshFiles } = useFileTree();
   const { saveFile } = useEditor();
   const { activeFile } = useTabs();
+  const [bottomTab, setBottomTab] = useState<BottomTab>("preview");
 
   useEffect(() => {
     refreshFiles(id);
@@ -35,6 +40,9 @@ export default function WorkspacePage() {
     <div className="h-screen w-full flex bg-[#0d0d0d] text-white overflow-hidden">
       {/* Sidebar - FileTree */}
       <div className="w-64 h-full bg-[#111] border-r border-white/10 overflow-auto flex-shrink-0">
+        <div className="px-3 py-2 border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
+          Explorateur
+        </div>
         <FileTree projectId={id} />
       </div>
 
@@ -45,8 +53,41 @@ export default function WorkspacePage() {
 
         {/* Editor + AI Panel */}
         <div className="flex-1 flex overflow-hidden relative">
-          <div className="flex-1 overflow-hidden">
-            <CodeEditor projectId={id} />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Editor */}
+            <div className="flex-1 overflow-hidden">
+              <CodeEditor projectId={id} />
+            </div>
+
+            {/* Bottom panel: Preview / Logs */}
+            <div className="h-56 border-t border-white/10 flex flex-col flex-shrink-0">
+              <div className="flex border-b border-white/10 bg-[#111]">
+                <button
+                  onClick={() => setBottomTab("preview")}
+                  className={`px-3 py-1.5 text-xs font-medium ${
+                    bottomTab === "preview"
+                      ? "text-accent border-b-2 border-accent"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  Aperçu
+                </button>
+                <button
+                  onClick={() => setBottomTab("logs")}
+                  className={`px-3 py-1.5 text-xs font-medium ${
+                    bottomTab === "logs"
+                      ? "text-accent border-b-2 border-accent"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  Journaux
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                {bottomTab === "preview" && <PreviewFrame projectId={id} />}
+                {bottomTab === "logs" && <WorkspaceLogs projectId={id} />}
+              </div>
+            </div>
           </div>
 
           {/* AI Panel */}

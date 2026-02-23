@@ -26,7 +26,7 @@ export default function AIMultiFilePreview() {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="w-[900px] max-h-[90vh] overflow-auto bg-[#0D0D0D] border border-white/10 rounded-xl shadow-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-4">
-          Multi‑File Preview ({previews.length} fichiers)
+          Aperçu multi-fichiers ({previews.length} fichiers)
         </h2>
 
         {previews.map((p, i) => {
@@ -59,7 +59,7 @@ export default function AIMultiFilePreview() {
                   onClick={() => applyOne(p.file, p.newContent)}
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg"
                 >
-                  Apply This File
+                  Appliquer ce fichier
                 </button>
               </div>
             </div>
@@ -71,14 +71,14 @@ export default function AIMultiFilePreview() {
             onClick={clearPreviews}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
           >
-            Cancel
+            Annuler
           </button>
 
           <button
             onClick={applyAll}
             className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg"
           >
-            Apply All Changes
+            Appliquer toutes les modifications
           </button>
         </div>
       </div>
