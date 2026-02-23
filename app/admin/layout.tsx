@@ -18,6 +18,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin/projects" className="hover:text-gray-300">
             Projets
           </Link>
+          <Link href="/admin/pricing" className="hover:text-gray-300">
+            Tarification
+          </Link>
+          <Link href="/admin/ai" className="hover:text-gray-300">
+            Intelligence artificielle
+          </Link>
+          <Link href="/admin/domains" className="hover:text-gray-300">
+            Domaines
+          </Link>
+          <Link href="/admin/payments" className="hover:text-gray-300">
+            Paiements
+          </Link>
+          <Link href="/admin/billing" className="hover:text-gray-300">
+            Facturation
+          </Link>
           <Link href="/admin/logs" className="hover:text-gray-300">
             Journaux
           </Link>
