@@ -5,20 +5,38 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const PLANS = [
-  { id: "starter", name: "Starter", credits: 100, price: 5 },
   { id: "pro", name: "Pro", credits: 500, price: 20 },
-  { id: "business", name: "Business", credits: 2000, price: 70 },
+  { id: "enterprise", name: "Enterprise", credits: 2000, price: 70 },
 ];
+
+type HistoryItem = {
+  id: string;
+  provider: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+};
+
+type PlanLimits = {
+  aiGenerations: number;
+  workspaceSizeMb: number;
+  maxProjects: number;
+};
 
 export default function BillingPage() {
   const [method, setMethod] = useState("mobile");
   const [plan, setPlan] = useState("free");
   const [credits, setCredits] = useState(0);
+  const [creditsMonthly, setCreditsMonthly] = useState(0);
+  const [limits, setLimits] = useState<PlanLimits | null>(null);
   const [loading, setLoading] = useState(true);
   const [phone, setPhone] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("pro");
   const [paying, setPaying] = useState(false);
   const [payResult, setPayResult] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/billing")
@@ -26,9 +44,19 @@ export default function BillingPage() {
       .then((data) => {
         setPlan(data.plan ?? "free");
         setCredits(data.credits ?? 0);
+        setCreditsMonthly(data.creditsMonthly ?? 0);
+        setLimits(data.limits ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    fetch("/api/billing/history")
+      .then((r) => r.json())
+      .then((data) => {
+        setHistory(data.history ?? []);
+        setHistoryLoading(false);
+      })
+      .catch(() => setHistoryLoading(false));
   }, []);
 
   const handlePayment = async () => {
@@ -47,16 +75,40 @@ export default function BillingPage() {
         message: data.message ?? data.error ?? "Erreur inconnue",
       });
       if (res.ok) {
-        // Rafraîchir les données de billing
         const billingRes = await fetch("/api/billing");
         const billingData = await billingRes.json();
         setPlan(billingData.plan ?? plan);
         setCredits(billingData.credits ?? credits);
+        setCreditsMonthly(billingData.creditsMonthly ?? 0);
+        setLimits(billingData.limits ?? null);
+
+        const historyRes = await fetch("/api/billing/history");
+        const historyData = await historyRes.json();
+        setHistory(historyData.history ?? []);
       }
     } catch {
       setPayResult({ success: false, message: "Erreur réseau" });
     } finally {
       setPaying(false);
+    }
+  };
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case "completed": return "Complété";
+      case "pending": return "En attente";
+      case "failed": return "Échoué";
+      case "renewed": return "Renouvelé";
+      default: return status;
+    }
+  };
+
+  const statusColor = (status: string) => {
+    switch (status) {
+      case "completed": case "renewed": return "text-green-400";
+      case "pending": return "text-yellow-400";
+      case "failed": return "text-red-400";
+      default: return "text-gray-400";
     }
   };
 
@@ -67,7 +119,7 @@ export default function BillingPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Retour au Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
@@ -84,11 +136,18 @@ export default function BillingPage() {
           ) : (
             <>
               <p className="text-gray-400">
-                Vous êtes actuellement sur le <span className="text-accent capitalize">Plan {plan}</span>.
+                Vous êtes actuellement sur le <span className="text-accent capitalize">Plan {plan === "free" ? "Gratuit" : plan}</span>.
               </p>
               <p className="text-gray-400">
-                Crédits restants : <span className="text-white font-semibold">{credits}</span>
+                Crédits restants : <span className="text-white font-semibold">{credits}</span> / {creditsMonthly}
               </p>
+              {limits && (
+                <div className="flex flex-col gap-1 mt-2">
+                  <p className="text-sm text-gray-500">Générations IA : {limits.aiGenerations} / mois</p>
+                  <p className="text-sm text-gray-500">Espace de travail : {limits.workspaceSizeMb >= 1000 ? `${limits.workspaceSizeMb / 1000} Go` : `${limits.workspaceSizeMb} Mo`}</p>
+                  <p className="text-sm text-gray-500">Projets : {limits.maxProjects === -1 ? "Illimité" : limits.maxProjects}</p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -106,7 +165,7 @@ export default function BillingPage() {
                   : "border-border bg-surface text-gray-300 hover:text-white"
               }`}
             >
-              Mobile Money
+              Mobile Money (PawaPay)
             </button>
 
             <button
@@ -137,7 +196,7 @@ export default function BillingPage() {
               {/* Plan selection */}
               <div>
                 <label className="text-sm text-gray-300 mb-2 block">Choisir un plan</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {PLANS.map((p) => (
                     <button
                       key={p.id}
@@ -150,7 +209,7 @@ export default function BillingPage() {
                     >
                       <div className="font-semibold">{p.name}</div>
                       <div className="text-sm text-gray-400">{p.credits} crédits</div>
-                      <div className="text-accent text-sm">${p.price}/mois</div>
+                      <div className="text-accent text-sm">{p.price} $/mois</div>
                     </button>
                   ))}
                 </div>
@@ -161,7 +220,7 @@ export default function BillingPage() {
                 disabled={paying || !phone.trim()}
                 className="px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft w-fit disabled:opacity-50"
               >
-                {paying ? "Traitement..." : "Payer via Mobile Money"}
+                {paying ? "Traitement en cours..." : "Payer via Mobile Money"}
               </button>
 
               {payResult && (
@@ -174,8 +233,44 @@ export default function BillingPage() {
 
           {method === "card" && (
             <p className="text-gray-400 text-sm mt-4">
-              Les paiements par carte arrivent bientôt.
+              Les paiements par carte bancaire arrivent bientôt.
             </p>
+          )}
+        </div>
+
+        {/* Payment History */}
+        <div className="premium-card p-6 flex flex-col gap-4 mb-10">
+          <h2 className="text-xl font-semibold">Historique des paiements</h2>
+
+          {historyLoading ? (
+            <p className="text-gray-400">Chargement...</p>
+          ) : history.length === 0 ? (
+            <p className="text-gray-400 text-sm">Aucun paiement enregistré.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {history.map((item) => (
+                <div key={item.id} className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium capitalize">{item.provider}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(item.createdAt).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-semibold">
+                      {item.amount} {item.currency}
+                    </span>
+                    <span className={`text-xs font-medium ${statusColor(item.status)}`}>
+                      {statusLabel(item.status)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
