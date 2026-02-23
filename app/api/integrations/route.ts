@@ -33,6 +33,10 @@ export async function POST(req: Request) {
     return new Response("Invalid provider", { status: 400 });
   }
 
+  if (config && (typeof config !== "object" || Array.isArray(config))) {
+    return new Response("Invalid config format", { status: 400 });
+  }
+
   const [existing] = await db
     .select()
     .from(integrations)

@@ -71,6 +71,7 @@ export default function IntegrationsPage() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   function loadIntegrations() {
     fetch("/api/integrations")
@@ -79,7 +80,10 @@ export default function IntegrationsPage() {
         setIntegrationsList(data.integrations ?? []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setError("Impossible de charger les intégrations.");
+        setLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -103,16 +107,18 @@ export default function IntegrationsPage() {
 
   async function saveConfig(providerKey: string) {
     setSaving(true);
+    setError(null);
     try {
-      await fetch("/api/integrations", {
+      const res = await fetch("/api/integrations", {
         method: "POST",
         body: JSON.stringify({ provider: providerKey, config: formValues }),
         headers: { "Content-Type": "application/json" },
       });
+      if (!res.ok) throw new Error();
       loadIntegrations();
       setConfiguring(null);
     } catch {
-      // Erreur silencieuse
+      setError("Échec de l'enregistrement. Veuillez réessayer.");
     }
     setSaving(false);
   }
@@ -146,6 +152,12 @@ export default function IntegrationsPage() {
           Connectez vos services externes pour étendre les fonctionnalités de Prestige Build.
           Gérez vos intégrations GitHub, Vercel, Supabase et Webhooks.
         </p>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-900/30 border border-red-600/40 rounded-smooth">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-gray-400">Chargement des intégrations…</p>
