@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function WebhookLogsPage() {
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<typeof logs[number] | null>(null);
 
   const logs = [
     {

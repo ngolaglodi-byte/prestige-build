@@ -10,7 +10,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
 
     const projectId = params.projectId;
     const body = await req.json();
-    const { prompt, filePath } = body;
+    const { prompt } = body;
 
     if (!prompt) return new Response("Missing prompt", { status: 400 });
 

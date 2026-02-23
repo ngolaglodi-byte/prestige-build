@@ -49,7 +49,7 @@ export function superviseProcess(
         supervised.delete(projectId);
         clearInterval(intervalId);
       }
-    } catch (e) {
+    } catch {
       // Si le process est déjà mort, on arrête la supervision
       supervised.delete(projectId);
       clearInterval(intervalId);

@@ -27,7 +27,7 @@ export function initHotReloadServer() {
   return wss;
 }
 
-export function sendHotReloadEvent(key: string, payload: any) {
+export function sendHotReloadEvent(key: string, payload: Record<string, unknown>) {
   const clients = clientsByKey.get(key);
   if (!clients) return;
 

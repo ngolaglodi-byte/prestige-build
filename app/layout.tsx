@@ -8,13 +8,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="antialiased bg-[#0D0D0D] text-white">
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+  const content = (
+    <html lang="en">
+      <body className="antialiased bg-[#0D0D0D] text-white">
+        {children}
+      </body>
+    </html>
   );
+
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return content;
+  }
+
+  return <ClerkProvider>{content}</ClerkProvider>;
 }

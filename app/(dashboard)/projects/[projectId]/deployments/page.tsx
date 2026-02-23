@@ -1,6 +1,6 @@
 "use client";
 
-export default function DeploymentsPage({ params }: any) {
+export default function DeploymentsPage() {
   const deployments = [
     { id: "dep_001", status: "success", url: "https://project.vercel.app", time: "2 hours ago" },
     { id: "dep_002", status: "building", url: "—", time: "Yesterday" },

@@ -2,10 +2,24 @@
 
 import Logo from "@/components/Logo";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BillingPage() {
   const [method, setMethod] = useState("mobile");
+  const [plan, setPlan] = useState("free");
+  const [credits, setCredits] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/billing")
+      .then((r) => r.json())
+      .then((data) => {
+        setPlan(data.plan ?? "free");
+        setCredits(data.credits ?? 0);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen bg-bg text-white flex flex-col">
@@ -72,9 +86,18 @@ export default function BillingPage() {
         <div className="premium-card p-6 flex flex-col gap-4">
           <h2 className="text-xl font-semibold">Subscription</h2>
 
-          <p className="text-gray-400">
-            You are currently on the <span className="text-accent">Free Plan</span>.
-          </p>
+          {loading ? (
+            <p className="text-gray-400">Loading...</p>
+          ) : (
+            <>
+              <p className="text-gray-400">
+                You are currently on the <span className="text-accent capitalize">{plan} Plan</span>.
+              </p>
+              <p className="text-gray-400">
+                Credits remaining: <span className="text-white font-semibold">{credits}</span>
+              </p>
+            </>
+          )}
 
           <Link
             href="/pricing"

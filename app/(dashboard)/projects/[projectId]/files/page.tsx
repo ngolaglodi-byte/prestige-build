@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export default function ProjectFilesPage({ params }: any) {
+export default function ProjectFilesPage({ params }: { params: { projectId: string } }) {
   const files = [
     { path: "src/App.tsx", size: "2.1 KB" },
     { path: "src/index.tsx", size: "1.4 KB" },
@@ -24,7 +24,7 @@ export default function ProjectFilesPage({ params }: any) {
       </div>
 
       <Link
-        href={`/workspace/${params.id}`}
+        href={`/workspace/${params.projectId}`}
         className="mt-6 inline-block px-4 py-2 bg-accent rounded-smooth premium-hover shadow-soft"
       >
         Open in Workspace

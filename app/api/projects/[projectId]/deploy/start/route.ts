@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { deployProject } from "@/lib/deploy/deployManager";
 import { setDeployState } from "@/lib/deploy/deployRegistry";
 
-export async function POST(_req: Request, { params }: any) {
+export async function POST(_req: Request, { params }: { params: { projectId: string } }) {
   const { userId } = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 

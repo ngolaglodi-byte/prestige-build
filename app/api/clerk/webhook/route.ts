@@ -21,14 +21,16 @@ export async function POST(req: Request) {
     return new Response("Missing svix headers", { status: 400 });
   }
 
-  let event: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let event: { type: string; data: Record<string, any> };
 
   try {
     event = wh.verify(payload, {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as { type: string; data: Record<string, any> };
   } catch (err) {
     console.error("❌ Webhook verification failed:", err);
     return new Response("Invalid signature", { status: 400 });
@@ -38,7 +40,6 @@ export async function POST(req: Request) {
 
   const email = data.email_addresses?.[0]?.email_address ?? null;
   const name = data.first_name ?? "User";
-  const avatar = data.image_url ?? null;
 
   // ---------------------------------------------------------
   // USER CREATED

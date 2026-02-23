@@ -10,7 +10,7 @@ export function autoRefactorProject() {
 
   for (const path of Object.keys(files)) {
     let content = files[path].content;
-    let original = content;
+    const original = content;
 
     /* ---------------------------------------------------------
      * 1. Supprimer console.log
@@ -25,7 +25,8 @@ export function autoRefactorProject() {
      * --------------------------------------------------------- */
     content = content.replace(
       /import\s+{?\s*([^}]*)\s*}?\s*from\s+['"]([^'"]+)['"];?/g,
-      (match: string, imports: string, source: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      (match: string, imports: string, _source: string) => {
         const names = imports.split(",").map((i: string) => i.trim());
         const unused = names.filter((name) => !new RegExp(`\\b${name}\\b`).test(content));
 

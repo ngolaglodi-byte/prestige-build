@@ -1,9 +1,8 @@
 // lib/deploy/vercelClient.ts
 
 const VERCEL_TOKEN = process.env.VERCEL_TOKEN!;
-const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID; // optionnel
 
-export async function vercelRequest(path: string, options: any = {}) {
+export async function vercelRequest(path: string, options: RequestInit = {}) {
   const url = `https://api.vercel.com${path}`;
 
   const res = await fetch(url, {

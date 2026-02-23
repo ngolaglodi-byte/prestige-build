@@ -52,9 +52,9 @@ export function parseAIActions(raw: string): AIActionsPayload {
 /**
  * Vérifie qu'une action est valide avant exécution.
  */
-export function validateAIAction(action: any): action is AIAction {
+export function validateAIAction(action: unknown): action is AIAction {
   if (!action || typeof action !== "object") return false;
-  if (!action.type) return false;
+  if (!("type" in action) || !(action as AIAction).type) return false;
 
   const validTypes = [
     "create_file",
@@ -76,5 +76,5 @@ export function validateAIAction(action: any): action is AIAction {
     "project_architect",
   ];
 
-  return validTypes.includes(action.type);
+  return validTypes.includes((action as AIAction).type);
 }

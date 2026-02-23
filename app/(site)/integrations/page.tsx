@@ -99,7 +99,7 @@ export default function IntegrationsPage() {
 
               {/* Right */}
               <button
-                onClick={() => toggle(i.id as any)}
+                onClick={() => toggle(i.id as keyof typeof connections)}
                 className={`px-4 py-2 rounded-smooth premium-hover border ${
                   i.connected
                     ? "bg-accent border-accent shadow-soft"

@@ -17,7 +17,7 @@ export function parseAISuggestions(text: string) {
       const parsed = JSON.parse(text);
 
       if (parsed && Array.isArray(parsed.suggestions)) {
-        return parsed.suggestions.map((s: any) => ({
+        return parsed.suggestions.map((s: { type?: string; content?: string }) => ({
           type: s.type ?? "info",
           content: s.content ?? "",
         }));

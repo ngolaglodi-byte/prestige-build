@@ -3,8 +3,6 @@ export const dynamic = "force-dynamic";
 // app/admin/users/page.tsx
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import Link from "next/link";
 
 export default async function AdminUsersPage() {
   const allUsers = await db.select().from(users);

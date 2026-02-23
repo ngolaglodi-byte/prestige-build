@@ -31,9 +31,9 @@ export function analyzeProject() {
   };
 }
 
-function detectTechnologies(files: any) {
+function detectTechnologies(files: Record<string, { content: string }>) {
   const content = Object.values(files)
-    .map((f: any) => f.content)
+    .map((f) => f.content)
     .join("\n");
 
   return {
