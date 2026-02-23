@@ -2,10 +2,24 @@ export const dynamic = "force-dynamic";
 
 // app/admin/users/page.tsx
 import { db } from "@/db/client";
-import { users } from "@/db/schema";
+import { users, subscriptions, usageLogs } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 export default async function AdminUsersPage() {
-  const allUsers = await db.select().from(users);
+  const allUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      plan: subscriptions.plan,
+      subStatus: subscriptions.status,
+      totalCreditsUsed: sql<number>`COALESCE(SUM(${usageLogs.creditsUsed}), 0)`.as("total_credits_used"),
+    })
+    .from(users)
+    .leftJoin(subscriptions, eq(users.id, subscriptions.userId))
+    .leftJoin(usageLogs, eq(users.id, usageLogs.userId))
+    .groupBy(users.id, subscriptions.plan, subscriptions.status);
 
   return (
     <div>
@@ -17,6 +31,8 @@ export default async function AdminUsersPage() {
             <th className="p-4">Nom</th>
             <th className="p-4">E-mail</th>
             <th className="p-4">Rôle</th>
+            <th className="p-4">Abonnement</th>
+            <th className="p-4">Utilisation totale</th>
             <th className="p-4">Actions</th>
           </tr>
         </thead>
@@ -27,10 +43,20 @@ export default async function AdminUsersPage() {
               <td className="p-4">{u.name ?? "Aucun nom"}</td>
               <td className="p-4">{u.email}</td>
               <td className="p-4 capitalize">{u.role}</td>
+              <td className="p-4">
+                {u.plan ? (
+                  <span className="capitalize">
+                    {u.plan} ({u.subStatus})
+                  </span>
+                ) : (
+                  "Aucun"
+                )}
+              </td>
+              <td className="p-4">{u.totalCreditsUsed} crédits</td>
 
-              <td className="p-4 flex gap-3">
+              <td className="p-4 flex gap-2 flex-wrap">
                 {u.role !== "admin" ? (
-                  <form action={`/api/admin/promote`} method="POST">
+                  <form action="/api/admin/promote" method="POST">
                     <input type="hidden" name="userId" value={u.id} />
                     <button
                       type="submit"
@@ -40,13 +66,35 @@ export default async function AdminUsersPage() {
                     </button>
                   </form>
                 ) : (
-                  <form action={`/api/admin/demote`} method="POST">
+                  <form action="/api/admin/demote" method="POST">
                     <input type="hidden" name="userId" value={u.id} />
                     <button
                       type="submit"
                       className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                     >
                       Retirer le rôle admin
+                    </button>
+                  </form>
+                )}
+
+                {u.role !== "suspended" ? (
+                  <form action="/api/admin/users/suspend" method="POST">
+                    <input type="hidden" name="userId" value={u.id} />
+                    <button
+                      type="submit"
+                      className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700"
+                    >
+                      Suspendre
+                    </button>
+                  </form>
+                ) : (
+                  <form action="/api/admin/users/reactivate" method="POST">
+                    <input type="hidden" name="userId" value={u.id} />
+                    <button
+                      type="submit"
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Réactiver
                     </button>
                   </form>
                 )}

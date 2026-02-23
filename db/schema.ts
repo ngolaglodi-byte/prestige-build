@@ -299,3 +299,21 @@ export const integrations = pgTable("integrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ADMIN PRICING CONFIG
+export const adminPricingConfig = pgTable("admin_pricing_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: jsonb("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ADMIN AI CONFIG
+export const adminAiConfig = pgTable("admin_ai_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: varchar("provider", { length: 50 }).notNull().unique(),
+  enabled: boolean("enabled").notNull().default(true),
+  priority: integer("priority").notNull().default(0),
+  maxTokens: integer("max_tokens").notNull().default(4096),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
