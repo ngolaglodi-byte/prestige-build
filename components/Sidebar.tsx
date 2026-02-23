@@ -11,7 +11,7 @@ export default function Sidebar() {
   const items = [
     { name: "Tableau de bord", href: "/dashboard", icon: HomeIcon, tip: "Vue d'ensemble de vos projets" },
     { name: "Projets", href: "/projects", icon: FolderIcon, tip: "Gérer vos projets" },
-    { name: "Templates", href: "/templates", icon: RectangleStackIcon, tip: "Modèles prêts à l'emploi" },
+    { name: "Mes Templates", href: "/my-templates", icon: RectangleStackIcon, tip: "Gérer mes modèles" },
     { name: "Équipe", href: "/team", icon: UserGroupIcon, tip: "Collaboration d'équipe" },
     { name: "Clés API", href: "/api-keys", icon: KeyIcon, tip: "Gérer vos clés d'accès" },
     { name: "Intégrations", href: "/integrations", icon: PuzzlePieceIcon, tip: "Connecter des services externes" },
