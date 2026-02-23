@@ -47,7 +47,7 @@ export class AIProvider {
   resolveModel(preferred?: AIModel): AIModel {
     if (preferred && this.isModelAvailable(preferred)) return preferred;
     const available = this.getAvailableModels();
-    if (available.length === 0) throw new Error("No AI provider configured");
+    if (available.length === 0) throw new Error("Aucun fournisseur IA configuré");
     return available[0];
   }
 
@@ -69,7 +69,7 @@ export class AIProvider {
       case "gpt":
         return await this.generateGPT(prompt, options);
       default:
-        throw new Error("Unknown model");
+        throw new Error("Modèle inconnu");
     }
   }
 
@@ -102,11 +102,11 @@ export class AIProvider {
       }
     }
 
-    throw lastError ?? new Error("All AI providers failed");
+    throw lastError ?? new Error("Tous les fournisseurs IA ont échoué");
   }
 
   private async generateClaude(prompt: string, options?: GenerateOptions) {
-    if (!this.claude) throw new Error("Claude not configured");
+    if (!this.claude) throw new Error("Claude non configuré");
 
     const maxTokens = options?.maxTokens ?? 4000;
 
@@ -127,7 +127,7 @@ export class AIProvider {
   }
 
   private async generateGemini(prompt: string, options?: GenerateOptions) {
-    if (!this.gemini) throw new Error("Gemini not configured");
+    if (!this.gemini) throw new Error("Gemini non configuré");
 
     const model = this.gemini.getGenerativeModel({
       model: "gemini-1.5-pro",
@@ -141,7 +141,7 @@ export class AIProvider {
   }
 
   private async generateGPT(prompt: string, options?: GenerateOptions) {
-    if (!this.gpt) throw new Error("GPT not configured");
+    if (!this.gpt) throw new Error("GPT non configuré");
 
     const messages: { role: "system" | "user"; content: string }[] = [];
     if (options?.systemPrompt) {

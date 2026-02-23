@@ -128,7 +128,10 @@ export function AiPanel({ projectId }: { projectId: string }) {
         ))}
 
         {loading && (
-          <div className="text-xs text-gray-500">L&apos;IA réfléchit…</div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 fade-in">
+            <div className="w-3 h-3 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+            L&apos;IA réfléchit…
+          </div>
         )}
 
         <div ref={bottomRef} />

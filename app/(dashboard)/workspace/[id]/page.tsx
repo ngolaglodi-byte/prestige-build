@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
@@ -8,12 +8,29 @@ import { useTabs } from "@/lib/store/tabs";
 import { AiPanel } from "@/components/workspace/AIPanel";
 import { FileTree } from "@/components/workspace/FileTree";
 import { Tabs } from "@/components/workspace/Tabs";
-import { CodeEditor } from "@/components/workspace/Editor";
 import { AiDiffViewer } from "@/components/workspace/AiDiffViewer";
 import AIMultiFilePreview from "@/components/workspace/AIMultiFilePreview";
 import AICodePreview from "@/components/workspace/AICodePreview";
-import { PreviewFrame } from "@/components/workspace/PreviewFrame";
 import { WorkspaceLogs } from "@/components/workspace/WorkspaceLogs";
+
+// Chargement paresseux des composants lourds
+const CodeEditor = lazy(() =>
+  import("@/components/workspace/Editor").then((m) => ({ default: m.CodeEditor }))
+);
+const PreviewFrame = lazy(() =>
+  import("@/components/workspace/PreviewFrame").then((m) => ({ default: m.PreviewFrame }))
+);
+
+function EditorFallback() {
+  return (
+    <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+        Chargement de l&apos;éditeur…
+      </div>
+    </div>
+  );
+}
 
 type BottomTab = "preview" | "logs";
 
@@ -39,7 +56,7 @@ export default function WorkspacePage() {
   return (
     <div className="h-screen w-full flex bg-[#0d0d0d] text-white overflow-hidden">
       {/* Sidebar - FileTree */}
-      <div className="w-64 h-full bg-[#111] border-r border-white/10 overflow-auto flex-shrink-0">
+      <div className="w-64 h-full bg-[#111] border-r border-white/10 overflow-auto flex-shrink-0 slide-in">
         <div className="px-3 py-2 border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
           Explorateur
         </div>
@@ -47,7 +64,7 @@ export default function WorkspacePage() {
       </div>
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden fade-in">
         {/* Tabs */}
         <Tabs />
 
@@ -56,7 +73,9 @@ export default function WorkspacePage() {
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Editor */}
             <div className="flex-1 overflow-hidden">
-              <CodeEditor projectId={id} />
+              <Suspense fallback={<EditorFallback />}>
+                <CodeEditor projectId={id} />
+              </Suspense>
             </div>
 
             {/* Bottom panel: Preview / Logs */}
@@ -64,7 +83,7 @@ export default function WorkspacePage() {
               <div className="flex border-b border-white/10 bg-[#111]">
                 <button
                   onClick={() => setBottomTab("preview")}
-                  className={`px-3 py-1.5 text-xs font-medium ${
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
                     bottomTab === "preview"
                       ? "text-accent border-b-2 border-accent"
                       : "text-gray-400 hover:text-gray-200"
@@ -74,7 +93,7 @@ export default function WorkspacePage() {
                 </button>
                 <button
                   onClick={() => setBottomTab("logs")}
-                  className={`px-3 py-1.5 text-xs font-medium ${
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
                     bottomTab === "logs"
                       ? "text-accent border-b-2 border-accent"
                       : "text-gray-400 hover:text-gray-200"
@@ -84,7 +103,11 @@ export default function WorkspacePage() {
                 </button>
               </div>
               <div className="flex-1 overflow-hidden">
-                {bottomTab === "preview" && <PreviewFrame projectId={id} />}
+                {bottomTab === "preview" && (
+                  <Suspense fallback={<EditorFallback />}>
+                    <PreviewFrame projectId={id} />
+                  </Suspense>
+                )}
                 {bottomTab === "logs" && <WorkspaceLogs projectId={id} />}
               </div>
             </div>
