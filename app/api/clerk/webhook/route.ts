@@ -2,6 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
+import { getPlan } from "@/lib/billing/plans";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -145,21 +146,23 @@ export async function POST(req: Request) {
     if (limitsError) {
       console.error("❌ [clerk/webhook] Error creating user_limits:", limitsError);
     } else {
-      console.log("✅ [clerk/webhook] UserLimits created with default credits");
+      console.log("✅ [clerk/webhook] UserLimits created with default resource limits");
     }
 
     // 5. Create subscription entry in "subscriptions" table for billing
+    const freePlan = getPlan("free");
+
     const { error: subError } = await supabase
       .from("subscriptions")
       .insert({
         id: randomUUID(),
         user_id: userId,
         plan: "free",
-        credits_monthly: 10,
-        credits_remaining: 10,
-        storage_limit_mb: 100,
+        credits_monthly: freePlan.credits,
+        credits_remaining: freePlan.credits,
+        storage_limit_mb: freePlan.limits.workspaceSizeMb,
         db_limit_mb: 50,
-        price_usd: 0,
+        price_usd: freePlan.priceUsd,
         status: "active",
         created_at: now,
       });
