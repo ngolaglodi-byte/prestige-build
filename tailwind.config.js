@@ -39,7 +39,6 @@ module.exports = {
         slideIn: "slideIn 0.25s ease-out forwards",
         scaleIn: "scaleIn 0.25s cubic-bezier(0.4,0,0.2,1) forwards",
         slideUp: "slideUp 0.35s cubic-bezier(0.4,0,0.2,1) forwards",
-        pulse: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
       },
 
       keyframes: {
