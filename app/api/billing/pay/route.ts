@@ -4,17 +4,11 @@ import { db } from "@/db/client";
 import { users, creditPurchases, subscriptions, billingEvents } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
+import { PLANS, type PlanId } from "@/lib/billing/plans";
 
 const PAWAPAY_API_URL = process.env.PAWAPAY_API_URL ?? "https://api.pawapay.io";
 const PAWAPAY_API_KEY = process.env.PAWAPAY_API_KEY;
 const PAWAPAY_CORRESPONDENT = process.env.PAWAPAY_CORRESPONDENT ?? "MTN_MOMO_COD";
-
-/** Plans disponibles avec prix en USD et crédits */
-const PLANS: Record<string, { credits: number; priceUsd: number }> = {
-  starter: { credits: 100, priceUsd: 5 },
-  pro: { credits: 500, priceUsd: 20 },
-  business: { credits: 2000, priceUsd: 70 },
-};
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
@@ -24,10 +18,10 @@ export async function POST(req: Request) {
 
   const { plan, phoneNumber, currency = "USD" } = await req.json();
 
-  const selectedPlan = PLANS[plan];
-  if (!selectedPlan) {
+  const selectedPlan = PLANS[plan as PlanId];
+  if (!selectedPlan || plan === "free") {
     return NextResponse.json(
-      { error: "Plan invalide. Options : starter, pro, business" },
+      { error: "Plan invalide. Options : pro, enterprise" },
       { status: 400 }
     );
   }
@@ -135,6 +129,8 @@ export async function POST(req: Request) {
         plan,
         creditsRemaining: sql`${subscriptions.creditsRemaining} + ${selectedPlan.credits}`,
         creditsMonthly: selectedPlan.credits,
+        storageLimitMb: selectedPlan.limits.workspaceSizeMb,
+        priceUsd: selectedPlan.priceUsd,
       })
       .where(eq(subscriptions.userId, user.id));
   } else {
@@ -143,7 +139,7 @@ export async function POST(req: Request) {
       plan,
       creditsMonthly: selectedPlan.credits,
       creditsRemaining: selectedPlan.credits,
-      storageLimitMb: 500,
+      storageLimitMb: selectedPlan.limits.workspaceSizeMb,
       dbLimitMb: 100,
       priceUsd: selectedPlan.priceUsd,
       status: "active",
