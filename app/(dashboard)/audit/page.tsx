@@ -7,30 +7,30 @@ export default function AuditLogsPage() {
   const logs = [
     {
       id: 1,
-      action: "User Login",
-      detail: "Successful authentication",
-      time: "2 hours ago",
+      action: "Connexion utilisateur",
+      detail: "Authentification réussie",
+      time: "Il y a 2 heures",
       ip: "102.89.12.4",
     },
     {
       id: 2,
-      action: "Mobile Money Payment",
-      detail: "Pawapay payment received (M-Pesa)",
-      time: "Yesterday",
+      action: "Paiement Mobile Money",
+      detail: "Paiement Pawapay reçu (M-Pesa)",
+      time: "Hier",
       ip: "102.89.12.4",
     },
     {
       id: 3,
-      action: "API Key Regenerated",
-      detail: "Secret key updated",
-      time: "3 days ago",
+      action: "Clé API régénérée",
+      detail: "Clé secrète mise à jour",
+      time: "Il y a 3 jours",
       ip: "102.89.12.4",
     },
     {
       id: 4,
-      action: "Project Generated",
+      action: "Projet généré",
       detail: "Landing Page Starter",
-      time: "1 week ago",
+      time: "Il y a 1 semaine",
       ip: "102.89.12.4",
     },
   ];
@@ -42,13 +42,13 @@ export default function AuditLogsPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Content */}
       <div className="max-w-4xl mx-auto mt-16 px-6 fade-in">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Audit Logs</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Journaux d&apos;audit</h1>
 
         <div className="flex flex-col gap-4">
           {logs.map((log) => (

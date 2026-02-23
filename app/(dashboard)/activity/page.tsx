@@ -7,27 +7,27 @@ export default function ActivityLogPage() {
   const logs = [
     {
       id: 1,
-      action: "Created new project",
+      action: "Création d'un nouveau projet",
       detail: "Landing Page Starter",
-      time: "2 hours ago",
+      time: "Il y a 2 heures",
     },
     {
       id: 2,
-      action: "Edited file",
+      action: "Fichier modifié",
       detail: "src/App.tsx",
-      time: "Yesterday",
+      time: "Hier",
     },
     {
       id: 3,
-      action: "Invited a team member",
+      action: "Membre d'équipe invité",
       detail: "sarah@example.com",
-      time: "3 days ago",
+      time: "Il y a 3 jours",
     },
     {
       id: 4,
-      action: "Generated code with AI",
-      detail: "Homepage layout",
-      time: "1 week ago",
+      action: "Code généré avec l'IA",
+      detail: "Mise en page de la page d'accueil",
+      time: "Il y a 1 semaine",
     },
   ];
 
@@ -38,13 +38,13 @@ export default function ActivityLogPage() {
       <div className="flex items-center justify-between px-10 py-6 border-b border-border bg-[#111]/80 backdrop-blur-md">
         <Logo />
         <Link href="/dashboard" className="text-gray-300 hover:text-white premium-hover">
-          Back to Dashboard
+          Retour au tableau de bord
         </Link>
       </div>
 
       {/* Content */}
       <div className="max-w-3xl mx-auto mt-16 px-6 fade-in">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Activity Log</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-8">Journal d&apos;activité</h1>
 
         <div className="flex flex-col gap-4">
           {logs.map((log) => (

@@ -21,14 +21,14 @@ export default async function AdminProjectsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Projects Management</h1>
+      <h1 className="text-3xl font-bold mb-6">Gestion des projets</h1>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden">
         <thead className="bg-gray-100 text-left">
           <tr>
-            <th className="p-4">Project</th>
-            <th className="p-4">Owner</th>
-            <th className="p-4">Created</th>
+            <th className="p-4">Projet</th>
+            <th className="p-4">Propriétaire</th>
+            <th className="p-4">Créé le</th>
             <th className="p-4">Actions</th>
           </tr>
         </thead>
@@ -39,17 +39,17 @@ export default async function AdminProjectsPage() {
               <td className="p-4">
                 <div className="font-semibold">{p.name}</div>
                 <div className="text-gray-500 text-sm">
-                  {p.description ?? "No description"}
+                  {p.description ?? "Aucune description"}
                 </div>
               </td>
 
               <td className="p-4">
-                <div>{p.userName ?? "Unknown"}</div>
+                <div>{p.userName ?? "Inconnu"}</div>
                 <div className="text-gray-500 text-sm">{p.userEmail}</div>
               </td>
 
               <td className="p-4">
-                {new Date(p.createdAt).toLocaleDateString()}
+                {new Date(p.createdAt).toLocaleDateString("fr-FR")}
               </td>
 
               <td className="p-4">
@@ -59,7 +59,7 @@ export default async function AdminProjectsPage() {
                     type="submit"
                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                   >
-                    Delete
+                    Supprimer
                   </button>
                 </form>
               </td>

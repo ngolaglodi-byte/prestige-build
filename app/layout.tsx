@@ -4,12 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Prestige Build",
-  description: "AI-powered code generation platform",
+  description: "Plateforme de génération de code propulsée par l'IA",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const content = (
-    <html lang="en">
+    <html lang="fr">
       <body className="antialiased bg-[#0D0D0D] text-white">
         {children}
       </body>

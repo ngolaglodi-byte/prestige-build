@@ -74,19 +74,19 @@ export default async function AdminBillingPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Billing & Subscriptions</h1>
+      <h1 className="text-3xl font-bold mb-6">Facturation et abonnements</h1>
 
       {/* SUBSCRIPTIONS */}
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Subscriptions</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Abonnements</h2>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden mb-10">
         <thead className="bg-gray-100 text-left">
           <tr>
-            <th className="p-4">User</th>
+            <th className="p-4">Utilisateur</th>
             <th className="p-4">Plan</th>
-            <th className="p-4">Credits</th>
-            <th className="p-4">Status</th>
-            <th className="p-4">Renewal</th>
+            <th className="p-4">Crédits</th>
+            <th className="p-4">Statut</th>
+            <th className="p-4">Renouvellement</th>
             <th className="p-4">Actions</th>
           </tr>
         </thead>
@@ -95,7 +95,7 @@ export default async function AdminBillingPage() {
           {allSubscriptions.filter((s) => s.userId).map((s) => (
             <tr key={s.id} className="border-t">
               <td className="p-4">
-                <div>{s.userName ?? "Unknown"}</div>
+                <div>{s.userName ?? "Inconnu"}</div>
                 <div className="text-gray-500 text-sm">{s.userEmail}</div>
               </td>
 
@@ -125,7 +125,7 @@ export default async function AdminBillingPage() {
                   <input
                     type="number"
                     name="amount"
-                    placeholder="Credits"
+                    placeholder="Crédits"
                     className="w-24 px-2 py-1 border rounded"
                     required
                     min="1"
@@ -134,7 +134,7 @@ export default async function AdminBillingPage() {
                   <input
                     type="text"
                     name="reason"
-                    placeholder="Reason"
+                    placeholder="Motif"
                     className="px-2 py-1 border rounded w-48"
                   />
 
@@ -178,16 +178,16 @@ export default async function AdminBillingPage() {
       </table>
 
       {/* CREDIT PURCHASES */}
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Credit Purchases</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Achats de crédits</h2>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden mb-10">
         <thead className="bg-gray-100 text-left">
           <tr>
-            <th className="p-4">User</th>
-            <th className="p-4">Credits</th>
-            <th className="p-4">Amount</th>
-            <th className="p-4">Provider</th>
-            <th className="p-4">Status</th>
+            <th className="p-4">Utilisateur</th>
+            <th className="p-4">Crédits</th>
+            <th className="p-4">Montant</th>
+            <th className="p-4">Fournisseur</th>
+            <th className="p-4">Statut</th>
             <th className="p-4">Date</th>
           </tr>
         </thead>
@@ -211,15 +211,15 @@ export default async function AdminBillingPage() {
       </table>
 
       {/* BILLING EVENTS */}
-      <h2 className="text-2xl font-semibold mt-8 mb-4">Billing Events</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Événements de facturation</h2>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden mb-10">
         <thead className="bg-gray-100 text-left">
           <tr>
-            <th className="p-4">User</th>
-            <th className="p-4">Amount</th>
-            <th className="p-4">Provider</th>
-            <th className="p-4">Status</th>
+            <th className="p-4">Utilisateur</th>
+            <th className="p-4">Montant</th>
+            <th className="p-4">Fournisseur</th>
+            <th className="p-4">Statut</th>
             <th className="p-4">Date</th>
           </tr>
         </thead>
@@ -242,15 +242,15 @@ export default async function AdminBillingPage() {
       </table>
 
       {/* ADMIN CREDIT LOGS */}
-      <h2 className="text-2xl font-semibold mt-12 mb-4">Admin Credit History</h2>
+      <h2 className="text-2xl font-semibold mt-12 mb-4">Historique des crédits admin</h2>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden">
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-4">Admin</th>
-            <th className="p-4">User</th>
-            <th className="p-4">Amount</th>
-            <th className="p-4">Reason</th>
+            <th className="p-4">Utilisateur</th>
+            <th className="p-4">Montant</th>
+            <th className="p-4">Motif</th>
             <th className="p-4">Date</th>
           </tr>
         </thead>

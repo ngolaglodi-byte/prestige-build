@@ -6,20 +6,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="flex h-screen">
       {/* SIDEBAR */}
       <aside className="w-64 bg-gray-900 text-white p-6 flex flex-col gap-4">
-        <h1 className="text-xl font-bold">Admin Panel</h1>
+        <h1 className="text-xl font-bold">Panneau d&apos;administration</h1>
 
         <nav className="flex flex-col gap-2">
           <Link href="/admin" className="hover:text-gray-300">
-            Dashboard
+            Tableau de bord
           </Link>
           <Link href="/admin/users" className="hover:text-gray-300">
-            Users
+            Utilisateurs
           </Link>
           <Link href="/admin/projects" className="hover:text-gray-300">
-            Projects
+            Projets
           </Link>
           <Link href="/admin/logs" className="hover:text-gray-300">
-            Logs
+            Journaux
           </Link>
         </nav>
       </aside>

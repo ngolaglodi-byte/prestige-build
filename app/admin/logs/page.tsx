@@ -22,14 +22,14 @@ export default async function AdminLogsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Activity Logs</h1>
+      <h1 className="text-3xl font-bold mb-6">Journaux d&apos;activité</h1>
 
       <table className="w-full bg-white shadow rounded-lg overflow-hidden">
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-4">Action</th>
-            <th className="p-4">User</th>
-            <th className="p-4">Project</th>
+            <th className="p-4">Utilisateur</th>
+            <th className="p-4">Projet</th>
             <th className="p-4">Date</th>
             <th className="p-4">Actions</th>
           </tr>
@@ -41,21 +41,21 @@ export default async function AdminLogsPage() {
               <td className="p-4">
                 <div className="font-semibold">{log.action}</div>
                 <div className="text-gray-500 text-sm">
-                  {JSON.stringify(log.metadata) ?? "No metadata"}
+                  {JSON.stringify(log.metadata) ?? "Aucune métadonnée"}
                 </div>
               </td>
 
               <td className="p-4">
-                <div>{log.userName ?? "Unknown"}</div>
+                <div>{log.userName ?? "Inconnu"}</div>
                 <div className="text-gray-500 text-sm">{log.userEmail}</div>
               </td>
 
               <td className="p-4">
-                {log.projectName ?? "No project"}
+                {log.projectName ?? "Aucun projet"}
               </td>
 
               <td className="p-4">
-                {new Date(log.createdAt).toLocaleString()}
+                {new Date(log.createdAt).toLocaleString("fr-FR")}
               </td>
 
               <td className="p-4">
@@ -65,7 +65,7 @@ export default async function AdminLogsPage() {
                     type="submit"
                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                   >
-                    Delete
+                    Supprimer
                   </button>
                 </form>
               </td>
