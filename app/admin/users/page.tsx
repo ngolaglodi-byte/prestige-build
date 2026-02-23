@@ -4,11 +4,13 @@ export const dynamic = "force-dynamic";
 import { db } from "@/db/client";
 import { users, subscriptions, usageLogs } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { PromoteButton, DemoteButton } from "./UserActions";
 
 export default async function AdminUsersPage() {
   const allUsers = await db
     .select({
       id: users.id,
+      clerkId: users.clerkId,
       name: users.name,
       email: users.email,
       role: users.role,
@@ -56,25 +58,9 @@ export default async function AdminUsersPage() {
 
               <td className="p-4 flex gap-2 flex-wrap">
                 {u.role !== "admin" ? (
-                  <form action="/api/admin/promote" method="POST">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <button
-                      type="submit"
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Promouvoir en admin
-                    </button>
-                  </form>
+                  <PromoteButton clerkId={u.clerkId} />
                 ) : (
-                  <form action="/api/admin/demote" method="POST">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <button
-                      type="submit"
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Retirer le rôle admin
-                    </button>
-                  </form>
+                  <DemoteButton clerkId={u.clerkId} />
                 )}
 
                 {u.role !== "suspended" ? (
