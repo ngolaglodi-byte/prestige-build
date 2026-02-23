@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { domains, projects } from "@/db/schema";
+import { domains } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
 import { eq, and } from "drizzle-orm";
 import {
   getDefaultSubdomain,

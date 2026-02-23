@@ -4,9 +4,9 @@ import { db } from "@/db/client";
 import {
   creditPurchases,
   billingEvents,
-  subscriptions,
   users,
 } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 
 export default async function AdminPaymentsPage() {

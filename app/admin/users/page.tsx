@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 
 // app/admin/users/page.tsx
 import { db } from "@/db/client";
-import { users, subscriptions, usageLogs } from "@/db/schema";
+import { users, usageLogs } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq, sql } from "drizzle-orm";
 import { PromoteButton, DemoteButton } from "./UserActions";
 

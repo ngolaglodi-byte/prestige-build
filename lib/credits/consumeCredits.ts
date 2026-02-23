@@ -1,5 +1,6 @@
 import { db } from "@/db/client";
-import { subscriptions, usageLogs, activityLogs } from "@/db/schema";
+import { usageLogs, activityLogs } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function consumeCredits({

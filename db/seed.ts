@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { db } from "./client";
-import { subscriptions, users } from "./schema";
+import { users } from "./schema";
+import { subscriptions } from "./supabase-schema";
 
 async function seed() {
   const allUsers = await db.select().from(users);

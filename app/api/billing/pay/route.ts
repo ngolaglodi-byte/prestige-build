@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/client";
-import { users, creditPurchases, subscriptions, billingEvents } from "@/db/schema";
+import { users, creditPurchases, billingEvents } from "@/db/schema";
+import { subscriptions } from "@/db/supabase-schema";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { PLANS, type PlanId } from "@/lib/billing/plans";
