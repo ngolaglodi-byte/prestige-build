@@ -55,11 +55,11 @@ export async function POST(
       );
     }
 
-    // Résoudre le Clerk ID en UUID interne
+    // Resolve Clerk ID to internal user UUID
     const user = await prisma.user.findUnique({ where: { clerkId } });
     if (!user) {
       return NextResponse.json(
-        { ok: false, error: "Utilisateur non trouvé." },
+        { ok: false, error: "User not found" },
         { status: 404 }
       );
     }
