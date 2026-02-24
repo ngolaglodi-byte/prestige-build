@@ -12,16 +12,19 @@ export async function GET(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
+
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return new Response("User not found", { status: 404 });
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -45,8 +48,8 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -56,11 +59,14 @@ export async function POST(
       return new Response("Missing file path", { status: 400 });
     }
 
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return new Response("User not found", { status: 404 });
+
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -100,8 +106,8 @@ export async function PATCH(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -111,11 +117,14 @@ export async function PATCH(
       return new Response("Missing file path", { status: 400 });
     }
 
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return new Response("User not found", { status: 404 });
+
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -177,8 +186,8 @@ export async function DELETE(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -189,11 +198,14 @@ export async function DELETE(
     }
 
     // Vérifier ownership du projet
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return new Response("User not found", { status: 404 });
+
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
 
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 

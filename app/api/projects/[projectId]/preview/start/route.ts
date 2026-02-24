@@ -10,9 +10,9 @@ export async function POST(
     // -----------------------------
     // 1. Auth Clerk
     // -----------------------------
-    const { userId } = await auth();
+    const { userId: clerkId } = await auth();
 
-    if (!userId) {
+    if (!clerkId) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -21,6 +21,14 @@ export async function POST(
     if (!projectId) {
       return new Response("Missing projectId in URL", { status: 400 });
     }
+
+    // Resolve Clerk ID to internal user UUID
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) {
+      return new Response("User not found", { status: 404 });
+    }
+
+    const userId = user.id;
 
     // -----------------------------
     // 2. Lire le body
