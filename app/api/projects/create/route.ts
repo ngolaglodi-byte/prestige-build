@@ -1,8 +1,8 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 import { randomUUID } from "crypto";
-import { getPlan } from "@/lib/billing/plans";
+import { ensureUserExists } from "@/lib/ensure-user";
 
 export async function POST(req: Request) {
   try {
@@ -20,81 +20,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Project name is required" }, { status: 400 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error("[projects/create] Supabase configuration missing", {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseKey,
-      });
-      return NextResponse.json({ error: "Supabase configuration missing" }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Resolve Clerk ID to internal user UUID
-    let { data: user, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("clerk_id", clerkId)
-      .single();
-
-    if (userError || !user) {
-      console.warn("[projects/create] User not found for clerkId, attempting to create:", clerkId);
-
-      try {
-        const client = await clerkClient();
-        const clerkUser = await client.users.getUser(clerkId);
-        const userEmail = clerkUser.emailAddresses?.[0]?.emailAddress ?? `${clerkId}@unknown.clerk`;
-        const userName = clerkUser.firstName ?? "User";
-        const now = new Date().toISOString();
-        const newUserId = randomUUID();
-
-        const { error: insertUserError } = await supabase
-          .from("users")
-          .insert({
-            id: newUserId,
-            clerk_id: clerkId,
-            email: userEmail,
-            name: userName,
-            role: "user",
-            created_at: now,
-            updated_at: now,
-          });
-
-        if (insertUserError) {
-          console.error("[projects/create] Failed to create user:", insertUserError);
-          return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const freePlan = getPlan("free");
-        const { error: subError } = await supabase.from("subscriptions").insert({
-          id: randomUUID(),
-          user_id: newUserId,
-          plan: "free",
-          credits_monthly: freePlan.credits,
-          credits_remaining: freePlan.credits,
-          storage_limit_mb: freePlan.limits.workspaceSizeMb,
-          db_limit_mb: 50,
-          price_usd: freePlan.priceUsd,
-          status: "active",
-          created_at: now,
-        });
-
-        if (subError) {
-          console.error("[projects/create] Failed to create subscription for fallback user:", subError);
-        }
-
-        console.log("[projects/create] User created via fallback:", newUserId);
-        user = { id: newUserId };
-      } catch (fallbackErr) {
-        console.error("[projects/create] Fallback user creation failed:", fallbackErr);
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
-    }
-
+    const user = await ensureUserExists(clerkId);
     const userId = user.id;
+
+    const supabase = getSupabaseServiceClient();
 
     const now = new Date().toISOString();
     const id = randomUUID();

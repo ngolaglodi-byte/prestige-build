@@ -1,15 +1,8 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { getPlan } from "@/lib/billing/plans";
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase configuration missing");
-  return createClient(url, key);
-}
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -46,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   const { type, data } = event;
-  const supabase = getSupabase();
+  const supabase = getSupabaseServiceClient();
 
   const email = data.email_addresses?.[0]?.email_address ?? `${data.id}@unknown.clerk`;
   const name = data.first_name ?? "User";
