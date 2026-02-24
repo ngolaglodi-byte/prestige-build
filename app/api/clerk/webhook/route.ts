@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   const { type, data } = event;
   const supabase = getSupabase();
 
-  const email = data.email_addresses?.[0]?.email_address ?? null;
+  const email = data.email_addresses?.[0]?.email_address ?? `${data.id}@unknown.clerk`;
   const name = data.first_name ?? "User";
 
   // ---------------------------------------------------------
