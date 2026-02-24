@@ -1,7 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { previewSessions } from "@/db/schema";
+import { plans, userPlans, userLimits } from "@/db/supabase-schema";
+import { eq, and } from "drizzle-orm";
 
 /**
- * Types des limites effectives d’un utilisateur
+ * Types des limites effectives d'un utilisateur
  */
 export type EffectiveLimits = {
   maxActivePreviews: number;
@@ -10,24 +13,35 @@ export type EffectiveLimits = {
 };
 
 /**
- * Récupère les limites réelles d’un utilisateur :
+ * Récupère les limites réelles d'un utilisateur :
  * - Plan (Free, Starter, Pro…)
  * - Overrides (UserLimits)
  */
 export async function getUserLimits(userId: string): Promise<EffectiveLimits> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      userPlan: {
-        include: {
-          plan: true,
-        },
-      },
-      limits: true,
-    },
-  });
+  // Get user's plan via user_plans join
+  const userPlanRows = await db
+    .select({
+      maxActivePreviews: plans.maxActivePreviews,
+      maxCpuPercent: plans.maxCpuPercent,
+      maxMemoryMb: plans.maxMemoryMb,
+    })
+    .from(userPlans)
+    .innerJoin(plans, eq(userPlans.planId, plans.id))
+    .where(eq(userPlans.userId, userId))
+    .limit(1);
 
-  if (!user || !user.userPlan?.plan) {
+  const plan = userPlanRows[0] ?? null;
+
+  // Get user-specific overrides
+  const overrideRows = await db
+    .select()
+    .from(userLimits)
+    .where(eq(userLimits.userId, userId))
+    .limit(1);
+
+  const overrides = overrideRows[0] ?? null;
+
+  if (!plan) {
     // fallback ultra safe
     return {
       maxActivePreviews: 1,
@@ -35,9 +49,6 @@ export async function getUserLimits(userId: string): Promise<EffectiveLimits> {
       maxMemoryMb: 256,
     };
   }
-
-  const plan = user.userPlan.plan;
-  const overrides = user.limits;
 
   return {
     maxActivePreviews: overrides?.maxActivePreviews ?? plan.maxActivePreviews,
@@ -47,7 +58,7 @@ export async function getUserLimits(userId: string): Promise<EffectiveLimits> {
 }
 
 /**
- * Vérifie si l’utilisateur peut lancer une nouvelle preview
+ * Vérifie si l'utilisateur peut lancer une nouvelle preview
  */
 export async function canStartPreview(userId: string): Promise<{
   allowed: boolean;
@@ -55,12 +66,17 @@ export async function canStartPreview(userId: string): Promise<{
 }> {
   const limits = await getUserLimits(userId);
 
-  const activeCount = await prisma.previewSession.count({
-    where: {
-      userId,
-      status: "running",
-    },
-  });
+  const activeRows = await db
+    .select({ id: previewSessions.id })
+    .from(previewSessions)
+    .where(
+      and(
+        eq(previewSessions.userId, userId),
+        eq(previewSessions.status, "running")
+      )
+    );
+
+  const activeCount = activeRows.length;
 
   if (activeCount >= limits.maxActivePreviews) {
     return {
@@ -73,7 +89,7 @@ export async function canStartPreview(userId: string): Promise<{
 }
 
 /**
- * Vérifie si l’utilisateur peut consommer CPU/RAM
+ * Vérifie si l'utilisateur peut consommer CPU/RAM
  */
 export async function canUseResources(
   userId: string,

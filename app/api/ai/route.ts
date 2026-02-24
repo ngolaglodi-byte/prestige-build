@@ -1,12 +1,15 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
+import { eq } from "drizzle-orm";
 import { parseAIMultiPreview } from "@/lib/ai/parseMultiPreview";
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -14,11 +17,25 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
 
     if (!prompt) return new Response("Missing prompt", { status: 400 });
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    // Resolve Clerk ID to internal user UUID
+    const userRows = await db
+      .select()
+      .from(users)
+      .where(eq(users.clerkId, clerkId))
+      .limit(1);
 
-    if (!project || project.userId !== userId) {
+    const user = userRows[0];
+    if (!user) return new Response("User not found", { status: 404 });
+
+    const projectRows = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    const project = projectRows[0];
+
+    if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 

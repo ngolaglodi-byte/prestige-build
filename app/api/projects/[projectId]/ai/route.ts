@@ -1,6 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users, files } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
+import { eq, and } from "drizzle-orm";
 import { orchestrate, type OrchestrationAction } from "@/lib/ai/orchestrator";
 import { consumeCredits } from "@/lib/credits/consumeCredits";
 import { checkCredits } from "@/lib/credits/checkCredits";
@@ -27,13 +30,13 @@ function detectAction(prompt: string): OrchestrationAction {
 function parseGeneratedFiles(
   raw: string
 ): { path: string; content: string }[] {
-  const files: { path: string; content: string }[] = [];
+  const generatedFiles: { path: string; content: string }[] = [];
   const regex = /<file\s+path="([^"]+)">([\s\S]*?)<\/file>/g;
   let match;
   while ((match = regex.exec(raw)) !== null) {
-    files.push({ path: match[1], content: match[2].trim() });
+    generatedFiles.push({ path: match[1], content: match[2].trim() });
   }
-  return files;
+  return generatedFiles;
 }
 
 export async function POST(
@@ -56,7 +59,8 @@ export async function POST(
     }
 
     // Resolve Clerk ID to internal user UUID
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) {
       return NextResponse.json(
         { ok: false, error: "User not found" },
@@ -67,9 +71,8 @@ export async function POST(
     const userId = user.id;
 
     // Vérifier que le projet existe et appartient à l'utilisateur
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    const project = projectRows[0];
 
     if (!project || project.userId !== userId) {
       return NextResponse.json(
@@ -91,10 +94,11 @@ export async function POST(
     }
 
     // Récupérer la liste des fichiers du projet pour le contexte
-    const projectFiles = await prisma.file.findMany({
-      where: { projectId },
-      select: { path: true },
-    });
+    const projectFiles = await db
+      .select({ path: files.path })
+      .from(files)
+      .where(eq(files.projectId, projectId));
+
     const filePaths = projectFiles.map((f) => f.path);
 
     // Détecter l'action
@@ -103,10 +107,12 @@ export async function POST(
     // Récupérer le contenu du fichier actif si filePath est fourni
     let fileContent = code;
     if (filePath && !fileContent) {
-      const file = await prisma.file.findUnique({
-        where: { projectId_path: { projectId, path: filePath } },
-      });
-      fileContent = file?.content ?? undefined;
+      const fileRows = await db
+        .select()
+        .from(files)
+        .where(and(eq(files.projectId, projectId), eq(files.path, filePath)))
+        .limit(1);
+      fileContent = fileRows[0]?.content ?? undefined;
     }
 
     // Orchestration IA

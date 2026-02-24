@@ -2,7 +2,10 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users, files } from "@/db/schema";
+import { projects } from "@/db/supabase-schema";
+import { eq, and, asc } from "drizzle-orm";
 
 // -----------------------------
 // GET — Lister les fichiers
@@ -17,23 +20,24 @@ export async function GET(
 
     const projectId = params.projectId;
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    const project = projectRows[0];
 
     if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    const files = await prisma.file.findMany({
-      where: { projectId },
-      orderBy: { path: "asc" },
-    });
+    const fileList = await db
+      .select()
+      .from(files)
+      .where(eq(files.projectId, projectId))
+      .orderBy(asc(files.path));
 
-    return NextResponse.json({ ok: true, files });
+    return NextResponse.json({ ok: true, files: fileList });
   } catch (err) {
     console.error("❌ Error loading files:", err);
     return new Response("Internal server error", { status: 500 });
@@ -59,39 +63,37 @@ export async function POST(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    const project = projectRows[0];
 
     if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    const existing = await prisma.file.findUnique({
-      where: {
-        projectId_path: {
-          projectId,
-          path,
-        },
-      },
-    });
+    const existingRows = await db
+      .select()
+      .from(files)
+      .where(and(eq(files.projectId, projectId), eq(files.path, path)))
+      .limit(1);
 
-    if (existing) {
+    if (existingRows.length > 0) {
       return new Response("File already exists", { status: 409 });
     }
 
-    const file = await prisma.file.create({
-      data: {
+    const insertedRows = await db
+      .insert(files)
+      .values({
         projectId,
         path,
         content: content ?? "",
-      },
-    });
+      })
+      .returning();
 
-    return NextResponse.json({ ok: true, file });
+    return NextResponse.json({ ok: true, file: insertedRows[0] });
   } catch (err) {
     console.error("❌ Error creating file:", err);
     return new Response("Internal server error", { status: 500 });
@@ -117,61 +119,53 @@ export async function PATCH(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    const project = projectRows[0];
 
     if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    const existing = await prisma.file.findUnique({
-      where: {
-        projectId_path: {
-          projectId,
-          path,
-        },
-      },
-    });
+    const existingRows = await db
+      .select()
+      .from(files)
+      .where(and(eq(files.projectId, projectId), eq(files.path, path)))
+      .limit(1);
+
+    const existing = existingRows[0];
 
     if (!existing) {
       return new Response("File not found", { status: 404 });
     }
 
     if (newPath && newPath !== path) {
-      const conflict = await prisma.file.findUnique({
-        where: {
-          projectId_path: {
-            projectId,
-            path: newPath,
-          },
-        },
-      });
+      const conflictRows = await db
+        .select()
+        .from(files)
+        .where(and(eq(files.projectId, projectId), eq(files.path, newPath)))
+        .limit(1);
 
-      if (conflict) {
+      if (conflictRows.length > 0) {
         return new Response("A file with this name already exists", {
           status: 409,
         });
       }
     }
 
-    const updated = await prisma.file.update({
-      where: {
-        projectId_path: {
-          projectId,
-          path,
-        },
-      },
-      data: {
+    const updatedRows = await db
+      .update(files)
+      .set({
         path: newPath ?? path,
         content: content ?? existing.content,
-      },
-    });
+      })
+      .where(and(eq(files.projectId, projectId), eq(files.path, path)))
+      .returning();
 
-    return NextResponse.json({ ok: true, file: updated });
+    return NextResponse.json({ ok: true, file: updatedRows[0] });
   } catch (err) {
     console.error("❌ Error updating file:", err);
     return new Response("Internal server error", { status: 500 });
@@ -198,40 +192,32 @@ export async function DELETE(
     }
 
     // Vérifier ownership du projet
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
+    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    const project = projectRows[0];
 
     if (!project || project.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
     // Vérifier que le fichier existe
-    const existing = await prisma.file.findUnique({
-      where: {
-        projectId_path: {
-          projectId,
-          path,
-        },
-      },
-    });
+    const existingRows = await db
+      .select()
+      .from(files)
+      .where(and(eq(files.projectId, projectId), eq(files.path, path)))
+      .limit(1);
 
-    if (!existing) {
+    if (existingRows.length === 0) {
       return new Response("File not found", { status: 404 });
     }
 
     // Supprimer le fichier
-    await prisma.file.delete({
-      where: {
-        projectId_path: {
-          projectId,
-          path,
-        },
-      },
-    });
+    await db
+      .delete(files)
+      .where(and(eq(files.projectId, projectId), eq(files.path, path)));
 
     return NextResponse.json({ ok: true });
   } catch (err) {

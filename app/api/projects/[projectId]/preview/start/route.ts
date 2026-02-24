@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users, previewSessions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { canStartPreview, canUseResources } from "@/lib/limits";
 
 export async function POST(
@@ -23,7 +25,8 @@ export async function POST(
     }
 
     // Resolve Clerk ID to internal user UUID
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) {
       return new Response("User not found", { status: 404 });
     }
@@ -63,8 +66,9 @@ export async function POST(
     // -----------------------------
     // 5. Créer la preview session
     // -----------------------------
-    const preview = await prisma.previewSession.create({
-      data: {
+    const insertedRows = await db
+      .insert(previewSessions)
+      .values({
         userId,
         projectId,
         port,
@@ -72,8 +76,10 @@ export async function POST(
         memoryMb,
         status: "running",
         startedAt: new Date(),
-      },
-    });
+      })
+      .returning();
+
+    const preview = insertedRows[0];
 
     // -----------------------------
     // 6. Retourner la preview

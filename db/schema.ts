@@ -7,6 +7,8 @@ import {
   boolean,
   timestamp,
   jsonb,
+  doublePrecision,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // USERS (Clerk sync)
@@ -275,5 +277,33 @@ export const adminAiConfig = pgTable("admin_ai_config", {
   enabled: boolean("enabled").notNull().default(true),
   priority: integer("priority").notNull().default(0),
   maxTokens: integer("max_tokens").notNull().default(4096),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// FILES (project files)
+export const files = pgTable("files", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  path: text("path").notNull(),
+  content: text("content").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => [
+  unique().on(t.projectId, t.path),
+]);
+
+// PREVIEW SESSIONS
+export const previewSessions = pgTable("preview_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  port: integer("port").notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  cpuPercent: doublePrecision("cpu_percent"),
+  memoryMb: doublePrecision("memory_mb"),
+  startedAt: timestamp("started_at"),
+  stoppedAt: timestamp("stopped_at"),
+  lastActivityAt: timestamp("last_activity_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

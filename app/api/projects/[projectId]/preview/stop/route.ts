@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users, previewSessions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { stopPreviewServer } from "@/lib/preview/previewEngine";
 
 export async function POST(
@@ -23,7 +25,8 @@ export async function POST(
     }
 
     // Resolve Clerk ID to internal user UUID
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) {
       return new Response("User not found", { status: 404 });
     }
@@ -43,9 +46,13 @@ export async function POST(
     // -----------------------------
     // 3. Vérifier que la preview existe
     // -----------------------------
-    const preview = await prisma.previewSession.findUnique({
-      where: { id: previewId },
-    });
+    const previewRows = await db
+      .select()
+      .from(previewSessions)
+      .where(eq(previewSessions.id, previewId))
+      .limit(1);
+
+    const preview = previewRows[0];
 
     if (!preview) {
       return new Response("Preview not found", { status: 404 });
@@ -64,15 +71,15 @@ export async function POST(
     await stopPreviewServer(preview.userId, preview.projectId);
 
     // -----------------------------
-    // 6. Mettre à jour la preview dans Prisma
+    // 6. Mettre à jour la preview
     // -----------------------------
-    await prisma.previewSession.update({
-      where: { id: previewId },
-      data: {
+    await db
+      .update(previewSessions)
+      .set({
         status: "stopped",
         stoppedAt: new Date(),
-      },
-    });
+      })
+      .where(eq(previewSessions.id, previewId));
 
     // -----------------------------
     // 7. Retourner la réponse
