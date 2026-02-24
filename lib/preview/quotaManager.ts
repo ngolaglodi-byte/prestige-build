@@ -1,6 +1,8 @@
 // lib/preview/quotaManager.ts
 
-import { prisma } from "@/lib/db";
+import { db } from "@/db/client";
+import { plans, userPlans, userLimits } from "@/db/supabase-schema";
+import { eq } from "drizzle-orm";
 
 type UserQuota = {
   maxActivePreviews: number;
@@ -22,32 +24,43 @@ export async function loadUserQuota(userId: string): Promise<UserQuota> {
     return quotaCache.get(userId)!;
   }
 
-  const limits = await prisma.userLimits.findUnique({
-    where: { userId },
-  });
+  const limitsRows = await db
+    .select()
+    .from(userLimits)
+    .where(eq(userLimits.userId, userId))
+    .limit(1);
 
-  if (limits) {
+  const limitOverride = limitsRows[0] ?? null;
+
+  if (limitOverride) {
     const q: UserQuota = {
-      maxActivePreviews: limits.maxActivePreviews,
-      maxCpuPercent: limits.maxCpuPercent,
-      maxMemoryBytes: limits.maxMemoryMb * 1024 * 1024,
+      maxActivePreviews: limitOverride.maxActivePreviews,
+      maxCpuPercent: limitOverride.maxCpuPercent,
+      maxMemoryBytes: limitOverride.maxMemoryMb * 1024 * 1024,
     };
     quotaCache.set(userId, q);
     return q;
   }
 
   // fallback plan → UserPlan → Plan
-  const userPlan = await prisma.userPlan.findUnique({
-    where: { userId },
-    include: { plan: true },
-  });
+  const userPlanRows = await db
+    .select({
+      maxActivePreviews: plans.maxActivePreviews,
+      maxCpuPercent: plans.maxCpuPercent,
+      maxMemoryMb: plans.maxMemoryMb,
+    })
+    .from(userPlans)
+    .innerJoin(plans, eq(userPlans.planId, plans.id))
+    .where(eq(userPlans.userId, userId))
+    .limit(1);
 
-  if (userPlan?.plan) {
-    const p = userPlan.plan;
+  const userPlan = userPlanRows[0] ?? null;
+
+  if (userPlan) {
     const q: UserQuota = {
-      maxActivePreviews: p.maxActivePreviews,
-      maxCpuPercent: p.maxCpuPercent,
-      maxMemoryBytes: p.maxMemoryMb * 1024 * 1024,
+      maxActivePreviews: userPlan.maxActivePreviews,
+      maxCpuPercent: userPlan.maxCpuPercent,
+      maxMemoryBytes: userPlan.maxMemoryMb * 1024 * 1024,
     };
     quotaCache.set(userId, q);
     return q;

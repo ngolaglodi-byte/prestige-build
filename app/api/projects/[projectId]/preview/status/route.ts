@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db/client";
+import { users, previewSessions } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -13,18 +15,25 @@ export async function GET(
     const projectId = params.projectId;
 
     // Resolve Clerk ID to internal user UUID
-    const user = await prisma.user.findUnique({ where: { clerkId } });
+    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
     const userId = user.id;
 
-    const preview = await prisma.previewSession.findFirst({
-      where: {
-        projectId,
-        userId,
-        status: { in: ["running", "starting"] },
-      },
-    });
+    const previewRows = await db
+      .select()
+      .from(previewSessions)
+      .where(
+        and(
+          eq(previewSessions.projectId, projectId),
+          eq(previewSessions.userId, userId),
+          inArray(previewSessions.status, ["running", "starting"])
+        )
+      )
+      .limit(1);
+
+    const preview = previewRows[0] ?? null;
 
     if (!preview) {
       return NextResponse.json({

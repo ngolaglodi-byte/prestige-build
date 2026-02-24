@@ -9,7 +9,7 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "prisma:seed": "ts-node prisma/seed.ts",
+    "db:seed": "ts-node db/seed.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",
@@ -22,7 +22,6 @@
     "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
-    "@prisma/client": "^6.19.2",
     "@react-three/drei": "^9.56.0",
     "@react-three/fiber": "^8.15.12",
     "@supabase/supabase-js": "^2.97.0",
@@ -37,7 +36,6 @@
     "openai": "^6.22.0",
     "pg": "^8.18.0",
     "pidusage": "^4.0.1",
-    "prisma": "^6.19.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.5.0",
@@ -62,8 +60,5 @@
     "tailwindcss": "^3.4.19",
     "ts-node": "^10.9.2",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   }
 }
