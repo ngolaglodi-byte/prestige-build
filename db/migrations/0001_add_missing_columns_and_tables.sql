@@ -26,15 +26,15 @@ CREATE TABLE IF NOT EXISTS "plans" (
 -- 4. Create "user_plans" table (links users to their plan)
 CREATE TABLE IF NOT EXISTS "user_plans" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
-	"plan_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+	"plan_id" uuid NOT NULL REFERENCES "plans"("id") ON DELETE CASCADE,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 
 -- 5. Create "user_limits" table (per-user resource limits)
 CREATE TABLE IF NOT EXISTS "user_limits" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
 	"max_active_previews" integer NOT NULL DEFAULT 1,
 	"max_cpu_percent" integer NOT NULL DEFAULT 20,
 	"max_memory_mb" integer NOT NULL DEFAULT 256,
