@@ -54,6 +54,9 @@ export default function DashboardPage() {
       });
       if (res.ok) {
         await loadProjects();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erreur lors de la création du projet");
       }
     } catch {
       // silent

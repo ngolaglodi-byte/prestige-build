@@ -69,6 +69,9 @@ export default function NewProjectPage() {
         const data = await res.json();
         router.push(`/projects/${data.project.id}/workspace`);
         return;
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erreur lors de la création du projet");
       }
     } else {
       // Create regular project
@@ -82,6 +85,9 @@ export default function NewProjectPage() {
         const data = await res.json();
         router.push(`/projects/${data.project.id}/workspace`);
         return;
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erreur lors de la création du projet");
       }
     }
 

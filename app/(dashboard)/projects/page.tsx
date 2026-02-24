@@ -57,11 +57,17 @@ export default function ProjectsPage() {
     const name = prompt("Nom du projet :");
     if (!name) return;
     setCreating(true);
-    await fetch("/api/projects/create", {
+    const res = await fetch("/api/projects/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Erreur lors de la création du projet");
+      setCreating(false);
+      return;
+    }
     setCreating(false);
     loadProjects({ page: 1 });
   }
