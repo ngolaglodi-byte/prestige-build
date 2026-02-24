@@ -5,8 +5,8 @@ import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
       console.error("[projects/create] Unauthorized: no userId from Clerk");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -31,6 +31,20 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Resolve Clerk ID to internal user UUID
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_id", clerkId)
+      .single();
+
+    if (userError || !user) {
+      console.error("[projects/create] User not found for clerkId:", clerkId, userError);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const userId = user.id;
 
     const now = new Date().toISOString();
     const id = randomUUID();

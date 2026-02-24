@@ -41,8 +41,8 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Non autorisé", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Non autorisé", { status: 401 });
 
     const { projectId } = await params;
     const body = await req.json();
@@ -54,6 +54,17 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Resolve Clerk ID to internal user UUID
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) {
+      return NextResponse.json(
+        { ok: false, error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const userId = user.id;
 
     // Vérifier que le projet existe et appartient à l'utilisateur
     const project = await prisma.project.findUnique({

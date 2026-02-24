@@ -7,10 +7,16 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return new Response("Unauthorized", { status: 401 });
+    const { userId: clerkId } = await auth();
+    if (!clerkId) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
+
+    // Resolve Clerk ID to internal user UUID
+    const user = await prisma.user.findUnique({ where: { clerkId } });
+    if (!user) return new Response("User not found", { status: 404 });
+
+    const userId = user.id;
 
     const preview = await prisma.previewSession.findFirst({
       where: { projectId, userId, status: "running" },
