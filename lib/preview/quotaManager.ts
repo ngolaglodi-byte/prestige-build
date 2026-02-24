@@ -30,13 +30,13 @@ export async function loadUserQuota(userId: string): Promise<UserQuota> {
     .where(eq(userLimits.userId, userId))
     .limit(1);
 
-  const limits = limitsRows[0] ?? null;
+  const limitOverride = limitsRows[0] ?? null;
 
-  if (limits) {
+  if (limitOverride) {
     const q: UserQuota = {
-      maxActivePreviews: limits.maxActivePreviews,
-      maxCpuPercent: limits.maxCpuPercent,
-      maxMemoryBytes: limits.maxMemoryMb * 1024 * 1024,
+      maxActivePreviews: limitOverride.maxActivePreviews,
+      maxCpuPercent: limitOverride.maxCpuPercent,
+      maxMemoryBytes: limitOverride.maxMemoryMb * 1024 * 1024,
     };
     quotaCache.set(userId, q);
     return q;
