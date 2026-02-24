@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
+import { ensureUserExists } from "@/lib/ensure-user";
 
 export async function GET(req: Request) {
   try {
@@ -15,32 +16,10 @@ export async function GET(req: Request) {
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "6")));
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error("[projects/list] Supabase configuration missing", {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseKey,
-      });
-      return NextResponse.json({ error: "Supabase configuration missing" }, { status: 500 });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Resolve Clerk ID to internal user UUID
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("clerk_id", clerkId)
-      .single();
-
-    if (userError || !user) {
-      console.error("[projects/list] User not found for clerkId:", clerkId, userError);
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
+    const user = await ensureUserExists(clerkId);
     const userId = user.id;
+
+    const supabase = getSupabaseServiceClient();
 
     console.log("[projects/list] Querying table 'projects' (lowercase) for userId:", userId);
 
