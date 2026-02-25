@@ -1,0 +1,14 @@
+# Default owners for the entire repo
+* @ngolaglodi-byte
+
+# CI/CD
+.github/ @ngolaglodi-byte
+
+# Core library
+lib/ @ngolaglodi-byte
+
+# API routes
+app/api/ @ngolaglodi-byte
+
+# Database
+db/ @ngolaglodi-byte
