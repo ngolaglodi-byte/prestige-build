@@ -12,7 +12,7 @@ export default function WorkspacePage({ params }: { params: { projectId: string 
 
   useEffect(() => {
     refreshFiles(params.projectId);
-  }, [params.projectId]);
+  }, [params.projectId, refreshFiles]);
 
   return (
     <div className="flex h-full">

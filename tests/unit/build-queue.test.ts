@@ -6,7 +6,6 @@ let getUserBuilds: typeof import("@/lib/build/buildQueue").getUserBuilds;
 let getProjectBuilds: typeof import("@/lib/build/buildQueue").getProjectBuilds;
 let cancelBuild: typeof import("@/lib/build/buildQueue").cancelBuild;
 let canUserBuild: typeof import("@/lib/build/buildQueue").canUserBuild;
-let registerBuildRunner: typeof import("@/lib/build/buildQueue").registerBuildRunner;
 
 beforeEach(async () => {
   vi.resetModules();
@@ -17,7 +16,6 @@ beforeEach(async () => {
   getProjectBuilds = mod.getProjectBuilds;
   cancelBuild = mod.cancelBuild;
   canUserBuild = mod.canUserBuild;
-  registerBuildRunner = mod.registerBuildRunner;
 });
 
 describe("build/buildQueue", () => {

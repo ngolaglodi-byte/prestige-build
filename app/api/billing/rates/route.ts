@@ -8,7 +8,7 @@ import {
   CURRENCIES,
   type CurrencyCode,
 } from "@/lib/billing/pricing";
-import { PLANS, type PlanId } from "@/lib/billing/plans";
+import { PLANS } from "@/lib/billing/plans";
 
 /**
  * GET /api/billing/rates

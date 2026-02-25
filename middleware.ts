@@ -8,14 +8,6 @@ const isWebhookRoute = createRouteMatcher([
   "/api/webhooks(.*)",
 ]);
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/api/health",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/(site)(.*)",
-]);
-
 const isDashboardRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/workspace(.*)",

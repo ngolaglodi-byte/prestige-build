@@ -17,7 +17,7 @@ export function CodeEditor({ projectId }: { projectId: string }) {
     if (activeFile) {
       loadFile(projectId, activeFile);
     }
-  }, [activeFile]);
+  }, [activeFile, loadFile, projectId]);
 
   // Auto-save toutes les 1.5 secondes
   useEffect(() => {
@@ -28,7 +28,7 @@ export function CodeEditor({ projectId }: { projectId: string }) {
     }, 1500);
 
     return () => clearTimeout(timeout);
-  }, [content, activeFile]);
+  }, [content, activeFile, projectId, saveFile]);
 
   const handleEditorMount = useCallback((editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
     editorRef.current = editor;

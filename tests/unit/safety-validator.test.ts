@@ -65,7 +65,7 @@ describe("ai/safetyValidator", () => {
     });
 
     it("rejects null content", () => {
-      expect(validateContent(null as any)).toHaveLength(1);
+      expect(validateContent(null as unknown as string)).toHaveLength(1);
     });
   });
 

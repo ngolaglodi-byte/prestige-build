@@ -20,7 +20,7 @@ export default function HomePage() {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, []);
+  }, [slides.length]);
 
   return (
     <main className="min-h-screen bg-[#050505] text-white flex flex-col">

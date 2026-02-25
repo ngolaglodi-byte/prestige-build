@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PLANS, getPlan, type PlanId } from "@/lib/billing/plans";
+import { PLANS, getPlan } from "@/lib/billing/plans";
 
 describe("billing/plans", () => {
   it("defines three plans", () => {

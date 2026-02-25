@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 
 type Theme = "dark" | "light";
 
@@ -13,24 +13,29 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("prestige-theme") as Theme | null;
-    if (saved === "light" || saved === "dark") {
-      setThemeState(saved);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    try {
+      const saved = typeof window !== "undefined"
+        ? localStorage.getItem("prestige-theme") as Theme | null
+        : null;
+      if (saved === "light" || saved === "dark") return saved;
+    } catch {
+      // localStorage unavailable
     }
-    setMounted(true);
-  }, []);
+    return "dark";
+  });
+  const mountedRef = useRef(false);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
     const root = document.documentElement;
     root.classList.remove("dark", "light");
     root.classList.add(theme);
     localStorage.setItem("prestige-theme", theme);
-  }, [theme, mounted]);
+  }, [theme]);
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);

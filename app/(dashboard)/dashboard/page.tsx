@@ -40,7 +40,9 @@ export default function DashboardPage() {
     setLoading(false);
   }, []);
 
-  loadProjectsRef.current = loadProjects;
+  useEffect(() => {
+    loadProjectsRef.current = loadProjects;
+  }, [loadProjects]);
 
   async function createProject() {
     const name = prompt(t("dashboard.projectNamePrompt"));

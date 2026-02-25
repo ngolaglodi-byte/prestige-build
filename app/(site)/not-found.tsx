@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function SiteNotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg text-white">
@@ -7,12 +9,12 @@ export default function SiteNotFound() {
         <p className="text-gray-400 text-sm mb-6">
           La page que vous recherchez n&apos;existe pas.
         </p>
-        <a
+        <Link
           href="/"
           className="px-6 py-2.5 bg-accent hover:bg-accentDark text-white rounded-smooth transition-all duration-200 font-medium inline-block"
         >
           Retour à l&apos;accueil
-        </a>
+        </Link>
       </div>
     </div>
   );
