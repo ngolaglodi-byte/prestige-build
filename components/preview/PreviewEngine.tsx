@@ -34,6 +34,7 @@ export function PreviewEngine({ userId, projectId }: Props) {
   const [previewError, setPreviewError] = useState<PreviewError | null>(null);
   const [showLogs, setShowLogs] = useState(true);
   const [restartToken, setRestartToken] = useState(0);
+  const [showBuild, setShowBuild] = useState(false);
 
   const { addErrorLog, addRuntimeLog } = useLogsStore();
   const wsRef = useRef<WebSocket | null>(null);
@@ -284,7 +285,31 @@ export function PreviewEngine({ userId, projectId }: Props) {
         onDeviceChange={setDevice}
         onRefresh={handleRefresh}
         onUrlChange={setUrl}
+        onBuild={() => setShowBuild((v) => !v)}
+        onBuildForPlatform={(target) => {
+          setShowBuild(true);
+          addRuntimeLog(`Build déclenché pour : ${target}`, "info");
+        }}
       />
+
+      {/* Panneau de build (slide-down) */}
+      {showBuild && (
+        <div className="border-b border-white/10 bg-neutral-950 px-4 py-3 flex items-center justify-between animate-fadeIn">
+          <div className="text-sm text-amber-300 font-medium">🔨 Build universel</div>
+          <a
+            href={`/workspace/build?projectId=${projectId}`}
+            className="text-xs px-3 py-1.5 rounded bg-amber-700/30 border border-amber-600/40 text-amber-200 hover:bg-amber-700/50 transition-colors"
+          >
+            Ouvrir le panneau de build →
+          </a>
+          <button
+            onClick={() => setShowBuild(false)}
+            className="text-gray-500 hover:text-gray-300 text-xs ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Zone principale : aperçu + logs */}
       <div className="flex-1 flex flex-col overflow-hidden">

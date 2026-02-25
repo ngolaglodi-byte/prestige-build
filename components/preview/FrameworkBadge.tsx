@@ -7,7 +7,11 @@ export type Framework =
   | "svelte"
   | "astro"
   | "html"
-  | "node";
+  | "node"
+  | "capacitor"
+  | "electron"
+  | "tauri"
+  | "pwa";
 
 const FRAMEWORK_LABELS: Record<Framework, string> = {
   nextjs: "Next.js",
@@ -17,6 +21,10 @@ const FRAMEWORK_LABELS: Record<Framework, string> = {
   astro: "Astro",
   html: "HTML/CSS/JS",
   node: "Node.js",
+  capacitor: "Capacitor",
+  electron: "Electron",
+  tauri: "Tauri",
+  pwa: "PWA",
 };
 
 const FRAMEWORK_COLORS: Record<Framework, string> = {
@@ -27,6 +35,10 @@ const FRAMEWORK_COLORS: Record<Framework, string> = {
   astro: "bg-purple-900/40 text-purple-300",
   html: "bg-amber-900/40 text-amber-300",
   node: "bg-green-900/40 text-green-300",
+  capacitor: "bg-blue-900/40 text-blue-300",
+  electron: "bg-sky-900/40 text-sky-300",
+  tauri: "bg-rose-900/40 text-rose-300",
+  pwa: "bg-indigo-900/40 text-indigo-300",
 };
 
 interface Props {
