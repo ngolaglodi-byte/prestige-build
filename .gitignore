@@ -46,3 +46,9 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# sentry
+.sentryclirc
+
+# docker
+docker-compose.override.yml
