@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { subscriptions } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export default async function AdminBillingPage() {
   // Subscriptions
@@ -58,6 +59,7 @@ export default async function AdminBillingPage() {
     .leftJoin(users, eq(billingEvents.userId, users.id));
 
   // Admin Credit Logs
+  const targetUsers = alias(users, "target_users");
   const creditLogs = await db
     .select({
       id: adminCreditLogs.id,
@@ -66,11 +68,12 @@ export default async function AdminBillingPage() {
       createdAt: adminCreditLogs.createdAt,
       adminName: users.name,
       adminEmail: users.email,
-      targetName: users.name,
+      targetName: targetUsers.name,
+      targetEmail: targetUsers.email,
     })
     .from(adminCreditLogs)
     .leftJoin(users, eq(adminCreditLogs.adminId, users.id))
-    .leftJoin(users, eq(adminCreditLogs.userId, users.id));
+    .leftJoin(targetUsers, eq(adminCreditLogs.userId, targetUsers.id));
 
   return (
     <div>
@@ -263,7 +266,10 @@ export default async function AdminBillingPage() {
                 <div className="text-gray-500 text-sm">{log.adminEmail}</div>
               </td>
 
-              <td className="p-4">{log.targetName}</td>
+              <td className="p-4">
+                <div>{log.targetName}</div>
+                <div className="text-gray-500 text-sm">{log.targetEmail}</div>
+              </td>
 
               <td className="p-4 font-semibold text-blue-600">+{log.amount}</td>
 

@@ -22,5 +22,5 @@ export async function POST(req: Request) {
     .set({ enabled: sql`NOT ${adminAiConfig.enabled}`, updatedAt: new Date() })
     .where(eq(adminAiConfig.id, providerId));
 
-  return Response.redirect("/admin/ai");
+  return Response.redirect(new URL("/admin/ai", req.url));
 }

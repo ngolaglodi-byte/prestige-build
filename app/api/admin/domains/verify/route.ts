@@ -22,5 +22,5 @@ export async function POST(req: Request) {
     .set({ verified: true })
     .where(eq(domains.id, domainId));
 
-  return Response.redirect("/admin/domains");
+  return Response.redirect(new URL("/admin/domains", req.url));
 }

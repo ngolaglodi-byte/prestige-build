@@ -40,5 +40,5 @@ export async function POST(req: Request) {
     await db.insert(adminPricingConfig).values({ key, value });
   }
 
-  return Response.redirect("/admin/pricing");
+  return Response.redirect(new URL("/admin/pricing", req.url));
 }

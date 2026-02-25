@@ -22,5 +22,5 @@ export async function POST(req: Request) {
     .set({ storageUsedMb: 0, dbUsedMb: 0 })
     .where(eq(storageBuckets.projectId, projectId));
 
-  return Response.redirect("/admin/projects");
+  return Response.redirect(new URL("/admin/projects", req.url));
 }

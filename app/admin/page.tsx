@@ -10,6 +10,11 @@ export default function AdminHome() {
       </p>
 
       <div className="grid grid-cols-3 gap-6 mt-8">
+        <Link href="/admin/overview" className="p-6 bg-white shadow rounded-lg hover:shadow-md transition">
+          <h2 className="text-xl font-semibold">Vue d&apos;ensemble</h2>
+          <p className="text-gray-500">Statistiques globales de la plateforme</p>
+        </Link>
+
         <Link href="/admin/users" className="p-6 bg-white shadow rounded-lg hover:shadow-md transition">
           <h2 className="text-xl font-semibold">Utilisateurs</h2>
           <p className="text-gray-500">Gérer les utilisateurs</p>

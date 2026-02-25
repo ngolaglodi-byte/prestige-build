@@ -26,6 +26,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin" className="hover:text-gray-300">
             Tableau de bord
           </Link>
+          <Link href="/admin/overview" className="hover:text-gray-300">
+            Vue d&apos;ensemble
+          </Link>
           <Link href="/admin/users" className="hover:text-gray-300">
             Utilisateurs
           </Link>

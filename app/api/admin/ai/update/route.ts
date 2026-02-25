@@ -28,5 +28,5 @@ export async function POST(req: Request) {
     .set({ priority, maxTokens, updatedAt: new Date() })
     .where(eq(adminAiConfig.id, providerId));
 
-  return Response.redirect("/admin/ai");
+  return Response.redirect(new URL("/admin/ai", req.url));
 }
