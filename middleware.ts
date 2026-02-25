@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 
 const isWebhookRoute = createRouteMatcher([
@@ -18,11 +18,7 @@ const isDashboardRoute = createRouteMatcher([
   "/admin(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  // Skip auth for webhook routes — they use their own signature verification
-  if (isWebhookRoute(req)) return;
-
-  // Rate limiting on API routes
+function rateLimitMiddleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/")) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
     const { success, remaining } = rateLimit(`api:${ip}`);
@@ -39,12 +35,28 @@ export default clerkMiddleware(async (auth, req) => {
     res.headers.set("X-RateLimit-Remaining", String(remaining));
     return res;
   }
+  return undefined;
+}
 
-  // Protect dashboard routes
-  if (isDashboardRoute(req)) {
-    await auth.protect();
-  }
-});
+// When Clerk keys are not configured, use a simple passthrough middleware
+// that still applies rate limiting but skips authentication.
+const hasClerkKeys =
+  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY;
+
+export default hasClerkKeys
+  ? clerkMiddleware(async (auth, req) => {
+      if (isWebhookRoute(req)) return;
+
+      const rlResponse = rateLimitMiddleware(req);
+      if (rlResponse) return rlResponse;
+
+      if (isDashboardRoute(req)) {
+        await auth.protect();
+      }
+    })
+  : function fallbackMiddleware(req: NextRequest) {
+      return rateLimitMiddleware(req) ?? NextResponse.next();
+    };
 
 export const config = {
   matcher: [
