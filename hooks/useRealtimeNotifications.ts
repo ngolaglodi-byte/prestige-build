@@ -14,7 +14,6 @@ import {
  */
 export function useRealtimeNotifications() {
   const {
-    notifications,
     setNotifications,
     addNotification,
     setLoading,

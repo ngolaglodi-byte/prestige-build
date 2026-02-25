@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   CURRENCIES,
-  COUNTRY_CURRENCY,
   detectCountryFromHeaders,
   detectCountryFromLocale,
   currencyForCountry,

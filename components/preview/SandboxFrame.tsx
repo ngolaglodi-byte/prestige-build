@@ -15,16 +15,17 @@ interface Props {
 
 export function SandboxFrame({ src, device, refreshKey, onError, onLoad }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<{ key: number; src: string } | null>(null);
+  const loaded = loadedFor?.key === refreshKey && loadedFor?.src === src;
 
   const deviceConfig = DEVICES.find((d) => d.key === device);
   const isResponsive = device === "responsive";
   const isDesktop = device === "desktop";
 
   const handleLoad = useCallback(() => {
-    setLoaded(true);
+    setLoadedFor({ key: refreshKey, src });
     onLoad?.();
-  }, [onLoad]);
+  }, [onLoad, refreshKey, src]);
 
   // Écouter les messages d'erreur du iframe sandboxé
   useEffect(() => {
@@ -43,11 +44,6 @@ export function SandboxFrame({ src, device, refreshKey, onError, onLoad }: Props
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, [onError]);
-
-  // Réinitialiser l'état de chargement lors du rafraîchissement
-  useEffect(() => {
-    setLoaded(false);
-  }, [refreshKey, src]);
 
   const frameStyle: React.CSSProperties =
     isResponsive || isDesktop

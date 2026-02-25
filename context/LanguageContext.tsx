@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import fr from "@/lib/translations/fr";
 import en from "@/lib/translations/en";
 
@@ -18,22 +18,27 @@ const translations: Record<Language, Record<string, string>> = { fr, en };
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("fr");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("prestige-language") as Language | null;
-    if (saved === "fr" || saved === "en") {
-      setLanguageState(saved);
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      const saved = typeof window !== "undefined"
+        ? localStorage.getItem("prestige-language") as Language | null
+        : null;
+      if (saved === "fr" || saved === "en") return saved;
+    } catch {
+      // localStorage unavailable
     }
-    setMounted(true);
-  }, []);
+    return "fr";
+  });
+  const mountedRef = useRef(false);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
     localStorage.setItem("prestige-language", language);
     document.documentElement.lang = language;
-  }, [language, mounted]);
+  }, [language]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);

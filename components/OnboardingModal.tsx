@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const ONBOARDING_KEY = "prestige_onboarding_done";
@@ -33,18 +33,17 @@ const steps = [
 ];
 
 export default function OnboardingModal() {
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
+  const [open, setOpen] = useState(() => {
     try {
       if (typeof window !== "undefined" && !localStorage.getItem(ONBOARDING_KEY)) {
-        setOpen(true);
+        return true;
       }
     } catch {
       // localStorage indisponible
     }
-  }, []);
+    return false;
+  });
+  const [step, setStep] = useState(0);
 
   const finish = () => {
     try {

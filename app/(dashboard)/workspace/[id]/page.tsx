@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
@@ -45,7 +45,7 @@ export default function WorkspacePage() {
 
   useEffect(() => {
     refreshFiles(id);
-  }, [id]);
+  }, [id, refreshFiles]);
 
   const handleApplyDiffs = async () => {
     if (activeFile) {

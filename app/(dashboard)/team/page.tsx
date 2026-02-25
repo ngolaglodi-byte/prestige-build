@@ -78,15 +78,36 @@ export default function TeamPage() {
   }, []);
 
   useEffect(() => {
-    loadTeams();
-    loadPendingInvites();
-  }, [loadTeams, loadPendingInvites]);
+    fetch("/api/teams")
+      .then((r) => r.json())
+      .then((data) => {
+        setTeams(data.teams ?? []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+
+    fetch("/api/team")
+      .then((r) => r.json())
+      .then((data) => {
+        const pending = (data.members ?? []).filter(
+          (m: Member) => m.status === "pending"
+        );
+        setPendingInvites(pending);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (selectedTeamId) {
-      loadMembers(selectedTeamId);
+      fetch(`/api/teams/${selectedTeamId}/members`)
+        .then((r) => r.json())
+        .then((data) => {
+          setMembers(data.members ?? []);
+          setMembersLoading(false);
+        })
+        .catch(() => setMembersLoading(false));
     }
-  }, [selectedTeamId, loadMembers]);
+  }, [selectedTeamId]);
 
   async function createTeam() {
     if (!teamName.trim()) return;

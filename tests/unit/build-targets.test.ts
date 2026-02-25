@@ -4,6 +4,7 @@ import {
   getBuildTargetConfig,
   getTargetsByPlatform,
   type BuildTarget,
+  type BuildPlatform,
 } from "@/lib/build/buildTargets";
 
 describe("build/buildTargets", () => {
@@ -55,7 +56,7 @@ describe("build/buildTargets", () => {
     });
 
     it("returns empty for unknown platform", () => {
-      const targets = getTargetsByPlatform("unknown" as any);
+      const targets = getTargetsByPlatform("unknown" as BuildPlatform);
       expect(targets).toEqual([]);
     });
   });
