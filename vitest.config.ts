@@ -63,6 +63,7 @@ export default defineConfig({
         "lib/ai/aiActions.ts",
         "lib/ai/aiMultiPreviewParser.ts",
         "lib/ai/aiPreviewParser.ts",
+        "lib/ai/aiTypes.ts",
       ],
       thresholds: {
         lines: 80,
