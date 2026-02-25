@@ -187,4 +187,4 @@ Le pipeline GitHub Actions exécute automatiquement :
 
 ## 📄 Licence
 
-Propriétaire — © Prestige Build
+MIT — © 2025 Prestige technologie company. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
