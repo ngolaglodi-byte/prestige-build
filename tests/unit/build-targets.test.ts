@@ -55,6 +55,7 @@ describe("build/buildTargets", () => {
     });
 
     it("returns empty for unknown platform", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const targets = getTargetsByPlatform("unknown" as any);
       expect(targets).toEqual([]);
     });

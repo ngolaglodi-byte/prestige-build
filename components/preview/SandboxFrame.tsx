@@ -46,7 +46,7 @@ export function SandboxFrame({ src, device, refreshKey, onError, onLoad }: Props
 
   // Réinitialiser l'état de chargement lors du rafraîchissement
   useEffect(() => {
-    setLoaded(false);
+    setLoaded(false); // eslint-disable-line react-hooks/set-state-in-effect -- reset on dependency change
   }, [refreshKey, src]);
 
   const frameStyle: React.CSSProperties =

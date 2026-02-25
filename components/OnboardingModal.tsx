@@ -39,7 +39,7 @@ export default function OnboardingModal() {
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && !localStorage.getItem(ONBOARDING_KEY)) {
-        setOpen(true);
+        setOpen(true); // eslint-disable-line react-hooks/set-state-in-effect -- init from localStorage
       }
     } catch {
       // localStorage indisponible

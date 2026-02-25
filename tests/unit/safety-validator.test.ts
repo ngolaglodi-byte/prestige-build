@@ -65,6 +65,7 @@ describe("ai/safetyValidator", () => {
     });
 
     it("rejects null content", () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(validateContent(null as any)).toHaveLength(1);
     });
   });

@@ -24,7 +24,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("prestige-language") as Language | null;
     if (saved === "fr" || saved === "en") {
-      setLanguageState(saved);
+      setLanguageState(saved); // eslint-disable-line react-hooks/set-state-in-effect -- hydration-safe init from localStorage
     }
     setMounted(true);
   }, []);

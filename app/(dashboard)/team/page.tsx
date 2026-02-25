@@ -78,12 +78,14 @@ export default function TeamPage() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data loading pattern
     loadTeams();
     loadPendingInvites();
   }, [loadTeams, loadPendingInvites]);
 
   useEffect(() => {
     if (selectedTeamId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async data loading pattern
       loadMembers(selectedTeamId);
     }
   }, [selectedTeamId, loadMembers]);

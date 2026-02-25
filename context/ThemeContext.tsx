@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("prestige-theme") as Theme | null;
     if (saved === "light" || saved === "dark") {
-      setThemeState(saved);
+      setThemeState(saved); // eslint-disable-line react-hooks/set-state-in-effect -- hydration-safe init from localStorage
     }
     setMounted(true);
   }, []);
