@@ -21,6 +21,8 @@ interface Props {
   onDeviceChange: (device: DeviceType) => void;
   onRefresh: () => void;
   onUrlChange: (url: string) => void;
+  onBuild?: () => void;
+  onBuildForPlatform?: (target: string) => void;
 }
 
 const STATUS_CONFIG: Record<
@@ -85,13 +87,15 @@ export function PreviewToolbar({
   onDeviceChange,
   onRefresh,
   onUrlChange,
+  onBuild,
+  onBuildForPlatform,
 }: Props) {
   const cfg = STATUS_CONFIG[status];
   const isSpinner = status === "building" || status === "restarting";
 
   return (
     <div className="flex flex-col border-b border-white/10 bg-[#111]">
-      {/* Barre supérieure : statut + framework + rafraîchir */}
+      {/* Barre supérieure : statut + framework + rafraîchir + build */}
       <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${cfg.bg}`}>
         <span
           className={`h-2 w-2 rounded-full flex-shrink-0 ${
@@ -108,11 +112,24 @@ export function PreviewToolbar({
         >
           ↻ Rafraîchir
         </button>
+        {onBuild && (
+          <button
+            onClick={onBuild}
+            className="text-amber-300 hover:text-amber-100 text-xs px-2 py-0.5 rounded hover:bg-amber-900/30 border border-amber-700/40 transition-colors"
+            title="Lancer le build"
+          >
+            🔨 Build
+          </button>
+        )}
       </div>
 
       {/* Barre inférieure : sélecteur appareil + barre d'URL */}
       <div className="flex items-center gap-2 px-3 py-1.5">
-        <DeviceSelector selected={device} onSelect={onDeviceChange} />
+        <DeviceSelector
+          selected={device}
+          onSelect={onDeviceChange}
+          onBuild={onBuildForPlatform}
+        />
         <div className="flex-1 mx-2">
           <input
             type="text"

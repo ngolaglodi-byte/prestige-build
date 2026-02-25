@@ -307,3 +307,33 @@ export const previewSessions = pgTable("preview_sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// BUILDS
+export const builds = pgTable("builds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: text("project_id").notNull(),
+  userId: text("user_id").notNull(),
+  target: text("target").notNull(),
+  status: text("status").notNull().default("queued"),
+  progress: integer("progress").default(0),
+  artifactUrl: text("artifact_url"),
+  artifactSize: integer("artifact_size"),
+  config: jsonb("config"),
+  logs: text("logs"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// BUILD QUOTAS
+export const buildQuotas = pgTable("build_quotas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().unique(),
+  buildsToday: integer("builds_today").default(0),
+  buildsThisMonth: integer("builds_this_month").default(0),
+  lastBuildAt: timestamp("last_build_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

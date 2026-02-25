@@ -8,6 +8,10 @@ export type Framework =
   | "express"
   | "astro"
   | "sveltekit"
+  | "capacitor"
+  | "electron"
+  | "tauri"
+  | "pwa"
   | "unknown";
 
 export function detectFramework(projectPath: string): Framework {
@@ -16,6 +20,17 @@ export function detectFramework(projectPath: string): Framework {
 
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+
+  // Check for native/hybrid frameworks first (more specific)
+  if (deps["@capacitor/core"] || deps["@capacitor/android"] || deps["@capacitor/ios"]) return "capacitor";
+  if (deps["electron"] || deps["electron-builder"]) return "electron";
+  if (deps["@tauri-apps/api"]) return "tauri";
+
+  // Check for PWA
+  const hasPwaLib = deps["next-pwa"] || deps["workbox-webpack-plugin"] || deps["@vite-pwa/vite"];
+  const manifestPath = path.join(projectPath, "public", "manifest.json");
+  const swPath = path.join(projectPath, "public", "sw.js");
+  if (hasPwaLib || fs.existsSync(manifestPath) || fs.existsSync(swPath)) return "pwa";
 
   if (deps["next"]) return "nextjs";
   if (deps["vite"]) return "vite";

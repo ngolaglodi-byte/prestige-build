@@ -5,9 +5,9 @@ import path from "path";
 import fs from "fs";
 import { buildNetworkSandboxEnv } from "./networkSandbox";
 
-type AllowedCommand = "npm" | "node";
+type AllowedCommand = "npm" | "node" | "npx" | "gradle" | "xcodebuild" | "cargo";
 
-const ALLOWED_COMMANDS: AllowedCommand[] = ["npm", "node"];
+const ALLOWED_COMMANDS: AllowedCommand[] = ["npm", "node", "npx", "gradle", "xcodebuild", "cargo"];
 
 export type SandboxProcess = ChildProcessWithoutNullStreams;
 
