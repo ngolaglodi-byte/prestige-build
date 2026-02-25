@@ -22,5 +22,5 @@ export async function POST(req: Request) {
     .set({ role: "user" })
     .where(eq(users.id, userId));
 
-  return Response.redirect("/admin/users");
+  return Response.redirect(new URL("/admin/users", req.url));
 }

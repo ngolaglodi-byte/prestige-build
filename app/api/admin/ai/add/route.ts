@@ -25,5 +25,5 @@ export async function POST(req: Request) {
 
   await db.insert(adminAiConfig).values({ provider, priority, maxTokens });
 
-  return Response.redirect("/admin/ai");
+  return Response.redirect(new URL("/admin/ai", req.url));
 }
