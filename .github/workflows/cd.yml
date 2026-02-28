@@ -8,6 +8,9 @@ on:
 env:
   NODE_VERSION: "20"
 
+permissions:
+  contents: read
+
 jobs:
   check-secrets:
     name: Check Required Secrets
