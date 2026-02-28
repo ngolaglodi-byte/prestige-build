@@ -12,6 +12,9 @@ interface ServiceCheck {
 }
 
 async function checkDatabase(): Promise<ServiceCheck> {
+  if (!process.env.DATABASE_URL) {
+    return { status: "degraded", error: "DATABASE_URL not configured" };
+  }
   const start = Date.now();
   try {
     const { db } = await import("@/db/client");
