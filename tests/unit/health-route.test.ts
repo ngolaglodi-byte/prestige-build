@@ -24,5 +24,7 @@ describe("health route", () => {
     expect(body.ok).toBe(true);
     expect(body.services.database.status).toBe("degraded");
     expect(body.services.database.error).toBe("DATABASE_URL not configured");
+    expect(body.services.redis.status).toBe("degraded");
+    expect(body.services.redis.error).toBe("Redis not configured");
   });
 });
