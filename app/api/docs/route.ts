@@ -77,7 +77,6 @@ const openApiSpec = {
                 required: ["name"],
                 properties: {
                   name: { type: "string" },
-                  description: { type: "string" },
                   framework: { type: "string" },
                 },
               },

@@ -11,7 +11,6 @@ export default async function AdminProjectsPage() {
     .select({
       id: projects.id,
       name: projects.name,
-      description: projects.description,
       createdAt: projects.createdAt,
       userId: projects.userId,
       userEmail: users.email,
@@ -45,9 +44,6 @@ export default async function AdminProjectsPage() {
             <tr key={p.id} className="border-t">
               <td className="p-4">
                 <div className="font-semibold">{p.name}</div>
-                <div className="text-gray-500 text-sm">
-                  {p.description ?? "Aucune description"}
-                </div>
               </td>
 
               <td className="p-4">
