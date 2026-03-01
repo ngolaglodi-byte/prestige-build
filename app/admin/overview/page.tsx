@@ -22,15 +22,23 @@ export default async function AdminOverviewPage() {
     .select({ count: sql<number>`COUNT(*)` })
     .from(activityLogs);
 
-  // Total credits remaining
-  const [{ sum: creditsRemaining }] = await db
-    .select({ sum: sql<number>`SUM(${subscriptions.creditsRemaining})` })
-    .from(subscriptions);
+  // Total credits remaining — with COALESCE to handle empty table
+  let creditsRemaining = 0;
+  let creditsMonthly = 0;
 
-  // Total credits monthly allocated
-  const [{ sum: creditsMonthly }] = await db
-    .select({ sum: sql<number>`SUM(${subscriptions.creditsMonthly})` })
-    .from(subscriptions);
+  try {
+    const creditsResult = await db
+      .select({
+        remaining: sql<number>`COALESCE(SUM(${subscriptions.creditsRemaining}), 0)`,
+        monthly: sql<number>`COALESCE(SUM(${subscriptions.creditsMonthly}), 0)`,
+      })
+      .from(subscriptions);
+
+    creditsRemaining = Number(creditsResult[0]?.remaining ?? 0);
+    creditsMonthly = Number(creditsResult[0]?.monthly ?? 0);
+  } catch (error) {
+    console.error("[AdminOverview] Failed to query subscriptions:", error);
+  }
 
   return (
     <div>
@@ -54,24 +62,20 @@ export default async function AdminOverviewPage() {
 
         <div className="p-6 bg-white shadow rounded-lg">
           <h2 className="text-xl font-semibold">Crédits restants</h2>
-          <p className="text-4xl font-bold mt-2">
-            {creditsRemaining ?? 0}
-          </p>
+          <p className="text-4xl font-bold mt-2">{creditsRemaining}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6 mt-8">
         <div className="p-6 bg-white shadow rounded-lg">
           <h2 className="text-xl font-semibold">Total des crédits mensuels alloués</h2>
-          <p className="text-4xl font-bold mt-2">
-            {creditsMonthly ?? 0}
-          </p>
+          <p className="text-4xl font-bold mt-2">{creditsMonthly}</p>
         </div>
 
         <div className="p-6 bg-white shadow rounded-lg">
           <h2 className="text-xl font-semibold">Taux d&apos;utilisation des crédits</h2>
           <p className="text-4xl font-bold mt-2">
-            {creditsMonthly
+            {creditsMonthly > 0
               ? `${Math.round(
                   ((creditsMonthly - creditsRemaining) / creditsMonthly) * 100
                 )}%`
