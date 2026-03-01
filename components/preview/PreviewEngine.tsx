@@ -8,6 +8,11 @@ import { LogsPanel } from "./LogsPanel";
 import { DeviceType } from "./DeviceSelector";
 import { Framework } from "./FrameworkBadge";
 import { useLogsStore } from "@/lib/store/logsStore";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import {
+  isWebContainerSupported,
+  startWebContainerPreview,
+} from "@/lib/preview/webcontainer";
 
 type Status =
   | "building"
@@ -36,12 +41,18 @@ export function PreviewEngine({ userId, projectId }: Props) {
   const [restartToken, setRestartToken] = useState(0);
   const [showBuild, setShowBuild] = useState(false);
 
-  const { addErrorLog, addRuntimeLog } = useLogsStore();
+  const { addErrorLog, addRuntimeLog, addBuildLog } = useLogsStore();
   const wsRef = useRef<WebSocket | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  const restartRef = useRef<(() => Promise<void>) | null>(null);
+  const [useWebContainer, setUseWebContainer] = useState(false);
+  const [fallbackWarning, setFallbackWarning] = useState(false);
+  const workspaceFiles = useWorkspaceStore((s) => s.files);
+  const updateFile = useWorkspaceStore((s) => s.updateFile);
 
-  // Heartbeat pour maintenir le preview actif
+  // Heartbeat pour maintenir le preview actif (mode serveur local uniquement)
   useEffect(() => {
+    if (useWebContainer) return;
     if (
       status === "crashed" ||
       status === "limited" ||
@@ -58,10 +69,10 @@ export function PreviewEngine({ userId, projectId }: Props) {
     }, 30_000);
 
     return () => clearInterval(interval);
-  }, [projectId, status]);
+  }, [projectId, status, useWebContainer]);
 
-  // Démarrage et écoute des événements
-  useEffect(() => {
+  // Localhost fallback preview
+  const startLocalPreview = useCallback(() => {
     let cancelled = false;
 
     async function start() {
@@ -205,7 +216,89 @@ export function PreviewEngine({ userId, projectId }: Props) {
       wsRef.current?.close();
       esRef.current?.close();
     };
-  }, [userId, projectId, restartToken, addErrorLog, addRuntimeLog]);
+  }, [userId, projectId, addErrorLog, addRuntimeLog]);
+
+  // WebContainer-based preview
+  useEffect(() => {
+    if (!isWebContainerSupported()) {
+      setFallbackWarning(true);
+      startLocalPreview();
+      return;
+    }
+
+    let cancelled = false;
+
+    async function bootWebContainer() {
+      setPreviewError(null);
+      setStatus("building");
+      setUseWebContainer(true);
+
+      try {
+        // Fetch project files if workspace is empty
+        let files = workspaceFiles;
+        if (Object.keys(files).length === 0) {
+          try {
+            const res = await fetch(`/api/projects/${projectId}/files`);
+            if (res.ok) {
+              files = await res.json();
+            }
+          } catch {
+            // continue with empty files
+          }
+        }
+
+        if (cancelled) return;
+
+        const { url: wcUrl, restart } = await startWebContainerPreview({
+          files,
+          onLog: (message, type) => {
+            if (cancelled) return;
+            addBuildLog(message, type);
+
+            const lower = message.toLowerCase();
+            if (
+              lower.includes("building") ||
+              lower.includes("compiling") ||
+              lower.includes("starting")
+            ) {
+              setStatus("building");
+            }
+          },
+          onServerReady: (serverUrl) => {
+            if (cancelled) return;
+            setUrl(serverUrl);
+            setStatus("running");
+            setPreviewError(null);
+            addRuntimeLog("Aperçu cloud prêt", "info");
+          },
+          onError: (message) => {
+            if (cancelled) return;
+            setStatus("error");
+            setPreviewError({ message });
+            addErrorLog(message, "error");
+          },
+        });
+
+        if (cancelled) return;
+        setUrl(wcUrl);
+        setPort(1); // flag as ready
+        restartRef.current = restart;
+      } catch {
+        if (cancelled) return;
+        // Fall back to localhost-based preview
+        setUseWebContainer(false);
+        setFallbackWarning(true);
+        startLocalPreview();
+      }
+    }
+
+    bootWebContainer();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, restartToken]);
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
@@ -225,8 +318,28 @@ export function PreviewEngine({ userId, projectId }: Props) {
   }, []);
 
   const handleRestart = useCallback(() => {
+    if (useWebContainer && restartRef.current) {
+      restartRef.current();
+    }
     setRestartToken((k) => k + 1);
-  }, []);
+  }, [useWebContainer]);
+
+  const handleFixApplied = useCallback(
+    (fixedContent: string) => {
+      if (previewError?.file) {
+        updateFile(previewError.file, fixedContent);
+      }
+      setPreviewError(null);
+      setRefreshKey((k) => k + 1);
+      addRuntimeLog("Correction IA appliquée — aperçu rafraîchi", "info");
+    },
+    [previewError, updateFile, addRuntimeLog]
+  );
+
+  // Récupérer le contenu du fichier en erreur pour le bouton "Fix with AI"
+  const errorFileContent = previewError?.file
+    ? workspaceFiles[previewError.file]?.content
+    : undefined;
 
   // Vue limite atteinte
   if (status === "limit_reached") {
@@ -291,6 +404,13 @@ export function PreviewEngine({ userId, projectId }: Props) {
           addRuntimeLog(`Build déclenché pour : ${target}`, "info");
         }}
       />
+
+      {/* Bannière de fallback */}
+      {fallbackWarning && (
+        <div className="bg-amber-900/40 border-b border-amber-700/40 px-4 py-2 text-amber-300 text-xs flex items-center gap-2">
+          ⚠️ Preview cloud non disponible. Utilisation du serveur local.
+        </div>
+      )}
 
       {/* Panneau de build (slide-down) */}
       {showBuild && (
@@ -365,7 +485,13 @@ export function PreviewEngine({ userId, projectId }: Props) {
 
           {/* Overlay d'erreur */}
           {previewError && (
-            <ErrorOverlay error={previewError} onDismiss={handleDismissError} />
+            <ErrorOverlay
+              error={previewError}
+              onDismiss={handleDismissError}
+              projectId={projectId}
+              fileContent={errorFileContent}
+              onFixApplied={handleFixApplied}
+            />
           )}
         </div>
 

@@ -1,0 +1,37 @@
+export function detectLanguage(filePath: string): string {
+  const ext = filePath.split(".").pop()?.toLowerCase();
+  const map: Record<string, string> = {
+    ts: "typescript",
+    tsx: "typescript",
+    js: "javascript",
+    jsx: "javascript",
+    css: "css",
+    scss: "scss",
+    less: "less",
+    html: "html",
+    json: "json",
+    md: "markdown",
+    py: "python",
+    rs: "rust",
+    go: "go",
+    java: "java",
+    rb: "ruby",
+    php: "php",
+    yaml: "yaml",
+    yml: "yaml",
+    xml: "xml",
+    sql: "sql",
+    sh: "shell",
+    bash: "shell",
+    vue: "html",
+    svelte: "html",
+    astro: "html",
+    graphql: "graphql",
+    gql: "graphql",
+    dockerfile: "dockerfile",
+    toml: "ini",
+    ini: "ini",
+    env: "ini",
+  };
+  return map[ext ?? ""] ?? "plaintext";
+}

@@ -2,18 +2,64 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  isWebContainerSupported,
+  startWebContainerPreview,
+} from "@/lib/preview/webcontainer";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 type Props = {
   projectId: string;
 };
 
 export function PreviewFrame({ projectId }: Props) {
-  const [port, setPort] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackWarning, setFallbackWarning] = useState(false);
+  const workspaceFiles = useWorkspaceStore((s) => s.files);
 
   useEffect(() => {
     let cancelled = false;
-    const start = async () => {
+
+    async function startPreview() {
+      // Try WebContainer first
+      if (isWebContainerSupported()) {
+        try {
+          let files = workspaceFiles;
+          if (Object.keys(files).length === 0) {
+            try {
+              const res = await fetch(`/api/projects/${projectId}/files`);
+              if (res.ok) {
+                files = await res.json();
+              }
+            } catch {
+              // continue
+            }
+          }
+
+          if (cancelled) return;
+
+          const { url } = await startWebContainerPreview({
+            files,
+            onServerReady: (serverUrl) => {
+              if (!cancelled) setPreviewUrl(serverUrl);
+            },
+            onError: (msg) => {
+              if (!cancelled) setError(msg);
+            },
+          });
+
+          if (!cancelled) setPreviewUrl(url);
+          return;
+        } catch {
+          if (cancelled) return;
+          setFallbackWarning(true);
+        }
+      } else {
+        setFallbackWarning(true);
+      }
+
+      // Fall back to localhost
       try {
         const res = await fetch(`/api/projects/${projectId}/preview/start`, {
           method: "POST",
@@ -24,15 +70,16 @@ export function PreviewFrame({ projectId }: Props) {
             return;
           }
           const data = await res.json();
-          setPort(data.port);
+          setPreviewUrl(`http://localhost:${data.port}`);
         }
       } catch {
         if (!cancelled) setError("Erreur de connexion à l\u2019aperçu");
       }
-    };
-    start();
+    }
+
+    startPreview();
     return () => { cancelled = true; };
-  }, [projectId]);
+  }, [projectId, workspaceFiles]);
 
   if (error) {
     return (
@@ -42,7 +89,7 @@ export function PreviewFrame({ projectId }: Props) {
     );
   }
 
-  if (!port) {
+  if (!previewUrl) {
     return (
       <div className="h-full flex items-center justify-center text-gray-400 text-sm">
         <div className="flex items-center gap-2">
@@ -54,9 +101,16 @@ export function PreviewFrame({ projectId }: Props) {
   }
 
   return (
-    <iframe
-      src={`http://localhost:${port}`}
-      className="w-full h-full border-none fade-in"
-    />
+    <div className="h-full w-full flex flex-col">
+      {fallbackWarning && (
+        <div className="bg-amber-900/40 border-b border-amber-700/40 px-4 py-2 text-amber-300 text-xs flex items-center gap-2">
+          ⚠️ Preview cloud non disponible. Utilisation du serveur local.
+        </div>
+      )}
+      <iframe
+        src={previewUrl}
+        className="w-full flex-1 border-none fade-in"
+      />
+    </div>
   );
 }

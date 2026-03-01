@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  isWebContainerSupported,
+  startWebContainerPreview,
+} from "@/lib/preview/webcontainer";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 type Status =
   | "building"
@@ -26,15 +31,20 @@ export default function Preview({
   const [status, setStatus] = useState<Status>("building");
   const [resourceMessage, setResourceMessage] = useState<string | null>(null);
   const [restartToken, setRestartToken] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [useWebContainer, setUseWebContainer] = useState(false);
+  const [fallbackWarning, setFallbackWarning] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const workspaceFiles = useWorkspaceStore((s) => s.files);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  // 🔥 Heartbeat vers le backend tant que le preview est actif
+  // 🔥 Heartbeat vers le backend tant que le preview est actif (mode local uniquement)
   useEffect(() => {
+    if (useWebContainer) return;
     if (
       status === "crashed" ||
       status === "limited" ||
@@ -51,9 +61,10 @@ export default function Preview({
     }, 30_000); // toutes les 30s
 
     return () => clearInterval(interval);
-  }, [projectId, status]);
+  }, [projectId, status, useWebContainer]);
 
-  useEffect(() => {
+  // Localhost fallback preview
+  const startLocalPreview = useCallback(() => {
     async function start() {
       setLogs([]);
       setError(null);
@@ -68,6 +79,7 @@ export default function Preview({
       }
 
       setPort(data.port);
+      setPreviewUrl(`http://localhost:${data.port}`);
       setStatus("building");
 
       const eventSource = new EventSource(
@@ -156,7 +168,78 @@ export default function Preview({
     }
 
     start();
-  }, [userId, projectId, restartToken]);
+  }, [userId, projectId]);
+
+  // WebContainer-based or localhost preview
+  useEffect(() => {
+    if (!isWebContainerSupported()) {
+      setFallbackWarning(true);
+      startLocalPreview();
+      return;
+    }
+
+    let cancelled = false;
+
+    async function bootWebContainer() {
+      setLogs([]);
+      setError(null);
+      setResourceMessage(null);
+      setStatus("building");
+      setUseWebContainer(true);
+
+      try {
+        let files = workspaceFiles;
+        if (Object.keys(files).length === 0) {
+          try {
+            const res = await fetch(`/api/projects/${projectId}/files`);
+            if (res.ok) {
+              files = await res.json();
+            }
+          } catch {
+            // continue with empty files
+          }
+        }
+
+        if (cancelled) return;
+
+        const { url: wcUrl } = await startWebContainerPreview({
+          files,
+          onLog: (message, type) => {
+            if (cancelled) return;
+            setLogs((prev) => [...prev, { msg: message, type }]);
+          },
+          onServerReady: (serverUrl) => {
+            if (cancelled) return;
+            setPreviewUrl(serverUrl);
+            setPort(1);
+            setStatus("running");
+            setError(null);
+          },
+          onError: (message) => {
+            if (cancelled) return;
+            setError(message);
+            setStatus("error");
+          },
+        });
+
+        if (cancelled) return;
+        setPreviewUrl(wcUrl);
+        setPort(1);
+      } catch {
+        if (cancelled) return;
+        setUseWebContainer(false);
+        setFallbackWarning(true);
+        startLocalPreview();
+      }
+    }
+
+    bootWebContainer();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, restartToken]);
 
   const renderStatusBar = () => {
     if (status === "building" || status === "restarting") {
@@ -263,6 +346,13 @@ export default function Preview({
 
       {status !== "limit_reached" && status !== "stopped_idle" && (
         <>
+          {/* Bannière de fallback */}
+          {fallbackWarning && (
+            <div className="bg-amber-900/40 border-b border-amber-700/40 px-4 py-2 text-amber-300 text-xs flex items-center gap-2">
+              ⚠️ Preview cloud non disponible. Utilisation du serveur local.
+            </div>
+          )}
+
           {resourceMessage && (
             <div className="bg-[#2a1a00] border-b border-orange-700 p-3 text-orange-300 text-xs">
               {resourceMessage}
@@ -319,12 +409,13 @@ export default function Preview({
             )}
 
             {port &&
+              previewUrl &&
               !error &&
               status !== "crashed" &&
               status !== "limited" && (
                 <iframe
                   key={refreshKey}
-                  src={`http://localhost:${port}`}
+                  src={previewUrl}
                   className="w-full h-full border-0 bg-white"
                 />
               )}
