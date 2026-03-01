@@ -171,45 +171,59 @@ test.describe("Mocked Team Workflow", () => {
       }
     });
 
+    // Navigate to a page first so page.evaluate() has a JavaScript context
+    await page.goto("/");
+
     // Step 1: Create a team via mocked API
-    const createResponse = await page.request.post("/api/teams/create", {
-      data: { name: testTeamName },
-      headers: { "Content-Type": "application/json" },
+    const createData = await page.evaluate(async () => {
+      const res = await fetch("/api/teams/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "My E2E Team" }),
+      });
+      return { status: res.status, body: await res.json() };
     });
-    expect(createResponse.status()).toBe(200);
-    const createData = await createResponse.json();
-    expect(createData.team).toBeDefined();
-    expect(createData.team.id).toBe(testTeamId);
-    expect(createData.team.name).toBe(testTeamName);
+    expect(createData.status).toBe(200);
+    expect(createData.body.team).toBeDefined();
+    expect(createData.body.team.id).toBe(testTeamId);
+    expect(createData.body.team.name).toBe(testTeamName);
 
     // Step 2: List teams via mocked API
-    const listResponse = await page.request.get("/api/teams");
-    expect(listResponse.status()).toBe(200);
-    const listData = await listResponse.json();
-    expect(listData.teams).toBeDefined();
-    expect(listData.teams.length).toBeGreaterThanOrEqual(1);
-    expect(listData.teams[0].id).toBe(testTeamId);
+    const listData = await page.evaluate(async () => {
+      const res = await fetch("/api/teams");
+      return { status: res.status, body: await res.json() };
+    });
+    expect(listData.status).toBe(200);
+    expect(listData.body.teams).toBeDefined();
+    expect(listData.body.teams.length).toBeGreaterThanOrEqual(1);
+    expect(listData.body.teams[0].id).toBe(testTeamId);
 
     // Step 3: Invite a member via mocked API
-    const inviteResponse = await page.request.post("/api/teams/invite", {
-      data: { teamId: testTeamId, email: testMemberEmail, role: "member" },
-      headers: { "Content-Type": "application/json" },
-    });
-    expect(inviteResponse.status()).toBe(200);
-    const inviteData = await inviteResponse.json();
-    expect(inviteData.member).toBeDefined();
-    expect(inviteData.member.email).toBe(testMemberEmail);
-    expect(inviteData.member.status).toBe("pending");
+    const inviteData = await page.evaluate(async (args) => {
+      const res = await fetch("/api/teams/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId: args.teamId, email: args.email, role: "member" }),
+      });
+      return { status: res.status, body: await res.json() };
+    }, { teamId: testTeamId, email: testMemberEmail });
+    expect(inviteData.status).toBe(200);
+    expect(inviteData.body.member).toBeDefined();
+    expect(inviteData.body.member.email).toBe(testMemberEmail);
+    expect(inviteData.body.member.status).toBe("pending");
 
     // Step 4: Accept the invitation via mocked API
-    const acceptResponse = await page.request.post("/api/teams/accept", {
-      data: { memberId: testMemberId },
-      headers: { "Content-Type": "application/json" },
-    });
-    expect(acceptResponse.status()).toBe(200);
-    const acceptData = await acceptResponse.json();
-    expect(acceptData.member).toBeDefined();
-    expect(acceptData.member.status).toBe("accepted");
-    expect(acceptData.member.team_id).toBe(testTeamId);
+    const acceptData = await page.evaluate(async (memberId) => {
+      const res = await fetch("/api/teams/accept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId }),
+      });
+      return { status: res.status, body: await res.json() };
+    }, testMemberId);
+    expect(acceptData.status).toBe(200);
+    expect(acceptData.body.member).toBeDefined();
+    expect(acceptData.body.member.status).toBe("accepted");
+    expect(acceptData.body.member.team_id).toBe(testTeamId);
   });
 });

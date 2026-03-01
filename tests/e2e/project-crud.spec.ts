@@ -93,7 +93,6 @@ test.describe("Mocked Full CRUD Flow", () => {
 
     // Track project state for mocked responses
     let projectName = originalName;
-    let isFavorite = false;
     let projects = [
       {
         id: testProjectId,
@@ -171,7 +170,6 @@ test.describe("Mocked Full CRUD Flow", () => {
     await page.route("**/api/projects/favorite", (route) => {
       if (route.request().method() === "POST") {
         const body = route.request().postDataJSON();
-        isFavorite = body.isFavorite;
         const target = projects.find((p) => p.id === body.id);
         if (target) target.is_favorite = body.isFavorite;
         route.fulfill({
@@ -214,6 +212,9 @@ test.describe("Mocked Full CRUD Flow", () => {
         }),
       });
     });
+
+    // Navigate to a page first so page.evaluate() has a JavaScript context
+    await page.goto("/");
 
     // Step 1: Create project
     const createRes = await page.evaluate(async () => {
