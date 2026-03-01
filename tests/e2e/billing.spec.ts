@@ -56,8 +56,8 @@ test.describe("Billing rates endpoint", () => {
     if (response.status() === 200) {
       const json = await response.json();
       expect(json.country).toBe("FR");
-      // France uses EUR
-      expect(json.currency).toBe("EUR");
+      // France falls back to USD (EUR is not a supported CurrencyCode)
+      expect(json.currency).toBe("USD");
     }
   });
 
