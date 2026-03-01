@@ -85,7 +85,7 @@ jobs:
             fi
             echo "⏳ Attempt $i/$MAX_RETRIES: HTTP $STATUS, retrying in ${RETRY_DELAY}s..."
             sleep "$RETRY_DELAY"
-            # Exponential back-off: 10s, 15s, 22s, ...
+            # Incremental back-off (1.5x): 10s, 15s, 22s, 33s, …
             RETRY_DELAY=$(( RETRY_DELAY + RETRY_DELAY / 2 ))
           done
           echo "❌ Staging health check failed after $MAX_RETRIES attempts"
