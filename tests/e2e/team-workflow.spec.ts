@@ -175,14 +175,14 @@ test.describe("Mocked Team Workflow", () => {
     await page.goto("/");
 
     // Step 1: Create a team via mocked API
-    const createData = await page.evaluate(async () => {
+    const createData = await page.evaluate(async (teamName) => {
       const res = await fetch("/api/teams/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "My E2E Team" }),
+        body: JSON.stringify({ name: teamName }),
       });
       return { status: res.status, body: await res.json() };
-    });
+    }, testTeamName);
     expect(createData.status).toBe(200);
     expect(createData.body.team).toBeDefined();
     expect(createData.body.team.id).toBe(testTeamId);
