@@ -48,7 +48,6 @@ export async function POST(
     .insert({
       name: projectName,
       user_id: userId,
-      description: `Créé à partir du template : ${template.name}`,
     })
     .select()
     .single();
