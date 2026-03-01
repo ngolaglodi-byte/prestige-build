@@ -32,8 +32,8 @@ export function PreviewFrame({ projectId }: Props) {
               if (res.ok) {
                 files = await res.json();
               }
-            } catch {
-              // continue
+            } catch (err) {
+              console.warn("Échec du chargement des fichiers du projet :", err);
             }
           }
 

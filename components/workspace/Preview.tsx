@@ -195,8 +195,8 @@ export default function Preview({
             if (res.ok) {
               files = await res.json();
             }
-          } catch {
-            // continue with empty files
+          } catch (err) {
+            console.warn("Échec du chargement des fichiers du projet :", err);
           }
         }
 
