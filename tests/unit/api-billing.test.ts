@@ -62,7 +62,7 @@ describe("API Billing", () => {
       const response = await POST(req);
       expect(response.status).toBe(400);
       const body = await response.json();
-      expect(body.error).toContain("Plan invalide");
+      expect(body.error).toContain("Invalid plan");
     });
 
     it("rejects missing phoneNumber", async () => {
@@ -79,7 +79,7 @@ describe("API Billing", () => {
       const response = await POST(req);
       expect(response.status).toBe(400);
       const body = await response.json();
-      expect(body.error).toContain("téléphone");
+      expect(body.error).toContain("Phone number");
     });
   });
 
