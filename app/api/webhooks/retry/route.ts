@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   const result = await retryWebhook(logId);
   if (!result) {
     return NextResponse.json(
-      { error: "Impossible de réessayer ce webhook." },
+      { error: "Unable to retry this webhook." },
       { status: 400 }
     );
   }

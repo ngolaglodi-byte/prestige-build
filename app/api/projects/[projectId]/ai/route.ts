@@ -53,7 +53,7 @@ export async function POST(
 
     if (!prompt) {
       return NextResponse.json(
-        { ok: false, error: "Le prompt est requis." },
+        { ok: false, error: "Prompt is required." },
         { status: 400 }
       );
     }
