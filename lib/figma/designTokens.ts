@@ -3,7 +3,7 @@
 // a parsed Figma DesignTree and generates CSS custom properties or a
 // Tailwind config extension.
 
-import type { DesignTree, FigmaColor, DesignNode } from "./parser";
+import type { DesignTree, FigmaColor, DesignNode, FigmaEffect } from "./parser";
 import { rgbaToHex } from "./figmaToCode";
 
 export interface DesignTokens {
@@ -67,6 +67,23 @@ export function extractDesignTokens(tree: DesignTree): DesignTokens {
       spacing[`padding-${node.id}`] = li.paddingTop;
     }
 
+    // Shadows from effects
+    if (node.effects) {
+      for (const effect of node.effects) {
+        if (
+          (effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW") &&
+          effect.visible !== false &&
+          effect.color
+        ) {
+          const css = effectToCssShadow(effect);
+          const key = slugify(node.name) || `shadow-${node.id}`;
+          if (!Object.values(shadows).includes(css)) {
+            shadows[key] = css;
+          }
+        }
+      }
+    }
+
     for (const child of node.children) walk(child);
   }
 
@@ -97,6 +114,10 @@ export function tokensToCss(tokens: DesignTokens): string {
     lines.push(`  --spacing-${name}: ${value}px;`);
   }
 
+  for (const [name, value] of Object.entries(tokens.shadows)) {
+    lines.push(`  --shadow-${name}: ${value};`);
+  }
+
   lines.push("}");
   return lines.join("\n");
 }
@@ -120,10 +141,25 @@ export function tokensToTailwindExtend(tokens: DesignTokens): Record<string, unk
     spacing[name] = `${value}px`;
   }
 
-  return { colors, fontSize, spacing };
+  const boxShadow: Record<string, string> = {};
+  for (const [name, value] of Object.entries(tokens.shadows)) {
+    boxShadow[name] = value;
+  }
+
+  return { colors, fontSize, spacing, boxShadow };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
+
+function effectToCssShadow(effect: FigmaEffect): string {
+  const x = effect.offset?.x ?? 0;
+  const y = effect.offset?.y ?? 0;
+  const blur = effect.radius ?? 0;
+  const spread = effect.spread ?? 0;
+  const color = effect.color ? rgbaToHex(effect.color) : "#000000";
+  const inset = effect.type === "INNER_SHADOW" ? "inset " : "";
+  return `${inset}${x}px ${y}px ${blur}px ${spread}px ${color}`;
+}
 
 function slugify(name: string): string {
   return name
