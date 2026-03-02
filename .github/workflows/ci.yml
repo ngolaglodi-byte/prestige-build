@@ -32,7 +32,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm audit --audit-level=high || true
+      - name: Auto-fix safe audit issues
+        run: npm audit fix || true
+      - name: Fail on critical vulnerabilities
+        run: npm audit --audit-level=critical
 
   build:
     name: Build
