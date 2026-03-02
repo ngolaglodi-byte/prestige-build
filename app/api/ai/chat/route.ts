@@ -8,7 +8,7 @@ import { rateLimitAsync } from "@/lib/rate-limit";
 import { apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),

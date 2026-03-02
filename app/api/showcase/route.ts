@@ -6,7 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { showcaseProjects, users } from "@/db/schema";
-import { eq, ilike, and, desc, asc, sql } from "drizzle-orm";
+import { eq, ilike, and, desc, sql } from "drizzle-orm";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { apiOk, apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";

@@ -11,7 +11,7 @@ interface FigmaPage {
 interface ImportPreviewProps {
   fileName: string;
   pages: FigmaPage[];
-  tree: Record<string, unknown>[];
+  tree: unknown[];
   onImport: (selectedPageIds: string[]) => void;
   loading?: boolean;
 }
