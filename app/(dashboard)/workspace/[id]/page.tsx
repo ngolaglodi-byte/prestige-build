@@ -68,9 +68,10 @@ export default function WorkspacePage() {
 
   // Expose sendEdit for Monaco onDidChangeModelContent
   const handleContentChange = useCallback(
-    (changes: unknown) => {
-      if (activeFile) {
-        sendEdit(activeFile, changes);
+    (e: { changes: readonly { range: unknown; text: string }[] }) => {
+      if (activeFile && e.changes.length > 0) {
+        const change = e.changes[0];
+        sendEdit(activeFile, { text: change.text });
       }
     },
     [sendEdit, activeFile]
