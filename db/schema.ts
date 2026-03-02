@@ -401,3 +401,120 @@ export const showcaseComments = pgTable("showcase_comments", {
   content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+// ── CONVERSATION SESSIONS ─────────────────────────────────────────────────
+
+export const conversationPhaseEnum = pgEnum("conversation_phase", [
+  "gathering",
+  "planning",
+  "generating",
+  "reviewing",
+  "modifying",
+  "completed",
+]);
+
+export const conversationSessions = pgTable("conversation_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  phase: conversationPhaseEnum("phase").notNull().default("gathering"),
+  requirements: jsonb("requirements").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ── AGENT PLANS ───────────────────────────────────────────────────────────
+
+export const agentPlanStatusEnum = pgEnum("agent_plan_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+]);
+
+export const agentPlans = pgTable("agent_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  goal: text("goal").notNull(),
+  status: agentPlanStatusEnum("status").notNull().default("pending"),
+  steps: jsonb("steps").default([]),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+// ── GITHUB SYNC CONFIGS ───────────────────────────────────────────────────
+
+export const githubSyncDirectionEnum = pgEnum("github_sync_direction", [
+  "push",
+  "pull",
+  "both",
+]);
+
+export const githubSyncConfigs = pgTable("github_sync_configs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull().unique(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  owner: varchar("owner", { length: 255 }).notNull(),
+  repo: varchar("repo", { length: 255 }).notNull(),
+  branch: varchar("branch", { length: 255 }).notNull().default("main"),
+  direction: githubSyncDirectionEnum("direction").notNull().default("both"),
+  autoSync: boolean("auto_sync").notNull().default(false),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+  lastCommitSha: varchar("last_commit_sha", { length: 255 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ── DEPLOYMENT ENVIRONMENTS ───────────────────────────────────────────────
+
+export const envTypeEnum = pgEnum("env_type", [
+  "development",
+  "preview",
+  "production",
+]);
+
+export const envStatusEnum = pgEnum("env_status", [
+  "active",
+  "building",
+  "deploying",
+  "failed",
+  "stopped",
+]);
+
+export const deploymentEnvironments = pgTable("deployment_environments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  type: envTypeEnum("type").notNull(),
+  status: envStatusEnum("status").notNull().default("stopped"),
+  url: text("url"),
+  branch: varchar("branch", { length: 255 }),
+  commitSha: varchar("commit_sha", { length: 255 }),
+  variables: jsonb("variables").$type<Record<string, string>>().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  deployedAt: timestamp("deployed_at", { withTimezone: true }),
+});
+
+// ── MARKETPLACE FAVORITES ─────────────────────────────────────────────────
+
+export const marketplaceFavorites = pgTable(
+  "marketplace_favorites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    showcaseId: uuid("showcase_id")
+      .notNull()
+      .references(() => showcaseProjects.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.showcaseId, t.userId)]
+);

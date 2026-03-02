@@ -7,11 +7,19 @@
 ## ✨ Fonctionnalités
 
 - **Génération de code IA** — Multi-provider (OpenAI GPT-4, Anthropic Claude, Google Gemini) avec fallback automatique
+- **Agent IA multi-étapes** — Décompose les requêtes complexes en plans d'exécution séquentiels (analyse → plan → génération → déploiement)
+- **Flux conversationnel Chat → App** — Décrivez une application en langage naturel, l'IA génère progressivement DB, Auth, UI, API, routing
 - **Éditeur de code** — Monaco Editor intégré avec prévisualisation en temps réel (Sandpack)
+- **Éditeur visuel drag-and-drop** — Synchronisation bidirectionnelle entre éditeur visuel et code source
+- **Import Figma → Code** — Importez un design Figma et convertissez-le automatiquement en composants React/Tailwind avec mapping vers les pages Next.js
 - **Gestion de projets** — Création, build, déploiement et gestion de fichiers
+- **Déploiement multi-environnements** — Environnements dev, preview et production avec URLs automatiques
+- **Sync GitHub bidirectionnelle** — Importez et exportez des projets vers/depuis GitHub avec détection de conflits
 - **Équipes** — Collaboration multi-utilisateurs avec gestion des rôles
 - **Templates** — Bibliothèque de templates réutilisables
+- **Marketplace communautaire** — Publiez, clonez et remixez des projets avec recherche, tags et favoris
 - **Facturation** — Système de crédits et abonnements
+- **Stripe Kit** — Générez des intégrations Stripe (checkout, webhooks, plans, abonnements) dans vos applications
 - **API Keys** — Gestion et suivi d'utilisation des clés API
 - **Webhooks** — Système d'événements avec retry automatique
 - **Admin** — Panneau d'administration complet
@@ -23,32 +31,56 @@ prestige-build/
 ├── app/                        # Next.js App Router
 │   ├── (dashboard)/           # Routes protégées du tableau de bord
 │   ├── (site)/                # Pages publiques du site
-│   ├── api/                   # 70+ endpoints API REST
-│   │   ├── ai/               # Génération IA
+│   ├── api/                   # 80+ endpoints API REST
+│   │   ├── ai/               # Génération IA, Agent, Conversation
 │   │   ├── projects/         # CRUD projets
 │   │   ├── teams/            # Gestion d'équipes
 │   │   ├── billing/          # Facturation
+│   │   ├── deploy/           # Déploiement & environnements
+│   │   ├── github/           # Import & sync GitHub
+│   │   ├── marketplace/      # Marketplace communautaire
+│   │   ├── stripe-kit/       # Générateur Stripe
 │   │   ├── health/           # Health check
 │   │   ├── docs/             # Documentation OpenAPI
 │   │   └── cron/             # Tâches planifiées
 │   ├── admin/                # Panneau admin
 │   └── auth/                 # Authentification
 ├── lib/                       # Logique métier partagée
-│   ├── ai/                   # Orchestration IA (21 modules)
+│   ├── ai/                   # Orchestration IA (23 modules)
+│   │   ├── agent.ts          # Agent multi-étapes
+│   │   ├── conversational-flow.ts  # Chat → App pipeline
+│   │   └── orchestrator.ts   # Orchestrateur principal
 │   ├── billing/              # Logique de facturation
-│   ├── build/                # Moteur de build
+│   │   ├── plans.ts          # Définition des plans
+│   │   ├── pricing.ts        # Tarification dynamique
+│   │   └── stripe-kit.ts     # Générateur de code Stripe
+│   ├── build/                # Moteur de build multi-plateforme
 │   ├── deploy/               # Déploiement
+│   │   ├── deployManager.ts  # Orchestrateur de déploiement
+│   │   └── environments.ts   # Gestion dev/preview/prod
+│   ├── editor/               # Éditeur visuel
+│   │   ├── visual-sync.ts    # Sync bidirectionnelle visuel ↔ code
+│   │   └── drag-drop-engine.ts  # Moteur drag-and-drop
+│   ├── figma/                # Import Figma → Code
+│   │   ├── page-mapper.ts    # Mapping frames → pages Next.js
+│   │   └── figmaToCode.ts    # Conversion design → React
+│   ├── github/               # Intégration GitHub
+│   │   ├── exporter.ts       # Export vers GitHub
+│   │   ├── importer.ts       # Import depuis GitHub
+│   │   └── sync.ts           # Synchronisation bidirectionnelle
+│   ├── marketplace/          # Marketplace communautaire
 │   ├── api-response.ts       # Format API standardisé
 │   ├── rate-limit.ts         # Rate limiting
 │   └── logger.ts             # Logging structuré (Pino)
 ├── db/                        # Base de données
-│   ├── schema.ts             # Schéma Drizzle ORM
+│   ├── schema.ts             # Schéma Drizzle ORM (30+ tables)
+│   ├── supabase-schema.ts    # Tables Supabase (read-only)
 │   ├── client.ts             # Client DB
 │   └── migrations/           # Migrations
 ├── components/               # Composants React
 ├── store/                    # State management (Zustand)
 ├── tests/                    # Tests
-│   ├── unit/                 # Tests unitaires (Vitest)
+│   ├── unit/                 # 70 fichiers de tests unitaires (Vitest)
 │   └── e2e/                  # Tests E2E (Playwright)
 └── .github/workflows/        # CI/CD (GitHub Actions)
 ```
@@ -121,6 +153,11 @@ docker compose up --build
 | `GOOGLE_GENERATIVE_AI_KEY` | Clé API Google AI | ⚡ |
 | `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry | ❌ |
 | `CRON_SECRET` | Secret pour les tâches CRON | ❌ |
+| `STRIPE_SECRET_KEY` | Clé secrète Stripe (pour Stripe Kit) | ❌ |
+| `STRIPE_WEBHOOK_SECRET` | Secret webhook Stripe | ❌ |
+| `FIGMA_ACCESS_TOKEN` | Token d'accès Figma | ❌ |
+| `GITHUB_TOKEN` | Token d'accès GitHub (pour sync) | ❌ |
+| `VERCEL_TOKEN` | Token API Vercel (pour déploiement) | ❌ |
 | `DISABLE_WEBPACK_CACHE` | Désactiver le cache Webpack (auto sur Windows) | ❌ |
 
 ⚡ Au moins un fournisseur IA est requis.
