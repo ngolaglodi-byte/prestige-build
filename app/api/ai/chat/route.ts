@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     if (!userId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`chat:${userId}`, 30, 60_000);
-    if (!rl.success) return apiError("Trop de requêtes", 429);
+    if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
     const parsed = RequestBody.safeParse(body);
