@@ -224,7 +224,7 @@ describe("figma import pipeline – component matching", () => {
   });
 
   it("sanitizeComponentName strips leading numbers", () => {
-    // Leading digits are replaced with _ and then leading underscores are stripped
+    // Leading digits → "_", collapsed underscores "_+" → "_", then leading/trailing "_" stripped
     const result = sanitizeComponentName("123Widget");
     expect(result).toBe("Widget");
   });
