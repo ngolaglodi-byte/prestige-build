@@ -25,7 +25,7 @@ export default function CreateProjectPage() {
       {/* Contenu */}
       <div className="flex flex-col items-center mt-16 fade-in px-6 pb-16">
         <h1 className="text-4xl font-bold tracking-tight mb-4 text-center">
-          Créer un projet avec l'IA
+          Créer un projet avec l&apos;IA
         </h1>
         <p className="text-gray-400 mb-10 text-center max-w-xl">
           Décrivez votre application en quelques mots et laissez Prestige Build générer la structure complète du projet.

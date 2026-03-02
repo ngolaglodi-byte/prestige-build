@@ -102,7 +102,6 @@ function parseNode(raw: any): DesignNode {
       }
     : undefined;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const children: DesignNode[] = Array.isArray(raw.children)
     ? raw.children.map(parseNode)
     : [];
