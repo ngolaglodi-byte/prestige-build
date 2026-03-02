@@ -38,6 +38,15 @@ export interface FigmaLayoutInfo {
   height?: number;
 }
 
+export interface FigmaEffect {
+  type: string;
+  visible?: boolean;
+  color?: FigmaColor;
+  offset?: { x: number; y: number };
+  radius?: number;
+  spread?: number;
+}
+
 export interface DesignNode {
   id: string;
   name: string;
@@ -50,6 +59,7 @@ export interface DesignNode {
   children: DesignNode[];
   isComponent: boolean;
   componentId?: string;
+  effects?: FigmaEffect[];
 }
 
 export interface DesignPage {
@@ -106,6 +116,17 @@ function parseNode(raw: any): DesignNode {
     ? raw.children.map(parseNode)
     : [];
 
+  const effects: FigmaEffect[] = Array.isArray(raw.effects)
+    ? raw.effects.map((e: FigmaEffect) => ({
+        type: e.type,
+        visible: e.visible,
+        color: e.color,
+        offset: e.offset,
+        radius: e.radius,
+        spread: e.spread,
+      }))
+    : [];
+
   return {
     id: raw.id ?? "",
     name: raw.name ?? "",
@@ -118,6 +139,7 @@ function parseNode(raw: any): DesignNode {
     children,
     isComponent: raw.type === "COMPONENT" || raw.type === "COMPONENT_SET",
     componentId: raw.componentId,
+    effects,
   };
 }
 

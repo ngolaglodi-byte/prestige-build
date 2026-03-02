@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
 import { useTabs } from "@/lib/store/tabs";
+import { useCollaboration } from "@/hooks/useCollaboration";
+import { CollaboratorAvatars } from "@/components/collab/CollaboratorAvatars";
+import { RemoteCursors } from "@/components/collab/RemoteCursors";
 import { AiPanel } from "@/components/workspace/AIPanel";
 import { FileTree } from "@/components/workspace/FileTree";
 import { Tabs } from "@/components/workspace/Tabs";
@@ -38,10 +42,39 @@ export default function WorkspacePage() {
   const params = useParams();
   const id = params.id as string;
 
+  const { user } = useUser();
+  const clerkUserId = user?.id ?? "anonymous";
+  const clerkUserName = user?.firstName ?? user?.username ?? "User";
+
   const { refreshFiles } = useFileTree();
   const { saveFile } = useEditor();
   const { activeFile } = useTabs();
   const [bottomTab, setBottomTab] = useState<BottomTab>("preview");
+
+  const { cursors, sendCursor, sendEdit } = useCollaboration({
+    projectId: id,
+    userId: clerkUserId,
+    userName: clerkUserName,
+    enabled: true,
+  });
+
+  // Expose sendCursor for Monaco onDidChangeCursorPosition
+  const handleCursorChange = useCallback(
+    (e: { position: { lineNumber: number; column: number } }) => {
+      sendCursor(e.position.lineNumber, e.position.column, activeFile ?? undefined);
+    },
+    [sendCursor, activeFile]
+  );
+
+  // Expose sendEdit for Monaco onDidChangeModelContent
+  const handleContentChange = useCallback(
+    (changes: unknown) => {
+      if (activeFile) {
+        sendEdit(activeFile, changes);
+      }
+    },
+    [sendEdit, activeFile]
+  );
 
   useEffect(() => {
     refreshFiles(id);
@@ -65,17 +98,25 @@ export default function WorkspacePage() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden fade-in">
-        {/* Tabs */}
-        <Tabs />
+        {/* Tabs + Collaboration avatars */}
+        <div className="flex items-center border-b border-white/10">
+          <div className="flex-1">
+            <Tabs />
+          </div>
+          <div className="px-3 flex-shrink-0">
+            <CollaboratorAvatars projectId={id} userId={clerkUserId} userName={clerkUserName} />
+          </div>
+        </div>
 
         {/* Editor + AI Panel */}
         <div className="flex-1 flex overflow-hidden relative">
           <div className="flex-1 overflow-hidden flex flex-col">
             {/* Editor */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
               <Suspense fallback={<EditorFallback />}>
                 <CodeEditor projectId={id} />
               </Suspense>
+              <RemoteCursors cursors={cursors} currentFileId={activeFile ?? undefined} />
             </div>
 
             {/* Bottom panel: Preview / Logs */}

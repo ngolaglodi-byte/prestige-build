@@ -89,6 +89,116 @@ describe("designTokens", () => {
       expect(tokens.typography["title"]).toBeDefined();
       expect(tokens.typography["title"].fontSize).toBe(24);
     });
+
+    it("extracts shadows from drop shadow effects", () => {
+      const tokens = extractDesignTokens(
+        makeTree({
+          pages: [
+            {
+              id: "p1",
+              name: "Home",
+              children: [
+                {
+                  id: "n1",
+                  name: "Card",
+                  type: "FRAME",
+                  fills: [],
+                  opacity: 1,
+                  layoutInfo: {},
+                  children: [],
+                  isComponent: false,
+                  effects: [
+                    {
+                      type: "DROP_SHADOW",
+                      visible: true,
+                      color: { r: 0, g: 0, b: 0, a: 0.25 },
+                      offset: { x: 0, y: 4 },
+                      radius: 8,
+                      spread: 0,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
+      );
+      expect(tokens.shadows["card"]).toBeDefined();
+      expect(tokens.shadows["card"]).toContain("4px");
+      expect(tokens.shadows["card"]).toContain("8px");
+    });
+
+    it("extracts inner shadow effects", () => {
+      const tokens = extractDesignTokens(
+        makeTree({
+          pages: [
+            {
+              id: "p1",
+              name: "Home",
+              children: [
+                {
+                  id: "n1",
+                  name: "Well",
+                  type: "FRAME",
+                  fills: [],
+                  opacity: 1,
+                  layoutInfo: {},
+                  children: [],
+                  isComponent: false,
+                  effects: [
+                    {
+                      type: "INNER_SHADOW",
+                      visible: true,
+                      color: { r: 0, g: 0, b: 0, a: 0.1 },
+                      offset: { x: 0, y: 2 },
+                      radius: 4,
+                      spread: 0,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
+      );
+      expect(tokens.shadows["well"]).toBeDefined();
+      expect(tokens.shadows["well"]).toContain("inset");
+    });
+
+    it("skips invisible effects", () => {
+      const tokens = extractDesignTokens(
+        makeTree({
+          pages: [
+            {
+              id: "p1",
+              name: "Home",
+              children: [
+                {
+                  id: "n1",
+                  name: "Hidden",
+                  type: "FRAME",
+                  fills: [],
+                  opacity: 1,
+                  layoutInfo: {},
+                  children: [],
+                  isComponent: false,
+                  effects: [
+                    {
+                      type: "DROP_SHADOW",
+                      visible: false,
+                      color: { r: 0, g: 0, b: 0, a: 0.5 },
+                      offset: { x: 0, y: 4 },
+                      radius: 8,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        })
+      );
+      expect(Object.keys(tokens.shadows)).toHaveLength(0);
+    });
   });
 
   describe("tokensToCss", () => {
@@ -113,6 +223,16 @@ describe("designTokens", () => {
       expect(css).toContain("--font-heading: Inter");
       expect(css).toContain("--text-heading-size: 20px");
     });
+
+    it("includes shadow variables", () => {
+      const css = tokensToCss({
+        colors: {},
+        typography: {},
+        spacing: {},
+        shadows: { card: "0px 4px 8px 0px #00000040" },
+      });
+      expect(css).toContain("--shadow-card: 0px 4px 8px 0px #00000040");
+    });
   });
 
   describe("tokensToTailwindExtend", () => {
@@ -134,6 +254,16 @@ describe("designTokens", () => {
         shadows: {},
       });
       expect((result.fontSize as Record<string, string>).body).toBe("16px");
+    });
+
+    it("returns boxShadow from shadows", () => {
+      const result = tokensToTailwindExtend({
+        colors: {},
+        typography: {},
+        spacing: {},
+        shadows: { card: "0px 4px 8px 0px #000000" },
+      });
+      expect((result.boxShadow as Record<string, string>).card).toBe("0px 4px 8px 0px #000000");
     });
   });
 });
