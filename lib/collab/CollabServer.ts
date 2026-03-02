@@ -25,6 +25,9 @@ export interface CollabRoom {
 }
 
 // In-memory room store
+// NOTE: This in-memory store is cleared on server restart and does not
+// share state across multiple server instances. For production
+// multi-instance deployments, replace with Redis or another shared store.
 const rooms = new Map<string, CollabRoom>();
 
 export function getOrCreateCollabRoom(projectId: string): CollabRoom {

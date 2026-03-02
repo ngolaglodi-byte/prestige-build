@@ -10,7 +10,7 @@ export interface CollabPresence {
   lastSeen: number;
 }
 
-const PRESENCE_TTL_MS = 30_000; // 30 s
+const PRESENCE_TTL_MS = 30_000; // 30 sec
 
 const presenceByProject = new Map<string, Map<string, CollabPresence>>();
 

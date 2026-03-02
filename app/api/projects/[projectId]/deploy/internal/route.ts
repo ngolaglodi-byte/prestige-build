@@ -8,6 +8,8 @@ import { purgeCache } from "@/lib/deploy/cdnManager";
 import { getDeployState } from "@/lib/deploy/deployRegistry";
 import logger from "@/lib/logger";
 
+const DEPLOY_TIMEOUT_MS = 300_000; // 5 minutes
+
 export async function POST(
   _req: Request,
   { params }: { params: { projectId: string } }
@@ -57,11 +59,11 @@ export async function POST(
             }
           }, 500);
 
-          // Safety timeout – close after 5 min
+          // Safety timeout
           setTimeout(() => {
             clearInterval(interval);
             controller.close();
-          }, 300_000);
+          }, DEPLOY_TIMEOUT_MS);
         } catch (err) {
           logger.error({ err }, "internal deploy SSE error");
           send({ status: "failed", logs: "Erreur interne" });

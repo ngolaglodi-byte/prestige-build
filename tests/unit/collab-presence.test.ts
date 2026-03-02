@@ -48,11 +48,8 @@ describe("PresenceManager", () => {
   });
 
   it("assignColor varies with input", () => {
-    // Not guaranteed to differ for all inputs, but should for these
     const c1 = assignColor("alice");
     const c2 = assignColor("bob");
-    // At least one pair should differ
-    expect(typeof c1).toBe("string");
-    expect(typeof c2).toBe("string");
+    expect(c1).not.toBe(c2);
   });
 });
