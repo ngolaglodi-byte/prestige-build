@@ -6,7 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
 import { useTabs } from "@/lib/store/tabs";
-import { useCollaboration, CollabEdit } from "@/hooks/useCollaboration";
+import { useCollaboration } from "@/hooks/useCollaboration";
 import { CollaboratorAvatars } from "@/components/collab/CollaboratorAvatars";
 import { RemoteCursors } from "@/components/collab/RemoteCursors";
 import { AiPanel } from "@/components/workspace/AIPanel";
@@ -68,9 +68,10 @@ export default function WorkspacePage() {
 
   // Expose sendEdit for Monaco onDidChangeModelContent
   const handleContentChange = useCallback(
-    (changes: CollabEdit["changes"]) => {
-      if (activeFile) {
-        sendEdit(activeFile, changes);
+    (e: { changes: readonly { range: unknown; text: string }[] }) => {
+      if (activeFile && e.changes.length > 0) {
+        const change = e.changes[0];
+        sendEdit(activeFile, { text: change.text });
       }
     },
     [sendEdit, activeFile]
