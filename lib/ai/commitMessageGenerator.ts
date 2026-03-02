@@ -1,7 +1,7 @@
 "use client";
 
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { useAIMultiPreviewStore } from "@/store/useAIMultiPreviewStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
+import { useAIMultiPreviewStore } from "@/lib/store/useAIMultiPreviewStore";
 
 export function generateCommitMessage() {
   const previews = useAIMultiPreviewStore.getState().previews;

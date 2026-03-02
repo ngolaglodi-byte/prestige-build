@@ -6,7 +6,7 @@ import {
   isWebContainerSupported,
   startWebContainerPreview,
 } from "@/lib/preview/webcontainer";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
 
 type Props = {
   projectId: string;

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { BellIcon, CheckIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useNotificationStore } from "@/store/useNotificationStore";
+import { useNotificationStore } from "@/lib/store/useNotificationStore";
 import Link from "next/link";
 
 const TYPE_STYLES: Record<string, string> = {

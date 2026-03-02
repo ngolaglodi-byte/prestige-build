@@ -2,7 +2,7 @@
 
 import Logo from "@/components/Logo";
 import Link from "next/link";
-import { useNotificationStore } from "@/store/useNotificationStore";
+import { useNotificationStore } from "@/lib/store/useNotificationStore";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { CheckIcon, TrashIcon } from "@heroicons/react/24/outline";
 
