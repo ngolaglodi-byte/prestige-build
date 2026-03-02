@@ -11,6 +11,7 @@ export interface DesignTokens {
   typography: Record<string, { fontFamily: string; fontSize: number; fontWeight: number }>;
   spacing: Record<string, number>;
   shadows: Record<string, string>;
+  radii: Record<string, string>;
 }
 
 /**
@@ -21,6 +22,7 @@ export function extractDesignTokens(tree: DesignTree): DesignTokens {
   const typography: Record<string, { fontFamily: string; fontSize: number; fontWeight: number }> = {};
   const spacing: Record<string, number> = {};
   const shadows: Record<string, string> = {};
+  const radii: Record<string, string> = {};
 
   // 1. Styles from the top-level styles map
   for (const [id, style] of Object.entries(tree.styles)) {
@@ -84,6 +86,16 @@ export function extractDesignTokens(tree: DesignTree): DesignTokens {
       }
     }
 
+    // Radii from cornerRadius
+    const cr = li.cornerRadius;
+    if (cr && cr > 0) {
+      const key = slugify(node.name) || `radius-${node.id}`;
+      const value = `${cr}px`;
+      if (!Object.values(radii).includes(value)) {
+        radii[key] = value;
+      }
+    }
+
     for (const child of node.children) walk(child);
   }
 
@@ -91,7 +103,7 @@ export function extractDesignTokens(tree: DesignTree): DesignTokens {
     for (const child of page.children) walk(child);
   }
 
-  return { colors, typography, spacing, shadows };
+  return { colors, typography, spacing, shadows, radii };
 }
 
 /**
@@ -116,6 +128,10 @@ export function tokensToCss(tokens: DesignTokens): string {
 
   for (const [name, value] of Object.entries(tokens.shadows)) {
     lines.push(`  --shadow-${name}: ${value};`);
+  }
+
+  for (const [name, value] of Object.entries(tokens.radii)) {
+    lines.push(`  --radius-${name}: ${value};`);
   }
 
   lines.push("}");
@@ -146,7 +162,12 @@ export function tokensToTailwindExtend(tokens: DesignTokens): Record<string, unk
     boxShadow[name] = value;
   }
 
-  return { colors, fontSize, spacing, boxShadow };
+  const borderRadius: Record<string, string> = {};
+  for (const [name, value] of Object.entries(tokens.radii)) {
+    borderRadius[name] = value;
+  }
+
+  return { colors, fontSize, spacing, boxShadow, borderRadius };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────

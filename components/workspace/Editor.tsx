@@ -6,7 +6,13 @@ import { useTabs } from "@/lib/store/tabs";
 import { useEffect, useRef, useCallback } from "react";
 import type { editor } from "monaco-editor";
 
-export function CodeEditor({ projectId }: { projectId: string }) {
+interface CodeEditorProps {
+  projectId: string;
+  onCursorChange?: (e: editor.ICursorPositionChangedEvent) => void;
+  onContentChange?: (e: editor.IModelContentChangedEvent) => void;
+}
+
+export function CodeEditor({ projectId, onCursorChange, onContentChange }: CodeEditorProps) {
   const { content, updateContent, saveFile, loadFile } = useEditor();
   const { activeFile } = useTabs();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -34,9 +40,18 @@ export function CodeEditor({ projectId }: { projectId: string }) {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
+    if (onCursorChange) {
+      const disposable = editor.onDidChangeCursorPosition(onCursorChange);
+      editor.onDidDispose(() => disposable.dispose());
+    }
+    if (onContentChange) {
+      const disposable = editor.onDidChangeModelContent(onContentChange);
+      editor.onDidDispose(() => disposable.dispose());
+    }
+
     // Monaco affiche automatiquement les marqueurs d'erreur via la validation du modèle
     // Les options renderValidationDecorations: "on" ci-dessous activent l'affichage
-  }, []);
+  }, [onCursorChange, onContentChange]);
 
   if (!activeFile) {
     return (
