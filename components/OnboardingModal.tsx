@@ -30,6 +30,12 @@ const steps = [
     description:
       "Prévisualisez vos modifications en temps réel et déployez votre application en un clic.",
   },
+  {
+    icon: "🎨",
+    title: "Éditeur visuel & Import Figma",
+    description:
+      "Construisez vos interfaces par glisser-déposer sans écrire une ligne de code. Importez directement vos designs Figma pour les transformer en applications fonctionnelles.",
+  },
 ];
 
 export default function OnboardingModal() {
