@@ -20,7 +20,7 @@ const PAWAPAY_API_KEY = process.env.PAWAPAY_API_KEY;
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
   if (!clerkId) {
-    return new Response("Non autorisé", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { plan, phoneNumber, currency: rawCurrency, country: rawCountry } = await req.json();
@@ -35,19 +35,19 @@ export async function POST(req: Request) {
   const selectedPlan = PLANS[plan as PlanId];
   if (!selectedPlan || plan === "free") {
     return NextResponse.json(
-      { error: "Plan invalide. Options : pro, enterprise" },
+      { error: "Invalid plan. Options: pro, enterprise" },
       { status: 400 }
     );
   }
 
   if (!phoneNumber || typeof phoneNumber !== "string") {
     return NextResponse.json(
-      { error: "Numéro de téléphone requis" },
+      { error: "Phone number is required" },
       { status: 400 }
     );
   }
 
-  // Récupérer l'utilisateur
+  // Look up the user
   const [user] = await db
     .select()
     .from(users)
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     .limit(1);
 
   if (!user) {
-    return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   const depositId = crypto.randomUUID();
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     process.env.PAWAPAY_CORRESPONDENT ??
     "MTN_MOMO_COD";
 
-  // Enregistrer la tentative de paiement
+  // Record the payment attempt
   await db.insert(creditPurchases).values({
     userId: user.id,
     creditsAmount: selectedPlan.credits,
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     rawPayload: { depositId, phoneNumber, plan, country, localAmount, usdAmount: selectedPlan.priceUsd },
   });
 
-  // Enregistrer l'événement de billing
+  // Record the billing event
   await db.insert(billingEvents).values({
     userId: user.id,
     provider: "pawapay",
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     rawPayload: { depositId, phoneNumber, plan, country, localAmount, usdAmount: selectedPlan.priceUsd },
   });
 
-  // Appel PawaPay API (si clé configurée)
+  // Call PawaPay API (if key is configured)
   if (PAWAPAY_API_KEY) {
     try {
       const response = await fetch(`${PAWAPAY_API_URL}/deposits`, {
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 
       if (!response.ok) {
         return NextResponse.json(
-          { error: "Erreur PawaPay", details: data },
+          { error: "PawaPay error", details: data },
           { status: 502 }
         );
       }
@@ -126,20 +126,20 @@ export async function POST(req: Request) {
         success: true,
         depositId,
         status: "pending",
-        message: "Paiement initié. Confirmez sur votre téléphone.",
+        message: "Payment initiated. Confirm on your phone.",
         plan,
         credits: selectedPlan.credits,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur réseau";
+      const message = err instanceof Error ? err.message : "Network error";
       return NextResponse.json(
-        { error: "Impossible de contacter PawaPay", details: message },
+        { error: "Unable to contact PawaPay", details: message },
         { status: 502 }
       );
     }
   }
 
-  // Mode démo (sans clé PawaPay) : créditer directement
+  // Demo mode (without PawaPay key): credit directly
   const [existingSub] = await db
     .select()
     .from(subscriptions)
@@ -174,7 +174,7 @@ export async function POST(req: Request) {
     success: true,
     depositId,
     status: "completed",
-    message: "Crédits ajoutés (mode démo).",
+    message: "Credits added (demo mode).",
     plan,
     credits: selectedPlan.credits,
   });

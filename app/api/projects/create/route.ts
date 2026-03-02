@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { randomUUID } from "crypto";
 import { ensureUserExists } from "@/lib/ensure-user";
+import logger from "@/lib/logger";
 
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
-      console.error("[projects/create] Unauthorized: no userId from Clerk");
+      logger.error("[projects/create] Unauthorized: no userId from Clerk");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
     const { name } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
-      console.error("[projects/create] Validation failed: name is missing or empty");
+      logger.error("[projects/create] Validation failed: name is missing or empty");
       return NextResponse.json({ error: "Project name is required" }, { status: 400 });
     }
 
@@ -28,11 +29,7 @@ export async function POST(req: Request) {
     const now = new Date().toISOString();
     const id = randomUUID();
 
-    console.log("[projects/create] Inserting into table 'projects' (lowercase):", {
-      id,
-      user_id: userId,
-      name: name.trim(),
-    });
+    logger.info({ id, userId, name: name.trim() }, "[projects/create] Inserting into table 'projects'");
 
     const { data, error } = await supabase
       .from("projects")
@@ -47,15 +44,15 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("[projects/create] Supabase insert error on table 'projects':", error);
+      logger.error({ error }, "[projects/create] Supabase insert error on table 'projects'");
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    console.log("[projects/create] Successfully inserted into 'projects' table:", data?.id);
+    logger.info({ projectId: data?.id }, "[projects/create] Successfully inserted into 'projects' table");
 
     return NextResponse.json({ project: data });
   } catch (err) {
-    console.error("[projects/create] Unexpected error:", err);
+    logger.error({ err }, "[projects/create] Unexpected error");
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

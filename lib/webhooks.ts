@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { db } from "@/db/client";
 import { webhookLogs, webhookConfigs } from "@/db/schema";
 import { eq, and, lte } from "drizzle-orm";
+import logger from "@/lib/logger";
 
 const MAX_ATTEMPTS = 5;
 
@@ -75,7 +76,10 @@ export async function deliverWebhook(
 
     clearTimeout(timeout);
 
-    const responseText = await res.text().catch(() => "");
+    const responseText = await res.text().catch((err) => {
+      logger.warn({ logId, error: err }, "Failed to read webhook response body");
+      return "";
+    });
 
     if (res.ok) {
       await db

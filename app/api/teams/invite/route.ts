@@ -7,24 +7,24 @@ import { eq, and } from "drizzle-orm";
 // POST /api/teams/invite — Invite a member to a team
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!user) return new Response("Utilisateur introuvable", { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { teamId, email, role } = await req.json();
 
   if (!teamId || !email) {
-    return new Response("L'identifiant de l'équipe et l'email sont requis", { status: 400 });
+    return NextResponse.json({ error: "Team ID and email are required" }, { status: 400 });
   }
 
   const memberRole = role || "member";
   if (!["admin", "member"].includes(memberRole)) {
-    return new Response("Rôle invalide. Utilisez 'admin' ou 'member'", { status: 400 });
+    return NextResponse.json({ error: "Invalid role. Use 'admin' or 'member'" }, { status: 400 });
   }
 
   // Verify the team exists and the user is owner or admin
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     .from(teams)
     .where(eq(teams.id, teamId))
     .limit(1);
-  if (!team) return new Response("Équipe introuvable", { status: 404 });
+  if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
   // Allow if the user is the team owner directly
   const isTeamOwner = team.ownerId === user.id;
@@ -48,8 +48,8 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
-      return new Response(
-        "Seuls les propriétaires et administrateurs peuvent inviter des membres",
+      return NextResponse.json(
+        { error: "Only owners and admins can invite members" },
         { status: 403 }
       );
     }
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     )
     .limit(1);
   if (existing) {
-    return new Response("Ce membre est déjà invité", { status: 409 });
+    return NextResponse.json({ error: "This member is already invited" }, { status: 409 });
   }
 
   // Resolve invited user if they already exist

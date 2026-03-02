@@ -64,10 +64,14 @@ export function deleteNode(vfs: VFS, path: string): VFS {
 // -----------------------------
 export function renameNode(vfs: VFS, oldPath: string, newPath: string): VFS {
   const newVfs = { ...vfs };
+  const newName = newPath.split("/").pop();
+  if (!newName) {
+    throw new Error(`Invalid path: ${newPath}`);
+  }
 
   newVfs[newPath] = {
     ...newVfs[oldPath],
-    name: newPath.split("/").pop()!, // ✔️ garde juste le nom
+    name: newName,
   };
 
   delete newVfs[oldPath];

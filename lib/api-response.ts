@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 
-export interface ApiEnvelope<T = unknown> {
-  ok: boolean;
-  data?: T;
-  error?: string;
-}
+export type ApiEnvelope<T = unknown> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
 
 export function apiOk<T>(data: T, status = 200) {
   return NextResponse.json({ ok: true, data } satisfies ApiEnvelope<T>, { status });

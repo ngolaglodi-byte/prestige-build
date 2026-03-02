@@ -1,6 +1,7 @@
 // app/api/projects/[projectId]/deploy/status/route.ts
 // GET /api/projects/[projectId]/deploy/status — SSE stream of deploy state.
 
+import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getDeployState } from "@/lib/deploy/deployRegistry";
 import logger from "@/lib/logger";
@@ -13,7 +14,7 @@ export async function GET(
   { params }: { params: { projectId: string } }
 ) {
   const { userId } = await auth();
-  if (!userId) return new Response("Non autorisé", { status: 401 });
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { projectId } = params;
   const encoder = new TextEncoder();

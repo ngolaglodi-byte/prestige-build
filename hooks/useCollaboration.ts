@@ -18,7 +18,7 @@ export interface RemoteCursor {
 export interface CollabEdit {
   userId: string;
   fileId: string;
-  changes: unknown;
+  changes: { range?: { start: number; end: number }; text: string };
 }
 
 interface UseCollaborationOptions {
@@ -132,7 +132,7 @@ export function useCollaboration({
   );
 
   const sendEdit = useCallback(
-    (fileId: string, changes: unknown) => {
+    (fileId: string, changes: CollabEdit["changes"]) => {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(
           JSON.stringify({

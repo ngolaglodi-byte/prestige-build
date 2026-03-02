@@ -45,7 +45,7 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Non autorisé", { status: 401 });
+    if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
     const body = await req.json();

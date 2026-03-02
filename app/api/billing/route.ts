@@ -8,7 +8,7 @@ import { getPlan } from "@/lib/billing/plans";
 
 export async function GET() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
   if (!user) {

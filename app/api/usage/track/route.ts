@@ -21,7 +21,7 @@ const ALLOWED_ACTIONS = [
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { action, projectId, metadata } = await req.json();
 
