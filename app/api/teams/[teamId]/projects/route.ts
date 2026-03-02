@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const { teamId } = await params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
@@ -34,7 +34,7 @@ export async function GET(
     )
     .limit(1);
   if (!callerMember) {
-    return new Response("Accès refusé", { status: 403 });
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   const teamProjectList = await db
@@ -55,14 +55,14 @@ export async function POST(
 ) {
   const { teamId } = await params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!user) return new Response("Utilisateur introuvable", { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   // Verify the caller is owner or admin
   const [callerMember] = await db
@@ -73,14 +73,11 @@ export async function POST(
     )
     .limit(1);
   if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
-    return new Response(
-      "Seuls les propriétaires et administrateurs peuvent ajouter des projets",
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Only owners and admins can add projects" }, { status: 403 });
   }
 
   const { projectId } = await req.json();
-  if (!projectId) return new Response("ID du projet requis", { status: 400 });
+  if (!projectId) return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
 
   // Check if already added
   const [existing] = await db
@@ -94,7 +91,7 @@ export async function POST(
     )
     .limit(1);
   if (existing) {
-    return new Response("Projet déjà ajouté à cette équipe", { status: 409 });
+    return NextResponse.json({ error: "Project already added to this team" }, { status: 409 });
   }
 
   const [tp] = await db

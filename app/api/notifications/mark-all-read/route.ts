@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 export async function PATCH() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()

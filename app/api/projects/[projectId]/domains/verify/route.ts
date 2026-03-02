@@ -14,7 +14,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   const { domainId } = await req.json();
 
   if (!domainId) {
-    return NextResponse.json({ error: "ID du domaine requis" }, { status: 400 });
+    return NextResponse.json({ error: "Domain ID is required" }, { status: 400 });
   }
 
   const [domain] = await db
@@ -23,7 +23,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     .where(and(eq(domains.id, domainId), eq(domains.projectId, projectId)));
 
   if (!domain) {
-    return NextResponse.json({ error: "Domaine introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Domain not found" }, { status: 404 });
   }
 
   if (domain.type === "subdomain") {
@@ -49,9 +49,9 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   } catch (err: unknown) {
     const code = (err as NodeJS.ErrnoException).code;
     if (code === "ENOTFOUND" || code === "ENODATA") {
-      message = `Aucun enregistrement CNAME trouvé pour ${domain.host}. Ajoutez un CNAME pointant vers ${cnameTarget}`;
+      message = `No CNAME record found for ${domain.host}. Add a CNAME pointing to ${cnameTarget}`;
     } else {
-      message = `Erreur lors de la vérification DNS. Veuillez réessayer plus tard.`;
+      message = `DNS verification error. Please try again later.`;
     }
   }
 

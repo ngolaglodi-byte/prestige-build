@@ -12,7 +12,7 @@ import logger from "@/lib/logger";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 const RemixBody = z.object({
-  newProjectName: z.string().min(1, "Nom du projet requis").max(255).optional(),
+  newProjectName: z.string().min(1, "Project name is required").max(255).optional(),
 });
 
 export async function POST(
@@ -21,17 +21,17 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:remix:${clerkId}`, 10, 3_600_000);
-    if (!rl.success) return apiError("Trop de remixes", 429);
+    if (!rl.success) return apiError("Too many remixes", 429);
 
     const { id: showcaseId } = params;
 
     const body = await req.json().catch(() => ({}));
     const parsed = RemixBody.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message ?? "Données invalides", 422);
+      return apiError(parsed.error.errors[0]?.message ?? "Invalid data", 422);
     }
 
     // Resolve Clerk ID
@@ -41,7 +41,7 @@ export async function POST(
       .where(eq(users.clerkId, clerkId))
       .limit(1);
 
-    if (!userRows.length) return apiError("Utilisateur introuvable", 404);
+    if (!userRows.length) return apiError("User not found", 404);
     const userId = userRows[0].id;
 
     // Fetch original showcase project
@@ -51,7 +51,7 @@ export async function POST(
       .where(eq(showcaseProjects.id, showcaseId))
       .limit(1);
 
-    if (!showcase.length) return apiError("Projet showcase introuvable", 404);
+    if (!showcase.length) return apiError("Showcase project not found", 404);
     const originalShowcase = showcase[0];
 
     // Fetch files from original project
@@ -78,7 +78,7 @@ export async function POST(
 
     if (projectError || !newProject) {
       logger.error({ projectError }, "Failed to create remix project");
-      return apiError("Impossible de créer le projet remix", 500);
+      return apiError("Failed to create remix project", 500);
     }
 
     const newProjectId: string = newProject.id;
@@ -112,7 +112,7 @@ export async function POST(
     }, 201);
   } catch (err) {
     logger.error({ err }, "Showcase remix error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

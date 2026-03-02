@@ -21,14 +21,14 @@ export async function GET(
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "Template introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "Template not found." }, { status: 404 });
   }
 
   // Only allow access to public templates or own templates
   if (!data.is_public) {
     const { userId } = await auth();
     if (!userId || data.user_id !== userId) {
-      return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
   }
 

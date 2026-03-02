@@ -11,7 +11,7 @@ export async function GET(
 ) {
   const { teamId } = await params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
@@ -38,7 +38,7 @@ export async function GET(
       )
       .limit(1);
     if (!callerMember) {
-      return new Response("Accès refusé", { status: 403 });
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
   }
 
@@ -57,17 +57,17 @@ export async function DELETE(
 ) {
   const { teamId } = await params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!user) return new Response("Utilisateur introuvable", { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { memberId } = await req.json();
-  if (!memberId) return new Response("ID du membre requis", { status: 400 });
+  if (!memberId) return NextResponse.json({ error: "Member ID is required" }, { status: 400 });
 
   // Verify the caller is owner or admin
   const [team] = await db
@@ -88,10 +88,7 @@ export async function DELETE(
       .limit(1);
 
     if (!callerMember || !["owner", "admin"].includes(callerMember.role)) {
-      return new Response(
-        "Seuls les propriétaires et administrateurs peuvent retirer des membres",
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Only owners and admins can remove members" }, { status: 403 });
     }
   }
 
@@ -102,7 +99,7 @@ export async function DELETE(
     .where(eq(teamMembers.id, memberId))
     .limit(1);
   if (targetMember?.role === "owner") {
-    return new Response("Impossible de retirer le propriétaire", { status: 403 });
+    return NextResponse.json({ error: "Cannot remove the owner" }, { status: 403 });
   }
 
   await db.delete(teamMembers).where(eq(teamMembers.id, memberId));

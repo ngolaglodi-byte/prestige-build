@@ -12,8 +12,8 @@ import { apiOk, apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";
 
 const SubmitBody = z.object({
-  projectId: z.string().uuid("ID projet invalide"),
-  title: z.string().min(1, "Titre requis").max(255),
+  projectId: z.string().uuid("Invalid project ID"),
+  title: z.string().min(1, "Title is required").max(255),
   description: z.string().max(5000).optional(),
   shortDescription: z.string().max(255).optional(),
   thumbnailUrl: z.string().url().optional(),
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     logger.error({ err }, "Showcase GET error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }
@@ -90,15 +90,15 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:submit:${clerkId}`, 5, 3_600_000);
-    if (!rl.success) return apiError("Trop de soumissions", 429);
+    if (!rl.success) return apiError("Too many submissions", 429);
 
     const body = await req.json();
     const parsed = SubmitBody.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message ?? "Données invalides", 422);
+      return apiError(parsed.error.errors[0]?.message ?? "Invalid data", 422);
     }
 
     // Resolve Clerk ID to internal user
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       .where(eq(users.clerkId, clerkId))
       .limit(1);
 
-    if (!userRows.length) return apiError("Utilisateur introuvable", 404);
+    if (!userRows.length) return apiError("User not found", 404);
     const userId = userRows[0].id;
 
     const data = parsed.data;
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
     return apiOk(created, 201);
   } catch (err) {
     logger.error({ err }, "Showcase POST error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

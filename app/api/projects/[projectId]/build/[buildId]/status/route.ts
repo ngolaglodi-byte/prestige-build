@@ -13,7 +13,7 @@ export async function GET(
     const build = getBuild(buildId);
 
     if (!build) {
-      return Response.json({ error: "Build introuvable" }, { status: 404 });
+      return Response.json({ error: "Build not found" }, { status: 404 });
     }
 
     return Response.json({
@@ -27,6 +27,6 @@ export async function GET(
       completedAt: build.completedAt ?? null,
     });
   } catch {
-    return Response.json({ error: "Erreur interne" }, { status: 500 });
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }

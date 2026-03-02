@@ -12,7 +12,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   const { domainId } = await req.json();
 
   if (!domainId) {
-    return NextResponse.json({ error: "ID du domaine requis" }, { status: 400 });
+    return NextResponse.json({ error: "Domain ID is required" }, { status: 400 });
   }
 
   const [domain] = await db
@@ -21,12 +21,12 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     .where(and(eq(domains.id, domainId), eq(domains.projectId, projectId)));
 
   if (!domain) {
-    return NextResponse.json({ error: "Domaine introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Domain not found" }, { status: 404 });
   }
 
   if (!domain.verified) {
     return NextResponse.json(
-      { error: "Le domaine doit être vérifié avant de générer un certificat SSL" },
+      { error: "Domain must be verified before generating an SSL certificate" },
       { status: 400 }
     );
   }

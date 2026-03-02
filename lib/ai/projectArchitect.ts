@@ -310,7 +310,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
-        .expect("Erreur lors du lancement de l'application Tauri");
+        .expect("Error launching the Tauri application");
 }`,
         },
       ];

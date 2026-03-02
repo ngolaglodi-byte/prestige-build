@@ -2,6 +2,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { randomUUID } from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getPlan } from "@/lib/billing/plans";
+import logger from "@/lib/logger";
 
 /**
  * Ensures a user exists in the Supabase `users` table.
@@ -29,10 +30,10 @@ export async function ensureUserExists(
   // User not found — fetch from Clerk and create
   if (lookupError && lookupError.code !== "PGRST116") {
     // PGRST116 = "no rows returned", any other error is unexpected
-    console.error("[ensureUserExists] Unexpected error looking up user:", lookupError);
+    logger.error({ clerkId, error: lookupError }, "[ensureUserExists] Unexpected error looking up user");
   }
 
-  console.warn("[ensureUserExists] User not found for clerkId, creating:", clerkId);
+  logger.warn({ clerkId }, "[ensureUserExists] User not found, creating");
 
   const client = await clerkClient();
   const clerkUser = await client.users.getUser(clerkId);
@@ -57,7 +58,7 @@ export async function ensureUserExists(
   if (userInsertError) {
     // Handle race condition: another request may have created the user concurrently
     if (userInsertError.code === "23505") {
-      console.warn("[ensureUserExists] Race condition — user already exists, re-fetching");
+      logger.warn({ clerkId }, "[ensureUserExists] Race condition — user already exists, re-fetching");
       const { data: raceUser, error: raceError } = await supabase
         .from("users")
         .select("id, email, name, role")
@@ -72,7 +73,7 @@ export async function ensureUserExists(
     throw new Error(`[ensureUserExists] Failed to create user: ${userInsertError.message}`);
   }
 
-  console.log("[ensureUserExists] User inserted:", userId);
+  logger.info({ userId }, "[ensureUserExists] User inserted");
 
   // 2. Ensure "free" plan exists in "plans" table
   const { data: existingPlan } = await supabase
@@ -147,7 +148,7 @@ export async function ensureUserExists(
     throw new Error(`[ensureUserExists] Failed to create subscription: ${subError.message}`);
   }
 
-  console.log("[ensureUserExists] User created with FREE plan and default limits:", userId);
+  logger.info({ userId }, "[ensureUserExists] User created with FREE plan and default limits");
 
   return { id: userId, email, name, role: "user" };
 }

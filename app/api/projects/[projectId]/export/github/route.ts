@@ -9,10 +9,10 @@ import logger from "@/lib/logger";
 import { exportToGitHub } from "@/lib/github/exporter";
 
 const RequestBody = z.object({
-  repoName: z.string().min(1, "Nom du repo requis").max(100),
+  repoName: z.string().min(1, "Repository name is required").max(100),
   repoDescription: z.string().max(255).optional(),
   isPrivate: z.boolean().optional().default(false),
-  githubToken: z.string().min(1, "Token GitHub requis"),
+  githubToken: z.string().min(1, "GitHub token is required"),
   branch: z.string().optional().default("main"),
   commitMessage: z.string().optional(),
 });
@@ -23,15 +23,15 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return apiError("Non autorisé", 401);
+    if (!userId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`github:export:${userId}`, 10, 60_000);
-    if (!rl.success) return apiError("Trop de requêtes", 429);
+    if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
     const parsed = RequestBody.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message ?? "Données invalides", 422);
+      return apiError(parsed.error.errors[0]?.message ?? "Invalid data", 422);
     }
 
     const { projectId } = params;
@@ -52,7 +52,7 @@ export async function POST(
     return apiOk(result);
   } catch (err) {
     logger.error({ err }, "GitHub export unexpected error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

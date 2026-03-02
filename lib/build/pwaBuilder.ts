@@ -110,7 +110,7 @@ export async function buildPwa(
 
   if (!outDir) {
     throw new Error(
-      "Dossier de sortie introuvable (out, dist, build, .next)"
+      "Output directory not found (out, dist, build, .next)"
     );
   }
 

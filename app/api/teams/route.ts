@@ -7,7 +7,7 @@ import { eq, or } from "drizzle-orm";
 // GET /api/teams — List teams where the user is owner or accepted member
 export async function GET() {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()

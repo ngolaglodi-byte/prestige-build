@@ -15,10 +15,10 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:like:${clerkId}`, 60, 60_000);
-    if (!rl.success) return apiError("Trop de requêtes", 429);
+    if (!rl.success) return apiError("Too many requests", 429);
 
     const { id: showcaseId } = params;
 
@@ -29,7 +29,7 @@ export async function POST(
       .where(eq(users.clerkId, clerkId))
       .limit(1);
 
-    if (!userRows.length) return apiError("Utilisateur introuvable", 404);
+    if (!userRows.length) return apiError("User not found", 404);
     const userId = userRows[0].id;
 
     // Check showcase exists
@@ -39,7 +39,7 @@ export async function POST(
       .where(eq(showcaseProjects.id, showcaseId))
       .limit(1);
 
-    if (!showcase.length) return apiError("Projet introuvable", 404);
+    if (!showcase.length) return apiError("Project not found", 404);
 
     // Check existing like
     const existing = await db
@@ -85,7 +85,7 @@ export async function POST(
     return apiOk({ liked, likes: updated[0]?.likes ?? 0 });
   } catch (err) {
     logger.error({ err }, "Showcase like error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

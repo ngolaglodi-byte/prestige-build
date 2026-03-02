@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const available = provider.getAvailableModels();
   if (available.length === 0) {
     return NextResponse.json(
-      { error: "Aucun fournisseur IA configuré" },
+      { error: "No AI provider configured" },
       { status: 503 }
     );
   }
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
   if (!projectId || !filePath || !instructions) {
     return NextResponse.json(
-      { error: "projectId, filePath et instructions sont requis" },
+      { error: "projectId, filePath, and instructions are required" },
       { status: 400 }
     );
   }
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   const pathErrors = validatePath(filePath);
   if (pathErrors.length > 0) {
     return NextResponse.json(
-      { error: `Chemin invalide : ${pathErrors.join(", ")}` },
+      { error: `Invalid path: ${pathErrors.join(", ")}` },
       { status: 400 }
     );
   }
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const hasCredits = await checkCredits(userId, CREDITS_COST);
   if (!hasCredits) {
     return NextResponse.json(
-      { error: "Crédits insuffisants" },
+      { error: "Insufficient credits" },
       { status: 402 }
     );
   }
@@ -96,7 +96,7 @@ ${instructions}`;
       model: usedModel,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur IA inconnue";
+    const message = err instanceof Error ? err.message : "Unknown AI error";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

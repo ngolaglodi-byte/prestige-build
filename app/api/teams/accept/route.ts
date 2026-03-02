@@ -7,18 +7,18 @@ import { eq, and } from "drizzle-orm";
 // POST /api/teams/accept — Accept a team invitation
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!user) return new Response("Utilisateur introuvable", { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { memberId } = await req.json();
   if (!memberId) {
-    return new Response("L'identifiant de l'invitation est requis", { status: 400 });
+    return NextResponse.json({ error: "Invitation ID is required" }, { status: 400 });
   }
 
   // Find the pending invitation
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     .limit(1);
 
   if (!invitation) {
-    return new Response("Invitation introuvable ou déjà acceptée", { status: 404 });
+    return NextResponse.json({ error: "Invitation not found or already accepted" }, { status: 404 });
   }
 
   // Accept the invitation

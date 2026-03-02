@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const signature = req.headers.get("x-pawapay-signature") ?? "";
     if (signature !== PAWAPAY_WEBHOOK_SECRET) {
       return NextResponse.json(
-        { error: "Signature invalide" },
+        { error: "Invalid signature" },
         { status: 401 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   if (!depositId || !status) {
     return NextResponse.json(
-      { error: "Données manquantes" },
+      { error: "Missing data" },
       { status: 400 }
     );
   }
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
   if (!purchase) {
     return NextResponse.json(
-      { error: "Achat introuvable" },
+      { error: "Purchase not found" },
       { status: 404 }
     );
   }
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(
-    { error: "Statut non supporté" },
+    { error: "Unsupported status" },
     { status: 400 }
   );
 }

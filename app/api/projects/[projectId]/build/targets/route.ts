@@ -21,6 +21,6 @@ export async function GET(
       allTargets: result.availableTargets,
     });
   } catch {
-    return Response.json({ error: "Erreur interne" }, { status: 500 });
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }

@@ -7,18 +7,18 @@ import { eq } from "drizzle-orm";
 // POST /api/teams/create — Create a new team
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Non autorisé", { status: 401 });
+  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  if (!user) return new Response("Utilisateur introuvable", { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { name } = await req.json();
   if (!name || typeof name !== "string" || !name.trim()) {
-    return new Response("Le nom de l'équipe est requis", { status: 400 });
+    return NextResponse.json({ error: "Team name is required" }, { status: 400 });
   }
 
   const [team] = await db

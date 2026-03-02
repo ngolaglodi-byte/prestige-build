@@ -14,13 +14,13 @@ export async function POST(
 
     if (!cancelled) {
       return Response.json(
-        { error: "Build introuvable ou déjà terminé" },
+        { error: "Build not found or already completed" },
         { status: 404 }
       );
     }
 
     return Response.json({ ok: true, buildId, status: "cancelled" });
   } catch {
-    return Response.json({ error: "Erreur interne" }, { status: 500 });
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }

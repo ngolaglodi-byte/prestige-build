@@ -43,7 +43,7 @@ const openApiSpec = {
         security: [{ clerk: [] }],
         responses: {
           "200": { description: "Données utilisateur" },
-          "401": { description: "Non autorisé" },
+          "401": { description: "Unauthorized" },
         },
       },
     },
@@ -59,7 +59,7 @@ const openApiSpec = {
         ],
         responses: {
           "200": { description: "Liste des projets" },
-          "401": { description: "Non autorisé" },
+          "401": { description: "Unauthorized" },
         },
       },
     },
@@ -85,7 +85,7 @@ const openApiSpec = {
         },
         responses: {
           "200": { description: "Projet créé" },
-          "401": { description: "Non autorisé" },
+          "401": { description: "Unauthorized" },
         },
       },
     },
@@ -114,9 +114,9 @@ const openApiSpec = {
         },
         responses: {
           "200": { description: "Code généré" },
-          "401": { description: "Non autorisé" },
-          "422": { description: "Entrée invalide" },
-          "429": { description: "Trop de requêtes" },
+          "401": { description: "Unauthorized" },
+          "422": { description: "Invalid input" },
+          "429": { description: "Too many requests" },
         },
       },
     },

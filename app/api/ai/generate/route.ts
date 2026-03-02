@@ -12,13 +12,13 @@ const provider = new AIProvider();
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const available = provider.getAvailableModels();
   if (available.length === 0) {
     return NextResponse.json(
-      { error: "Aucun fournisseur IA configuré" },
+      { error: "No AI provider configured" },
       { status: 503 }
     );
   }
@@ -26,37 +26,37 @@ export async function POST(req: Request) {
   const { prompt, code, projectId, model: requestedModel } = await req.json();
 
   /* ---------------------------------------------------------
-   * 1. Détecter la complexité
+   * 1. Detect complexity
    * --------------------------------------------------------- */
   const complexity = estimateComplexity(prompt, code);
   const { maxTokens, creditCost } = tokenRules[complexity];
 
   /* ---------------------------------------------------------
-   * 1b. Vérifier la limite de générations IA du plan
+   * 1b. Check AI generation limit for the plan
    * --------------------------------------------------------- */
   const genLimit = await checkAIGenerationLimit(userId);
   if (!genLimit.allowed) {
     return NextResponse.json(
       {
-        error: `Limite de générations IA atteinte (${genLimit.used}/${genLimit.limit} ce mois-ci)`,
+        error: `AI generation limit reached (${genLimit.used}/${genLimit.limit} this month)`,
       },
       { status: 429 }
     );
   }
 
   /* ---------------------------------------------------------
-   * 2. Vérifier crédits
+   * 2. Check credits
    * --------------------------------------------------------- */
   const hasCredits = await checkCredits(userId, creditCost);
   if (!hasCredits) {
     return NextResponse.json(
-      { error: "Crédits insuffisants" },
+      { error: "Insufficient credits" },
       { status: 402 }
     );
   }
 
   /* ---------------------------------------------------------
-   * 3. Consommer crédits
+   * 3. Consume credits
    * --------------------------------------------------------- */
   await consumeCredits({
     userId,
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
   });
 
   /* ---------------------------------------------------------
-   * 4. Appel IA multi-provider avec fallback et retry
+   * 4. AI call with multi-provider fallback and retry
    * --------------------------------------------------------- */
   const preferredModel: AIModel = requestedModel ?? provider.resolveModel("gpt");
 
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     );
 
     /* ---------------------------------------------------------
-     * 5. Réponse finale
+     * 5. Final response
      * --------------------------------------------------------- */
     return NextResponse.json({
       result,
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
       model: usedModel,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur IA inconnue";
+    const message = err instanceof Error ? err.message : "Unknown AI error";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

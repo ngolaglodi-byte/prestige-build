@@ -35,10 +35,10 @@ Sois précis, direct et pédagogique.`;
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    if (!userId) return apiError("Non autorisé", 401);
+    if (!userId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`chat:${userId}`, 30, 60_000);
-    if (!rl.success) return apiError("Trop de requêtes", 429);
+    if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
     const parsed = RequestBody.safeParse(body);
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
         } catch (err) {
           logger.error({ err }, "AI chat stream error");
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: "Erreur de streaming" })}\n\n`)
+            encoder.encode(`data: ${JSON.stringify({ error: "Streaming error" })}\n\n`)
           );
           controller.close();
         }
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     logger.error({ err }, "AI chat unexpected error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

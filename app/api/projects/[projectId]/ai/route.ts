@@ -45,7 +45,7 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Non autorisé", { status: 401 });
+    if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
     const body = await req.json();
@@ -53,7 +53,7 @@ export async function POST(
 
     if (!prompt) {
       return NextResponse.json(
-        { ok: false, error: "Le prompt est requis." },
+        { ok: false, error: "Prompt is required." },
         { status: 400 }
       );
     }
@@ -175,9 +175,9 @@ export async function POST(
       creditsUsed: result.creditCost,
     });
   } catch (err) {
-    console.error("❌ Erreur d'orchestration IA :", err);
+    console.error("❌ AI orchestration error:", err);
     const message =
-      err instanceof Error ? err.message : "Erreur interne du serveur";
+      err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
       { ok: false, error: message },
       { status: 500 }

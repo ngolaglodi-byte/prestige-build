@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getCurrentUserId } from "@/lib/auth";
@@ -19,23 +19,23 @@ export async function GET(
     const expectedToken = generateDownloadToken(buildId, projectId);
 
     if (token && token !== expectedToken) {
-      return new Response("Token invalide", { status: 403 });
+      return NextResponse.json({ error: "Invalid token" }, { status: 403 });
     }
 
     const build = getBuild(buildId);
 
     if (!build) {
-      return new Response("Build introuvable", { status: 404 });
+      return NextResponse.json({ error: "Build not found" }, { status: 404 });
     }
 
     if (build.status !== "success") {
-      return new Response("Build non terminé ou échoué", { status: 400 });
+      return NextResponse.json({ error: "Build not completed or failed" }, { status: 400 });
     }
 
     const artifactPath = getArtifactPath(projectId, buildId);
 
     if (!artifactPath || !fs.existsSync(artifactPath)) {
-      return new Response("Artefact introuvable", { status: 404 });
+      return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
     }
 
     const fileName = path.basename(artifactPath);
@@ -49,6 +49,6 @@ export async function GET(
       },
     });
   } catch {
-    return new Response("Erreur interne", { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

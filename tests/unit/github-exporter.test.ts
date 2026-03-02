@@ -104,7 +104,7 @@ describe("github-exporter", () => {
         repoName: "test-repo",
         githubToken: "valid-token",
       })
-    ).rejects.toThrow("Impossible de créer le repo");
+    ).rejects.toThrow("Unable to create GitHub repo");
 
     vi.unstubAllGlobals();
   });
