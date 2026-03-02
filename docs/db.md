@@ -106,3 +106,24 @@ npm run db:seed
 ---
 
 *Document maintenu par l'équipe Prestige Technologie Company.*
+
+## Séparation des schémas — Pourquoi `supabase-schema.ts` ne doit PAS être migré
+
+`drizzle.config.ts` ne référence que `./db/schema.ts`.
+Le fichier `db/supabase-schema.ts` est **volontairement exclu** de la configuration Drizzle Kit pour les raisons suivantes :
+
+1. **Propriété** — Les tables définies dans `supabase-schema.ts` (`projects`, `plans`, `user_plans`, `user_limits`, `subscriptions`) sont créées et gérées directement par Supabase (via son Dashboard ou ses migrations internes).
+2. **RLS** — Ces tables possèdent des Row Level Security policies gérées par Supabase. Les recréer ou les modifier via Drizzle Kit pourrait supprimer ou altérer ces policies.
+3. **Migrations** — `drizzle-kit generate` et `drizzle-kit migrate` ne doivent couvrir que les tables dont Drizzle est propriétaire (`db/schema.ts`). Exécuter une migration Drizzle sur des tables Supabase provoquerait des conflits de schéma.
+4. **Typage** — `supabase-schema.ts` existe uniquement pour permettre des requêtes typées via `drizzle-orm` dans le code applicatif. Le client Drizzle (`db/client.ts`) combine les deux schémas (`schema` + `supabaseSchema`) pour offrir un accès typé complet.
+
+### Règle
+
+> **Ne jamais ajouter `supabase-schema.ts` dans `drizzle.config.ts`.**
+> Si une nouvelle table doit être gérée par Drizzle, elle doit être ajoutée dans `db/schema.ts`.
+> Si une nouvelle table est gérée par Supabase, elle doit être ajoutée dans `db/supabase-schema.ts`.
+
+### Règle sur `lib/db.ts`
+
+> `lib/db.ts` est un **re-export** de `db/client.ts`. Il existe pour la compatibilité avec les anciens imports.
+> `db/client.ts` est la **source unique** du client Drizzle. Toute initialisation ou configuration du pool doit se faire dans ce fichier.
