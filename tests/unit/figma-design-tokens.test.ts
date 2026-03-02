@@ -199,6 +199,32 @@ describe("designTokens", () => {
       );
       expect(Object.keys(tokens.shadows)).toHaveLength(0);
     });
+
+    it("extracts radii from cornerRadius", () => {
+      const tokens = extractDesignTokens(
+        makeTree({
+          pages: [
+            {
+              id: "p1",
+              name: "Home",
+              children: [
+                {
+                  id: "n1",
+                  name: "Button",
+                  type: "FRAME",
+                  fills: [],
+                  opacity: 1,
+                  layoutInfo: { cornerRadius: 8 },
+                  children: [],
+                  isComponent: false,
+                },
+              ],
+            },
+          ],
+        })
+      );
+      expect(tokens.radii["button"]).toBe("8px");
+    });
   });
 
   describe("tokensToCss", () => {
@@ -208,6 +234,7 @@ describe("designTokens", () => {
         typography: {},
         spacing: {},
         shadows: {},
+        radii: {},
       });
       expect(css).toContain(":root {");
       expect(css).toContain("--color-primary: #6366F1");
@@ -219,6 +246,7 @@ describe("designTokens", () => {
         typography: { heading: { fontFamily: "Inter", fontSize: 20, fontWeight: 700 } },
         spacing: {},
         shadows: {},
+        radii: {},
       });
       expect(css).toContain("--font-heading: Inter");
       expect(css).toContain("--text-heading-size: 20px");
@@ -230,8 +258,20 @@ describe("designTokens", () => {
         typography: {},
         spacing: {},
         shadows: { card: "0px 4px 8px 0px #00000040" },
+        radii: {},
       });
       expect(css).toContain("--shadow-card: 0px 4px 8px 0px #00000040");
+    });
+
+    it("includes radii variables", () => {
+      const css = tokensToCss({
+        colors: {},
+        typography: {},
+        spacing: {},
+        shadows: {},
+        radii: { button: "8px" },
+      });
+      expect(css).toContain("--radius-button: 8px");
     });
   });
 
@@ -242,6 +282,7 @@ describe("designTokens", () => {
         typography: {},
         spacing: {},
         shadows: {},
+        radii: {},
       });
       expect(result.colors).toEqual({ accent: "#EC4899" });
     });
@@ -252,6 +293,7 @@ describe("designTokens", () => {
         typography: { body: { fontFamily: "Inter", fontSize: 16, fontWeight: 400 } },
         spacing: {},
         shadows: {},
+        radii: {},
       });
       expect((result.fontSize as Record<string, string>).body).toBe("16px");
     });
@@ -262,8 +304,20 @@ describe("designTokens", () => {
         typography: {},
         spacing: {},
         shadows: { card: "0px 4px 8px 0px #000000" },
+        radii: {},
       });
       expect((result.boxShadow as Record<string, string>).card).toBe("0px 4px 8px 0px #000000");
+    });
+
+    it("returns borderRadius from radii", () => {
+      const result = tokensToTailwindExtend({
+        colors: {},
+        typography: {},
+        spacing: {},
+        shadows: {},
+        radii: { button: "8px" },
+      });
+      expect((result.borderRadius as Record<string, string>).button).toBe("8px");
     });
   });
 });
