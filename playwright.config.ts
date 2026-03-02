@@ -9,10 +9,13 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   reporter: "html",
+  timeout: 30_000,
+  expect: { timeout: 10_000 },
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    navigationTimeout: 15_000,
   },
   webServer: {
     command: isCI ? "npm run start" : "npm run dev",
