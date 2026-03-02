@@ -115,7 +115,7 @@ const openApiSpec = {
         responses: {
           "200": { description: "Code généré" },
           "401": { description: "Unauthorized" },
-          "422": { description: "Entrée invalide" },
+          "422": { description: "Invalid input" },
           "429": { description: "Trop de requêtes" },
         },
       },

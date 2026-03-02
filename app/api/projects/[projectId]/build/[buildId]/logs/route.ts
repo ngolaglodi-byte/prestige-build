@@ -13,7 +13,7 @@ export async function GET(
     const build = getBuild(buildId);
 
     if (!build) {
-      return Response.json({ error: "Build introuvable" }, { status: 404 });
+      return Response.json({ error: "Build not found" }, { status: 404 });
     }
 
     // SSE stream of logs

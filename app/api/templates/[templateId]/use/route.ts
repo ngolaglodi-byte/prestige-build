@@ -16,7 +16,7 @@ export async function POST(
 
   if (!projectName) {
     return NextResponse.json(
-      { error: "Le nom du projet est requis." },
+      { error: "Project name is required." },
       { status: 400 }
     );
   }
@@ -34,12 +34,12 @@ export async function POST(
     .single();
 
   if (templateError || !template) {
-    return NextResponse.json({ error: "Template introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "Template not found." }, { status: 404 });
   }
 
   // Check access
   if (!template.is_public && template.user_id !== userId) {
-    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
   // Create the project

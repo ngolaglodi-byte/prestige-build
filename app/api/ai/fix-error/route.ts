@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const available = provider.getAvailableModels();
   if (available.length === 0) {
     return NextResponse.json(
-      { error: "Aucun fournisseur IA configuré" },
+      { error: "No AI provider configured" },
       { status: 503 }
     );
   }
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   if (!error?.message || !fileContent) {
     return NextResponse.json(
-      { error: "Paramètres manquants : error.message et fileContent sont requis" },
+      { error: "Missing parameters: error.message and fileContent are required" },
       { status: 400 }
     );
   }

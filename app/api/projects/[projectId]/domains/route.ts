@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { projectId: stri
     .from(projects)
     .where(eq(projects.id, projectId));
   if (!project) {
-    return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
   // Get existing domains for this project
@@ -62,13 +62,13 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   const { customDomain } = await req.json();
 
   if (!customDomain || typeof customDomain !== "string") {
-    return NextResponse.json({ error: "Domaine requis" }, { status: 400 });
+    return NextResponse.json({ error: "Domain is required" }, { status: 400 });
   }
 
   const normalized = normalizeDomain(customDomain);
 
   if (!isValidCustomDomain(normalized)) {
-    return NextResponse.json({ error: "Domaine invalide" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid domain" }, { status: 400 });
   }
 
   // Check if domain already exists
@@ -77,7 +77,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     .from(domains)
     .where(eq(domains.host, normalized));
   if (existing) {
-    return NextResponse.json({ error: "Ce domaine est déjà utilisé" }, { status: 409 });
+    return NextResponse.json({ error: "This domain is already in use" }, { status: 409 });
   }
 
   // Insert custom domain
@@ -109,7 +109,7 @@ export async function DELETE(req: Request, { params }: { params: { projectId: st
   const { domainId } = await req.json();
 
   if (!domainId) {
-    return NextResponse.json({ error: "ID du domaine requis" }, { status: 400 });
+    return NextResponse.json({ error: "Domain ID is required" }, { status: 400 });
   }
 
   // Only allow deleting custom domains
@@ -119,12 +119,12 @@ export async function DELETE(req: Request, { params }: { params: { projectId: st
     .where(and(eq(domains.id, domainId), eq(domains.projectId, projectId)));
 
   if (!domain) {
-    return NextResponse.json({ error: "Domaine introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Domain not found" }, { status: 404 });
   }
 
   if (domain.type === "subdomain") {
     return NextResponse.json(
-      { error: "Impossible de supprimer le sous-domaine par défaut" },
+      { error: "Cannot delete the default subdomain" },
       { status: 400 }
     );
   }

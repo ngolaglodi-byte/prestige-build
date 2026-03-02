@@ -14,7 +14,7 @@ export async function POST(
 
     if (!cancelled) {
       return Response.json(
-        { error: "Build introuvable ou déjà terminé" },
+        { error: "Build not found or already completed" },
         { status: 404 }
       );
     }

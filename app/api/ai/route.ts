@@ -10,7 +10,7 @@ import { apiOk, apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";
 
 const PostBody = z.object({
-  prompt: z.string().min(1, "Le prompt est requis"),
+  prompt: z.string().min(1, "Prompt is required"),
   action: z.enum(["generate", "generate_multi", "refactor", "explain", "fix", "create_project"]).optional().default("generate_multi"),
   model: z.enum(["claude", "gemini", "gpt"]).optional(),
   code: z.string().optional(),

@@ -10,7 +10,7 @@ import { apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";
 
 const PostBody = z.object({
-  prompt: z.string().min(1, "Le prompt est requis"),
+  prompt: z.string().min(1, "Prompt is required"),
   model: z.enum(["claude", "gemini", "gpt"]).optional(),
   projectType: z.string().optional().default("nextjs"),
 });

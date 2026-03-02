@@ -10,9 +10,9 @@ import { parseFigmaFile } from "@/lib/figma/parser";
 import { figmaToCode } from "@/lib/figma/figmaToCode";
 
 const RequestBody = z.object({
-  figmaUrl: z.string().url("URL Figma invalide"),
-  figmaToken: z.string().min(1, "Token Figma requis"),
-  projectId: z.string().uuid("ID projet invalide"),
+  figmaUrl: z.string().url("Invalid Figma URL"),
+  figmaToken: z.string().min(1, "Figma token is required"),
+  projectId: z.string().uuid("Invalid project ID"),
   framework: z.string().optional().default("react"),
 });
 
@@ -20,7 +20,7 @@ const RequestBody = z.object({
 function parseFigmaUrl(url: string): { fileKey: string; nodeIds?: string } {
   const match = url.match(/figma\.com\/(?:file|design)\/([A-Za-z0-9_-]+)/);
   if (!match) {
-    throw new Error("URL Figma invalide : impossible d'extraire le fileKey");
+    throw new Error("Invalid Figma URL: unable to extract fileKey");
   }
   const fileKey = match[1];
   const u = new URL(url);
@@ -34,12 +34,12 @@ export async function POST(req: Request) {
     if (!userId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`figma:import:${userId}`, 10, 60_000);
-    if (!rl.success) return apiError("Trop de requêtes", 429);
+    if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
     const parsed = RequestBody.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message ?? "Données invalides", 422);
+      return apiError(parsed.error.errors[0]?.message ?? "Invalid data", 422);
     }
 
     const { figmaUrl, figmaToken, projectId } = parsed.data;
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     try {
       ({ fileKey, nodeIds } = parseFigmaUrl(figmaUrl));
     } catch (err) {
-      return apiError(err instanceof Error ? err.message : "URL invalide", 400);
+      return apiError(err instanceof Error ? err.message : "Invalid URL", 400);
     }
 
     const figmaApiUrl = nodeIds
