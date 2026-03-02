@@ -3,7 +3,7 @@ const nextConfig = {
   output: "standalone",
   webpack: (config) => {
     // Désactive le cache Webpack uniquement sur Windows (ou si la variable d'env est définie)
-    if (process.platform === "win32" || process.env.DISABLE_WEBPACK_CACHE === "true") {
+    if (process.platform === "win32" || ["true", "1", "yes"].includes(process.env.DISABLE_WEBPACK_CACHE?.toLowerCase())) {
       config.cache = false;
     }
     return config;
