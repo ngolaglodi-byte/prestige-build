@@ -4,7 +4,13 @@
   "private": true,
   "description": "Plateforme SaaS de génération de code propulsée par l'IA — collaborative, multi-provider, et prête pour la production.",
   "homepage": "https://ngolaglodi-byte.github.io/prestige-build",
-  "keywords": ["saas", "ai", "code-generation", "nextjs", "typescript"],
+  "keywords": [
+    "saas",
+    "ai",
+    "code-generation",
+    "nextjs",
+    "typescript"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -54,7 +60,7 @@
     "recharts": "^3.7.0",
     "svix": "^1.85.0",
     "swagger-ui-react": "^5.0.0",
-    "three": "~0.152.2",
+    "three": "~0.153.0",
     "ws": "^8.19.0",
     "zod": "^3.23.0",
     "zustand": "^5.0.11"

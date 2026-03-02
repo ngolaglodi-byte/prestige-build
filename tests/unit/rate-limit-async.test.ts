@@ -36,54 +36,52 @@ describe("rateLimitAsync", () => {
 });
 
 describe("rateLimitAsync with Redis", () => {
-  it("uses Redis when configured and allows requests within limit", async () => {
+  it("uses Redis eval (Lua) when configured and allows requests within limit", async () => {
     vi.resetModules();
-    const mockIncr = vi.fn().mockResolvedValue(1);
-    const mockExpire = vi.fn().mockResolvedValue(true);
+    const mockEval = vi.fn().mockResolvedValue(1);
     vi.doMock("@/lib/redis", () => ({
-      getRedisClient: () => ({ incr: mockIncr, expire: mockExpire }),
+      getRedisClient: () => ({ eval: mockEval }),
     }));
     const mod = await import("@/lib/rate-limit");
     const result = await mod.rateLimitAsync("redis-key", 5, 60_000);
     expect(result.success).toBe(true);
     expect(result.remaining).toBe(4);
-    expect(mockIncr).toHaveBeenCalledWith("rl:redis-key");
-    expect(mockExpire).toHaveBeenCalledWith("rl:redis-key", 60);
+    expect(mockEval).toHaveBeenCalledWith(
+      expect.any(String),
+      ["rl:redis-key"],
+      ["60"],
+    );
   });
 
   it("blocks requests when Redis count exceeds limit", async () => {
     vi.resetModules();
-    const mockIncr = vi.fn().mockResolvedValue(6);
-    const mockExpire = vi.fn();
+    const mockEval = vi.fn().mockResolvedValue(6);
     vi.doMock("@/lib/redis", () => ({
-      getRedisClient: () => ({ incr: mockIncr, expire: mockExpire }),
+      getRedisClient: () => ({ eval: mockEval }),
     }));
     const mod = await import("@/lib/rate-limit");
     const result = await mod.rateLimitAsync("redis-block", 5, 60_000);
     expect(result.success).toBe(false);
     expect(result.remaining).toBe(0);
-    expect(mockExpire).not.toHaveBeenCalled();
   });
 
-  it("does not set expire when count > 1", async () => {
+  it("returns correct remaining when count > 1", async () => {
     vi.resetModules();
-    const mockIncr = vi.fn().mockResolvedValue(3);
-    const mockExpire = vi.fn();
+    const mockEval = vi.fn().mockResolvedValue(3);
     vi.doMock("@/lib/redis", () => ({
-      getRedisClient: () => ({ incr: mockIncr, expire: mockExpire }),
+      getRedisClient: () => ({ eval: mockEval }),
     }));
     const mod = await import("@/lib/rate-limit");
     const result = await mod.rateLimitAsync("redis-no-expire", 5, 60_000);
     expect(result.success).toBe(true);
     expect(result.remaining).toBe(2);
-    expect(mockExpire).not.toHaveBeenCalled();
   });
 
   it("falls back to in-memory on Redis error", async () => {
     vi.resetModules();
-    const mockIncr = vi.fn().mockRejectedValue(new Error("Redis down"));
+    const mockEval = vi.fn().mockRejectedValue(new Error("Redis down"));
     vi.doMock("@/lib/redis", () => ({
-      getRedisClient: () => ({ incr: mockIncr }),
+      getRedisClient: () => ({ eval: mockEval }),
     }));
     const mod = await import("@/lib/rate-limit");
     const result = await mod.rateLimitAsync("redis-error", 5, 60_000);
