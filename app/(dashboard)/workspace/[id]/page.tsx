@@ -114,7 +114,7 @@ export default function WorkspacePage() {
             {/* Editor */}
             <div className="flex-1 overflow-hidden relative">
               <Suspense fallback={<EditorFallback />}>
-                <CodeEditor projectId={id} />
+                <CodeEditor projectId={id} onCursorChange={handleCursorChange} onContentChange={handleContentChange} />
               </Suspense>
               <RemoteCursors cursors={cursors} currentFileId={activeFile ?? undefined} />
             </div>

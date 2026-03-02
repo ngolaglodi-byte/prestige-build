@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Loader2, Send, Sparkles, CheckCircle, Circle } from "lucide-react";
 import Logo from "@/components/Logo";
 import { STARTER_PROMPTS } from "@/lib/ai/starterPrompts";
@@ -24,7 +23,6 @@ const STEP_LABELS: Record<keyof StepState, string> = {
 };
 
 export default function CreateProjectPage() {
-  const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
