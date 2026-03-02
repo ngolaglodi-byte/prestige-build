@@ -176,10 +176,10 @@ export function extractRequirements(
   if (/\b(react(?!.native)|cra)\b/.test(userMessages)) projectType = "react";
   if (/\b(svelte|sveltekit)\b/.test(userMessages)) projectType = "svelte";
 
-  // Extract app name
-  const nameMatch = userMessages.match(
-    /(?:app(?:lication)?|projet|site)\s+(?:appelée?|nommée?|:)?\s*["']?(\w[\w\s-]{1,30})["']?/
-  );
+  // Extract app name using pattern: "app/application/projet/site [appelée/nommée/:] <name>"
+  const APP_NAME_PATTERN =
+    /(?:app(?:lication)?|projet|site)\s+(?:appelée?|nommée?|:)?\s*["']?(\w[\w\s-]{1,30})["']?/;
+  const nameMatch = userMessages.match(APP_NAME_PATTERN);
   const appName = nameMatch?.[1]?.trim();
 
   return {

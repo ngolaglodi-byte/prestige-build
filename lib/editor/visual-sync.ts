@@ -99,6 +99,15 @@ interface ParsedTag {
   children: ParsedTag[];
 }
 
+/**
+ * Simple regex-based JSX tag parser.
+ *
+ * Limitations:
+ * - Handles single-level and simple nested JSX only.
+ * - Does not support attributes containing '>' characters.
+ * - Does not handle JSX expressions ({}) in attributes.
+ * - For production use with complex JSX, consider using a proper AST parser.
+ */
 const TAG_REGEX = /<(\w+)([^>]*)(?:\/>|>([\s\S]*?)<\/\1>)/g;
 const CLASS_REGEX = /className="([^"]*)"/;
 const PROP_REGEX = /(\w+)="([^"]*)"/g;

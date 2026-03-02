@@ -140,8 +140,9 @@ export function transitionEnvironment(
   newStatus: EnvironmentStatus
 ): Environment {
   if (!canTransition(env.status, newStatus)) {
+    const allowed = VALID_TRANSITIONS[env.status]?.join(", ") ?? "aucune";
     throw new Error(
-      `Transition invalide : ${env.status} → ${newStatus}`
+      `Transition invalide : ${env.status} → ${newStatus}. Transitions autorisées depuis '${env.status}' : ${allowed}`
     );
   }
 
