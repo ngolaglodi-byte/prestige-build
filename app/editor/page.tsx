@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import Canvas from "./components/Canvas";
 import ComponentLibrary from "./components/ComponentLibrary";
 import PropertyPanel from "./components/PropertyPanel";
@@ -30,47 +30,35 @@ export default function EditorPage() {
   const activePage = pages.find((p) => p.id === activePageId) ?? pages[0];
   const tree = activePage.tree;
 
-  const pushHistory = useCallback(
-    (newTree: CanvasNode[]) => {
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(newTree);
-      setHistory(newHistory);
-      setHistoryIndex(newHistory.length - 1);
-      setPages((prev) => updatePageTree(prev, activePageId, newTree));
-    },
-    [history, historyIndex, activePageId]
-  );
+  function pushHistory(newTree: CanvasNode[]) {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newTree);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    setPages((prev) => updatePageTree(prev, activePageId, newTree));
+  }
 
-  const handleDrop = useCallback(
-    (componentId: string, parentId: string | null) => {
-      const def = getComponentById(componentId);
-      if (!def) return;
-      const node: CanvasNode = {
-        id: nextNodeId(),
-        componentId,
-        props: { ...def.defaultProps },
-        classes: def.defaultClasses,
-        children: [],
-      };
-      pushHistory(insertNode(tree, parentId, node));
-    },
-    [tree, pushHistory]
-  );
+  function handleDrop(componentId: string, parentId: string | null) {
+    const def = getComponentById(componentId);
+    if (!def) return;
+    const node: CanvasNode = {
+      id: nextNodeId(),
+      componentId,
+      props: { ...def.defaultProps },
+      classes: def.defaultClasses,
+      children: [],
+    };
+    pushHistory(insertNode(tree, parentId, node));
+  }
 
-  const handleDelete = useCallback(
-    (nodeId: string) => {
-      setSelectedId(null);
-      pushHistory(removeNode(tree, nodeId));
-    },
-    [tree, pushHistory]
-  );
+  function handleDelete(nodeId: string) {
+    setSelectedId(null);
+    pushHistory(removeNode(tree, nodeId));
+  }
 
-  const handleUpdate = useCallback(
-    (nodeId: string, updates: { props?: Record<string, unknown>; classes?: string }) => {
-      pushHistory(updateNode(tree, nodeId, updates));
-    },
-    [tree, pushHistory]
-  );
+  function handleUpdate(nodeId: string, updates: { props?: Record<string, unknown>; classes?: string }) {
+    pushHistory(updateNode(tree, nodeId, updates));
+  }
 
   const selectedNode = selectedId ? findNode(tree, selectedId) : null;
   const generatedCode = serializeToReact(tree, activePage.name.replace(/\s+/g, ""));
