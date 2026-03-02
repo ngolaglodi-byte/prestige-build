@@ -14,15 +14,15 @@ interface Props {
 
 export function RemoteCursors({ cursors, currentFileId }: Props) {
   // Track last-updated timestamp per cursor to hide labels after 3s
-  const lastUpdate = useRef<Record<string, number>>({});
+  const lastUpdate = useRef<Record<string, string>>({});
   const [visibleLabels, setVisibleLabels] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const now = Date.now();
     for (const c of cursors) {
+      const posKey = `${c.line}:${c.column}`;
       const prev = lastUpdate.current[c.userId];
-      if (!prev || prev !== c.line * 10000 + c.column) {
-        lastUpdate.current[c.userId] = c.line * 10000 + c.column;
+      if (!prev || prev !== posKey) {
+        lastUpdate.current[c.userId] = posKey;
         setVisibleLabels((v) => ({ ...v, [c.userId]: true }));
       }
     }
