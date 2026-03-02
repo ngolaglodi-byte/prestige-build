@@ -9,7 +9,7 @@ test.describe("Sign-Up Page", () => {
   test("should display the Clerk sign-up form", async ({ page }) => {
     await page.goto("/sign-up");
     // Wait for the page to be fully loaded
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // The Clerk SignUp component renders in the page
     // Check that the page doesn't show an error
     const body = page.locator("body");
@@ -25,7 +25,7 @@ test.describe("Sign-In Page", () => {
 
   test("should display the Clerk sign-in form", async ({ page }) => {
     await page.goto("/sign-in");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const body = page.locator("body");
     await expect(body).toBeVisible();
   });

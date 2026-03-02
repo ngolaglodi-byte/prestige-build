@@ -129,7 +129,7 @@ test.describe("Authenticated billing page", () => {
 
   test("should load the billing page when authenticated", async ({ page }) => {
     await page.goto("/billing");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const url = page.url();
     expect(url).toMatch(/\/(billing|sign-in)/);
   });
@@ -209,7 +209,7 @@ test.describe("Mocked billing flow", () => {
     await mockBillingRoutes(page);
 
     await page.goto("/billing");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const url = page.url();
     if (url.includes("/billing")) {
@@ -245,7 +245,7 @@ test.describe("Mocked billing flow", () => {
     });
 
     await page.goto("/billing");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const url = page.url();
     if (url.includes("/billing")) {

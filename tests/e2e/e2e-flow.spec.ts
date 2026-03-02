@@ -49,7 +49,7 @@ test.describe("Complete E2E Flow", () => {
     // Navigate to new project page directly (test form structure)
     // Since Clerk middleware will redirect, we mock the page content
     await page.goto("/projects/new");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // If auth redirects, verify we end up at the right place
     const url = page.url();
@@ -141,7 +141,7 @@ test.describe("Complete E2E Flow", () => {
     // Navigate directly to the new project page
     // If Clerk blocks, the test gracefully handles the redirect
     await page.goto("/projects/new");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const url = page.url();
     if (url.includes("/projects/new")) {

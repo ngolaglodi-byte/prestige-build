@@ -32,7 +32,7 @@ test.describe("Authenticated E2E flows", () => {
 
   test("should access dashboard when authenticated", async ({ page }) => {
     await page.goto("/dashboard");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     // Authenticated user should stay on dashboard, not be redirected to sign-in
     const url = page.url();
     expect(url).toMatch(/\/(dashboard|sign-in)/);
@@ -40,14 +40,14 @@ test.describe("Authenticated E2E flows", () => {
 
   test("should access settings when authenticated", async ({ page }) => {
     await page.goto("/settings");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const url = page.url();
     expect(url).toMatch(/\/(settings|sign-in)/);
   });
 
   test("should access billing page when authenticated", async ({ page }) => {
     await page.goto("/billing");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const url = page.url();
     expect(url).toMatch(/\/(billing|sign-in)/);
   });
