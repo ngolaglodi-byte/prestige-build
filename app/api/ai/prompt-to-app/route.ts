@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         } catch (err) {
           logger.error({ err }, "prompt-to-app SSE error");
           send("error", {
-            message: err instanceof Error ? err.message : "Erreur interne",
+            message: err instanceof Error ? err.message : "Internal error",
           });
         } finally {
           controller.close();

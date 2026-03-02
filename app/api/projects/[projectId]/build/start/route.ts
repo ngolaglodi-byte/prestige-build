@@ -41,7 +41,7 @@ export async function POST(
       status: build.status,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     const status =
       message.includes("Limite") || message.includes("Unauthorized")
         ? 429

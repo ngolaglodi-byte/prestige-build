@@ -82,7 +82,7 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     logger.error({ err }, "Showcase GET error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }
@@ -90,7 +90,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:submit:${clerkId}`, 5, 3_600_000);
     if (!rl.success) return apiError("Trop de soumissions", 429);
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
     return apiOk(created, 201);
   } catch (err) {
     logger.error({ err }, "Showcase POST error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

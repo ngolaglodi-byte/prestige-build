@@ -66,7 +66,7 @@ export async function POST(
           }, DEPLOY_TIMEOUT_MS);
         } catch (err) {
           logger.error({ err }, "internal deploy SSE error");
-          send({ status: "failed", logs: "Erreur interne" });
+          send({ status: "failed", logs: "Internal error" });
           controller.close();
         }
       },

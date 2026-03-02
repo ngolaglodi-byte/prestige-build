@@ -21,6 +21,6 @@ export async function POST(
 
     return Response.json({ ok: true, buildId, status: "cancelled" });
   } catch {
-    return Response.json({ error: "Erreur interne" }, { status: 500 });
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 }

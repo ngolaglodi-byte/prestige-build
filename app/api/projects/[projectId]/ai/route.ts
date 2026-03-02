@@ -175,9 +175,9 @@ export async function POST(
       creditsUsed: result.creditCost,
     });
   } catch (err) {
-    console.error("❌ Erreur d'orchestration IA :", err);
+    console.error("❌ AI orchestration error:", err);
     const message =
-      err instanceof Error ? err.message : "Erreur interne du serveur";
+      err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
       { ok: false, error: message },
       { status: 500 }

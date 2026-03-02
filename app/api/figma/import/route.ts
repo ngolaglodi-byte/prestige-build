@@ -31,7 +31,7 @@ function parseFigmaUrl(url: string): { fileKey: string; nodeIds?: string } {
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    if (!userId) return apiError("Non autorisé", 401);
+    if (!userId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`figma:import:${userId}`, 10, 60_000);
     if (!rl.success) return apiError("Trop de requêtes", 429);
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     if (!figmaRes.ok) {
       const errText = await figmaRes.text();
       logger.error({ status: figmaRes.status, body: errText }, "Figma API error");
-      return apiError(`Erreur Figma API (${figmaRes.status})`, 502);
+      return apiError(`Figma API error (${figmaRes.status})`, 502);
     }
 
     const figmaData = await figmaRes.json();
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     return apiOk({ files, summary });
   } catch (err) {
     logger.error({ err }, "Figma import unexpected error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

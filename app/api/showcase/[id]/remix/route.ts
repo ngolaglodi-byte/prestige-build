@@ -21,7 +21,7 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:remix:${clerkId}`, 10, 3_600_000);
     if (!rl.success) return apiError("Trop de remixes", 429);
@@ -112,7 +112,7 @@ export async function POST(
     }, 201);
   } catch (err) {
     logger.error({ err }, "Showcase remix error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

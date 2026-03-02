@@ -12,7 +12,7 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) return apiError("Non autorisé", 401);
+    if (!userId) return apiError("Unauthorized", 401);
 
     const { projectId } = params;
 
@@ -30,7 +30,7 @@ export async function POST(
     });
   } catch (err) {
     logger.error({ err }, "Deploy route unexpected error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }

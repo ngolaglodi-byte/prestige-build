@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       projectId,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur IA inconnue";
+    const message = err instanceof Error ? err.message : "Unknown AI error";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }

@@ -49,9 +49,9 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
   } catch (err: unknown) {
     const code = (err as NodeJS.ErrnoException).code;
     if (code === "ENOTFOUND" || code === "ENODATA") {
-      message = `Aucun enregistrement CNAME trouvé pour ${domain.host}. Ajoutez un CNAME pointant vers ${cnameTarget}`;
+      message = `No CNAME record found for ${domain.host}. Add a CNAME pointing to ${cnameTarget}`;
     } else {
-      message = `Erreur lors de la vérification DNS. Veuillez réessayer plus tard.`;
+      message = `DNS verification error. Please try again later.`;
     }
   }
 

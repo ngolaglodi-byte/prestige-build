@@ -15,7 +15,7 @@ export async function POST(
 ) {
   try {
     const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Non autorisé", 401);
+    if (!clerkId) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`showcase:like:${clerkId}`, 60, 60_000);
     if (!rl.success) return apiError("Trop de requêtes", 429);
@@ -85,7 +85,7 @@ export async function POST(
     return apiOk({ liked, likes: updated[0]?.likes ?? 0 });
   } catch (err) {
     logger.error({ err }, "Showcase like error");
-    const message = err instanceof Error ? err.message : "Erreur interne";
+    const message = err instanceof Error ? err.message : "Internal error";
     return apiError(message, 500);
   }
 }
