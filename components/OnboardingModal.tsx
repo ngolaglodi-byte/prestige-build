@@ -36,6 +36,13 @@ const steps = [
     description:
       "Construisez vos interfaces par glisser-déposer sans écrire une ligne de code. Importez directement vos designs Figma pour les transformer en applications fonctionnelles.",
   },
+  {
+    icon: "⚡",
+    title: "Créez votre première app en 2 minutes",
+    description:
+      "Décrivez simplement votre application et laissez l'IA générer le code complet. Aucune configuration requise — juste un prompt et c'est parti !",
+    cta: { label: "Créer ma première app", href: "/create" },
+  },
 ];
 
 export default function OnboardingModal() {
@@ -84,6 +91,15 @@ export default function OnboardingModal() {
           <div className="text-5xl mb-4">{current.icon}</div>
           <h2 className="text-2xl font-bold mb-3 text-white">{current.title}</h2>
           <p className="text-gray-400 leading-relaxed">{current.description}</p>
+          {"cta" in current && current.cta && (
+            <Link
+              href={(current.cta as { label: string; href: string }).href}
+              onClick={finish}
+              className="inline-block mt-4 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-smooth font-medium transition-all"
+            >
+              {(current.cta as { label: string; href: string }).label}
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center justify-between mt-8">
