@@ -41,10 +41,12 @@ export function CodeEditor({ projectId, onCursorChange, onContentChange }: CodeE
     monacoRef.current = monaco;
 
     if (onCursorChange) {
-      editor.onDidChangeCursorPosition(onCursorChange);
+      const disposable = editor.onDidChangeCursorPosition(onCursorChange);
+      editor.onDidDispose(() => disposable.dispose());
     }
     if (onContentChange) {
-      editor.onDidChangeModelContent(onContentChange);
+      const disposable = editor.onDidChangeModelContent(onContentChange);
+      editor.onDidDispose(() => disposable.dispose());
     }
 
     // Monaco affiche automatiquement les marqueurs d'erreur via la validation du modèle
