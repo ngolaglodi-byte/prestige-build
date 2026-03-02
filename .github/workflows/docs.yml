@@ -1,0 +1,33 @@
+name: Deploy API Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/swagger/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Swagger UI
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/swagger
+      - id: deployment
+        uses: actions/deploy-pages@v4

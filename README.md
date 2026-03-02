@@ -121,6 +121,7 @@ docker compose up --build
 | `GOOGLE_GENERATIVE_AI_KEY` | Clé API Google AI | ⚡ |
 | `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry | ❌ |
 | `CRON_SECRET` | Secret pour les tâches CRON | ❌ |
+| `DISABLE_WEBPACK_CACHE` | Désactiver le cache Webpack (auto sur Windows) | ❌ |
 
 ⚡ Au moins un fournisseur IA est requis.
 
@@ -144,6 +145,7 @@ npm run test:ui
 
 L'API expose une spécification OpenAPI 3.0 :
 
+- **Swagger UI** : [https://ngolaglodi-byte.github.io/prestige-build](https://ngolaglodi-byte.github.io/prestige-build)
 - **Spec JSON** : `GET /api/docs`
 - **Health check** : `GET /api/health`
 
