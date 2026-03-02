@@ -130,9 +130,9 @@ describe("github-exporter", () => {
       ])
     );
 
-    vi.mocked(db.select().from(undefined!).where).mockResolvedValue([
-      { path: "app/page.tsx", content: "export default function Page() {}" },
-    ]);
+    vi.mocked(db.select().from(undefined!).where).mockResolvedValue(
+      [{ path: "app/page.tsx", content: "export default function Page() {}" }] as never
+    );
 
     const result = await exportToGitHub({
       projectId: "p1",
@@ -171,9 +171,9 @@ describe("github-exporter", () => {
       ])
     );
 
-    vi.mocked(db.select().from(undefined!).where).mockResolvedValue([
-      { path: "/src/index.ts", content: "console.log('hello')" },
-    ]);
+    vi.mocked(db.select().from(undefined!).where).mockResolvedValue(
+      [{ path: "/src/index.ts", content: "console.log('hello')" }] as never
+    );
 
     const result = await exportToGitHub({
       projectId: "p2",
