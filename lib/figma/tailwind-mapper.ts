@@ -32,10 +32,10 @@ export function mapTailwindClasses(node: ParsedNode): string {
     }
   }
 
-  // Opacity
+  // Opacity (use arbitrary value syntax for Tailwind)
   if (node.opacity < 1) {
     const pct = Math.round(node.opacity * 100);
-    classes.push(`opacity-${pct}`);
+    classes.push(`opacity-[${pct}%]`);
   }
 
   // Layout (auto-layout → flexbox)

@@ -25,7 +25,7 @@ export default function FigmaImportPage() {
   const [token, setToken] = useState("");
   const [fileName, setFileName] = useState("");
   const [pages, setPages] = useState<FigmaPage[]>([]);
-  const [tree, setTree] = useState<unknown[]>([]);
+  const [tree, setTree] = useState<Record<string, unknown>[]>([]);
   const [components, setComponents] = useState<ConvertedComponent[]>([]);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
 
@@ -34,7 +34,7 @@ export default function FigmaImportPage() {
     setStep("select");
   };
 
-  const handleParsed = (data: { name: string; pages: FigmaPage[]; tree: unknown[] }) => {
+  const handleParsed = (data: { name: string; pages: FigmaPage[]; tree: Record<string, unknown>[] }) => {
     setFileName(data.name);
     setPages(data.pages);
     setTree(data.tree);

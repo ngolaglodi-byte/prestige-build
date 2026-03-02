@@ -11,7 +11,7 @@ interface FigmaPage {
 interface ImportPreviewProps {
   fileName: string;
   pages: FigmaPage[];
-  tree: unknown[];
+  tree: Record<string, unknown>[];
   onImport: (selectedPageIds: string[]) => void;
   loading?: boolean;
 }
@@ -40,7 +40,7 @@ export default function ImportPreview({
     <div className="max-w-lg mx-auto space-y-4">
       <h2 className="text-lg font-semibold">Import : {fileName}</h2>
       <p className="text-sm text-[var(--muted)]">
-        {pages.length} page(s) trouvée(s), {(tree as unknown[]).length} nœud(s) racine.
+        {pages.length} page(s) trouvée(s), {tree.length} nœud(s) racine.
       </p>
 
       <ul className="space-y-2">

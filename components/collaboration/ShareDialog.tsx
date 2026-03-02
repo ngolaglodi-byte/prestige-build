@@ -15,8 +15,9 @@ export default function ShareDialog({ open, onClose, onInvite, shareLink }: Shar
   if (!open) return null;
 
   const handleInvite = () => {
-    if (!email.trim()) return;
-    onInvite(email.trim());
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return;
+    onInvite(trimmed);
     setEmail("");
   };
 

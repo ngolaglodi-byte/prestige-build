@@ -50,6 +50,7 @@ function RenderNode({
       {node.componentId === "text-input" && (
         <input
           readOnly
+          aria-label={String(node.props.placeholder ?? "Champ texte")}
           placeholder={String(node.props.placeholder ?? "Saisir…")}
           className={node.classes || def?.defaultClasses || ""}
         />
