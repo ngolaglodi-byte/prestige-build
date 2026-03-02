@@ -2,6 +2,8 @@
 
 import { useAIPreviewStore } from "@/store/useAIPreviewStore";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { DiffEditor } from "@monaco-editor/react";
+import { detectLanguage } from "@/lib/utils/detect-language";
 
 export default function AICodePreview() {
   const preview = useAIPreviewStore((s) => s.preview);
@@ -12,6 +14,7 @@ export default function AICodePreview() {
 
   const oldContent = workspace.files[preview.file]?.content || "";
   const newContent = preview.newContent;
+  const language = detectLanguage(preview.file);
 
   const applyChanges = () => {
     workspace.updateFile(preview.file, newContent);
@@ -20,25 +23,24 @@ export default function AICodePreview() {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="w-[800px] bg-[#0D0D0D] border border-white/10 rounded-xl shadow-2xl p-6">
+      <div className="w-[900px] bg-[#0D0D0D] border border-white/10 rounded-xl shadow-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-4">
           Aperçu du code — {preview.file}
         </h2>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-white/60 mb-2">Ancien code</h3>
-            <pre className="bg-[#1A1A1A] p-3 rounded-lg text-sm text-red-300 overflow-auto h-[300px]">
-              {oldContent}
-            </pre>
-          </div>
-
-          <div>
-            <h3 className="text-white/60 mb-2">Nouveau code</h3>
-            <pre className="bg-[#1A1A1A] p-3 rounded-lg text-sm text-green-300 overflow-auto h-[300px]">
-              {newContent}
-            </pre>
-          </div>
+        <div className="h-[400px] rounded-lg overflow-hidden border border-white/10">
+          <DiffEditor
+            original={oldContent}
+            modified={newContent}
+            language={language}
+            theme="vs-dark"
+            options={{
+              readOnly: true,
+              renderSideBySide: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+            }}
+          />
         </div>
 
         <div className="flex justify-end gap-3 mt-4">

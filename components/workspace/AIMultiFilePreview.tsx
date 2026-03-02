@@ -2,6 +2,8 @@
 
 import { useAIMultiPreviewStore } from "@/store/useAIMultiPreviewStore";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { DiffEditor } from "@monaco-editor/react";
+import { detectLanguage } from "@/lib/utils/detect-language";
 
 export default function AIMultiFilePreview() {
   const previews = useAIMultiPreviewStore((s) => s.previews);
@@ -24,34 +26,32 @@ export default function AIMultiFilePreview() {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="w-[900px] max-h-[90vh] overflow-auto bg-[#0D0D0D] border border-white/10 rounded-xl shadow-2xl p-6">
+      <div className="w-[950px] max-h-[90vh] overflow-auto bg-[#0D0D0D] border border-white/10 rounded-xl shadow-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-4">
           Aperçu multi-fichiers ({previews.length} fichiers)
         </h2>
 
         {previews.map((p, i) => {
           const oldContent = workspace.files[p.file]?.content || "";
+          const language = detectLanguage(p.file);
 
           return (
             <div key={i} className="mb-8 border border-white/10 rounded-lg p-4">
               <h3 className="text-white font-medium mb-2">{p.file}</h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                {/* Ancien code */}
-                <div>
-                  <h4 className="text-white/60 mb-2">Ancien code</h4>
-                  <pre className="bg-[#1A1A1A] p-3 rounded-lg text-sm text-red-300 overflow-auto h-[250px] whitespace-pre-wrap">
-                    {oldContent}
-                  </pre>
-                </div>
-
-                {/* Nouveau code */}
-                <div>
-                  <h4 className="text-white/60 mb-2">Nouveau code</h4>
-                  <pre className="bg-[#1A1A1A] p-3 rounded-lg text-sm text-green-300 overflow-auto h-[250px] whitespace-pre-wrap">
-                    {p.newContent}
-                  </pre>
-                </div>
+              <div className="h-[300px] rounded-lg overflow-hidden border border-white/10">
+                <DiffEditor
+                  original={oldContent}
+                  modified={p.newContent}
+                  language={language}
+                  theme="vs-dark"
+                  options={{
+                    readOnly: true,
+                    renderSideBySide: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                  }}
+                />
               </div>
 
               <div className="flex justify-end mt-3">
