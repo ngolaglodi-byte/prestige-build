@@ -85,7 +85,7 @@ export async function exportToGitHub(options: ExportOptions): Promise<ExportResu
     logger.info({ repoFullName }, "GitHub repo already exists, using existing");
   } else {
     const err = createRes.data as { message?: string };
-    throw new Error(`Impossible de créer le repo GitHub: ${err.message ?? createRes.status}`);
+    throw new Error(`Unable to create GitHub repo: ${err.message ?? createRes.status}`);
   }
 
   // 3. Fetch project files from DB
@@ -116,7 +116,7 @@ export async function exportToGitHub(options: ExportOptions): Promise<ExportResu
     );
     if (!blobRes.ok) {
       const err = blobRes.data as { message?: string };
-      throw new Error(`Erreur création blob pour ${file.path}: ${err.message ?? blobRes.status}`);
+      throw new Error(`Error creating blob for ${file.path}: ${err.message ?? blobRes.status}`);
     }
     const blob = blobRes.data as { sha: string };
     blobShas.push({ path: file.path.replace(/^\//, ""), sha: blob.sha });
@@ -159,7 +159,7 @@ export async function exportToGitHub(options: ExportOptions): Promise<ExportResu
   );
   if (!treeRes.ok) {
     const err = treeRes.data as { message?: string };
-    throw new Error(`Erreur création tree: ${err.message ?? treeRes.status}`);
+    throw new Error(`Error creating tree: ${err.message ?? treeRes.status}`);
   }
   const tree = treeRes.data as { sha: string };
 
@@ -184,7 +184,7 @@ export async function exportToGitHub(options: ExportOptions): Promise<ExportResu
   );
   if (!commitRes.ok) {
     const err = commitRes.data as { message?: string };
-    throw new Error(`Erreur création commit: ${err.message ?? commitRes.status}`);
+    throw new Error(`Error creating commit: ${err.message ?? commitRes.status}`);
   }
   const newCommit = commitRes.data as { sha: string };
 

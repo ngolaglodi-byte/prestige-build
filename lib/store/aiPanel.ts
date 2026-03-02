@@ -54,7 +54,7 @@ export const useAiPanel = create<AiPanelStore>((set, get) => ({
       set({ loading: false });
       return data;
     } catch {
-      addAssistantMessage("Erreur de connexion au serveur. Veuillez réessayer.");
+      addAssistantMessage("Server connection error. Please try again.");
       set({ loading: false });
       return undefined;
     }

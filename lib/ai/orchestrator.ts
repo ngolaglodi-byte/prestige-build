@@ -29,7 +29,7 @@ export interface OrchestrationRequest {
   projectType?: string;
   /** Modèle IA préféré */
   model?: AIModel;
-  /** Erreurs à corriger (pour action "fix") */
+  /** Errors to fix (for action "fix") */
   errors?: string[];
 }
 
@@ -104,7 +104,7 @@ function buildActionPrompt(req: OrchestrationRequest): string {
         "Explique brièvement chaque correction effectuée."
       );
       if (req.errors?.length) {
-        parts.push("Erreurs signalées :", ...req.errors.map((e) => `  - ${e}`));
+        parts.push("Reported errors:", ...req.errors.map((e) => `  - ${e}`));
       }
       break;
     case "create_project":

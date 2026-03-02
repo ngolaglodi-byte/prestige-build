@@ -143,7 +143,7 @@ async function buildWebStatic(
   }
 
   if (!outDir) {
-    throw new Error("Dossier de sortie introuvable (out, dist, build)");
+    throw new Error("Output directory not found (out, dist, build)");
   }
 
   const artifactDir = ensureArtifactDir(projectId, buildId);
