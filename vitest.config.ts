@@ -26,6 +26,7 @@ export default defineConfig({
         "lib/deploy/deployManager.ts",
         "lib/deploy/deployRegistry.ts",
         "lib/deploy/vercelClient.ts",
+        "lib/deploy/internalHosting.ts",
         "lib/preview/previewEngine.ts",
         "lib/preview/previewHotReload.ts",
         "lib/preview/previewManager.ts",

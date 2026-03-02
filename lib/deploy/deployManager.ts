@@ -4,8 +4,19 @@ import path from "path";
 import { buildProject } from "./buildProject";
 import { vercelRequest } from "./vercelClient";
 import { setDeployState } from "./deployRegistry";
+import { deployInternal } from "./internalHosting";
 
-export async function deployProject(projectId: string) {
+export type DeployTarget = "internal" | "vercel";
+
+export async function deployProject(
+  projectId: string,
+  target: DeployTarget = "internal"
+) {
+  if (target === "internal") return deployInternal(projectId);
+  return deployVercel(projectId);
+}
+
+async function deployVercel(projectId: string) {
   setDeployState(projectId, {
     status: "building",
     logs: "Building project...\n",

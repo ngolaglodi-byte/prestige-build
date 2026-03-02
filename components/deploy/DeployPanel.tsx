@@ -33,6 +33,9 @@ interface Props {
 }
 
 export function DeployPanel({ projectId }: Props) {
+  // Deploy target toggle
+  const [deployTarget, setDeployTarget] = useState<"internal" | "vercel">("internal");
+
   // Vercel deploy state
   const [deployState, setDeployState] = useState<DeployState>({ status: "idle", logs: "" });
   const [isDeploying, setIsDeploying] = useState(false);
@@ -53,7 +56,12 @@ export function DeployPanel({ projectId }: Props) {
     setDeployState({ status: "building", logs: "Démarrage du déploiement…" });
 
     try {
-      const res = await fetch(`/api/projects/${projectId}/deploy`, { method: "POST" });
+      const endpoint =
+        deployTarget === "internal"
+          ? `/api/projects/${projectId}/deploy/internal`
+          : `/api/projects/${projectId}/deploy`;
+
+      const res = await fetch(endpoint, { method: "POST" });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Erreur inconnue" }));
         setDeployState({ status: "failed", logs: err.error ?? "Erreur de déploiement" });
@@ -61,7 +69,37 @@ export function DeployPanel({ projectId }: Props) {
         return;
       }
 
-      // Open SSE stream for status updates
+      if (deployTarget === "internal") {
+        // Internal deploy uses SSE on the same response
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+        if (reader) {
+          let done = false;
+          while (!done) {
+            const { value, done: d } = await reader.read();
+            done = d;
+            if (value) {
+              const text = decoder.decode(value);
+              const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+              for (const line of lines) {
+                try {
+                  const state = JSON.parse(line.slice(6)) as DeployState;
+                  setDeployState(state);
+                  if (state.status === "success" || state.status === "failed") {
+                    setIsDeploying(false);
+                  }
+                } catch {
+                  // ignore parse errors
+                }
+              }
+            }
+          }
+        }
+        setIsDeploying(false);
+        return;
+      }
+
+      // Vercel deploys use EventSource for status updates
       const eventSource = new EventSource(`/api/projects/${projectId}/deploy/status`);
 
       eventSource.onmessage = (e) => {
@@ -94,7 +132,7 @@ export function DeployPanel({ projectId }: Props) {
       });
       setIsDeploying(false);
     }
-  }, [isDeploying, projectId]);
+  }, [isDeploying, projectId, deployTarget]);
 
   const copyUrl = () => {
     if (deployState.url) {
@@ -150,6 +188,37 @@ export function DeployPanel({ projectId }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-4 bg-gray-950 text-gray-100">
+      {/* ── Deploy Target Toggle ──────────────────────────────── */}
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 flex flex-col gap-3">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          Cible de déploiement
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setDeployTarget("internal")}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
+              deployTarget === "internal"
+                ? "border-purple-500 bg-purple-500/20 text-purple-300"
+                : "border-gray-700 bg-gray-800 text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            ⚡ Prestige Cloud
+            <span className="block text-[10px] mt-0.5 opacity-70">Gratuit &amp; instantané</span>
+          </button>
+          <button
+            onClick={() => setDeployTarget("vercel")}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
+              deployTarget === "vercel"
+                ? "border-blue-500 bg-blue-500/20 text-blue-300"
+                : "border-gray-700 bg-gray-800 text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            ▲ Vercel
+            <span className="block text-[10px] mt-0.5 opacity-70">Avancé</span>
+          </button>
+        </div>
+      </div>
+
       {/* ── Vercel Deploy Section ──────────────────────────────── */}
       <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
@@ -157,8 +226,12 @@ export function DeployPanel({ projectId }: Props) {
             <Rocket size={16} className="text-white" />
           </div>
           <div>
-            <p className="text-sm font-semibold">Déployer sur Vercel</p>
-            <p className="text-xs text-gray-500">Publication en un clic</p>
+            <p className="text-sm font-semibold">
+              {deployTarget === "internal" ? "Déployer sur Prestige Cloud" : "Déployer sur Vercel"}
+            </p>
+            <p className="text-xs text-gray-500">
+              {deployTarget === "internal" ? "Hébergement interne gratuit" : "Publication en un clic"}
+            </p>
           </div>
           {deployState.status !== "idle" && (
             <span className={`ml-auto text-xs font-medium ${statusColors[deployState.status]}`}>
