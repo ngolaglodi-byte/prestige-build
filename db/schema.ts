@@ -9,6 +9,7 @@ import {
   jsonb,
   doublePrecision,
   unique,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 // USERS (Clerk sync)
@@ -336,4 +337,67 @@ export const buildQuotas = pgTable("build_quotas", {
   lastBuildAt: timestamp("last_build_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ── SHOWCASE ──────────────────────────────────────────────────────────────
+
+export const showcaseStatusEnum = pgEnum("showcase_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+// SHOWCASE PROJECTS — public gallery entries
+export const showcaseProjects = pgTable("showcase_projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  shortDescription: varchar("short_description", { length: 255 }),
+  thumbnailUrl: text("thumbnail_url"),
+  liveUrl: text("live_url"),
+  repoUrl: text("repo_url"),
+  category: varchar("category", { length: 50 }).notNull().default("other"),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  techStack: jsonb("tech_stack").$type<string[]>().default([]),
+  featured: boolean("featured").notNull().default(false),
+  likes: integer("likes").notNull().default(0),
+  views: integer("views").notNull().default(0),
+  remixCount: integer("remix_count").notNull().default(0),
+  status: showcaseStatusEnum("status").notNull().default("pending"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// SHOWCASE LIKES — one like per user per showcase entry
+export const showcaseLikes = pgTable(
+  "showcase_likes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    showcaseId: uuid("showcase_id")
+      .notNull()
+      .references(() => showcaseProjects.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.showcaseId, t.userId)]
+);
+
+// SHOWCASE COMMENTS
+export const showcaseComments = pgTable("showcase_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  showcaseId: uuid("showcase_id")
+    .notNull()
+    .references(() => showcaseProjects.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
