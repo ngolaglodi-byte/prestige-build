@@ -2,8 +2,10 @@
 const nextConfig = {
   output: "standalone",
   webpack: (config) => {
-    // Désactive totalement le cache Webpack pour éviter les crashs mémoire sur Windows
-    config.cache = false;
+    // Désactive le cache Webpack uniquement sur Windows (ou si la variable d'env est définie)
+    if (process.platform === "win32" || process.env.DISABLE_WEBPACK_CACHE === "true") {
+      config.cache = false;
+    }
     return config;
   },
   async headers() {
