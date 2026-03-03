@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
 
 export function refactorProject() {
   const workspace = useWorkspaceStore.getState();

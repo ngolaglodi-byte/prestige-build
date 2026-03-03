@@ -5,7 +5,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import {
   useNotificationStore,
   type Notification,
-} from "@/store/useNotificationStore";
+} from "@/lib/store/useNotificationStore";
 
 /**
  * Hook qui charge les notifications depuis l'API et écoute les nouvelles

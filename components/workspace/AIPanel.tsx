@@ -4,11 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { useAiPanel } from "@/lib/store/aiPanel";
 import { useTabs } from "@/lib/store/tabs";
 import { useAiDiff } from "@/lib/store/aiDiffStore";
-import { useAIMultiPreviewStore } from "@/store/useAIMultiPreviewStore"; // IMPORTANT
+import { useAIMultiPreviewStore } from "@/lib/store/useAIMultiPreviewStore"; // IMPORTANT
 import { useLogsStore } from "@/lib/store/logsStore";
 
 import { DiffItem } from "@/lib/store/aiDiffStore";
-import { MultiPreviewItem } from "@/store/useAIMultiPreviewStore";
+import { MultiPreviewItem } from "@/lib/store/useAIMultiPreviewStore";
 
 type AIAction = "generate" | "generate_multi" | "refactor" | "explain" | "fix" | "create_project";
 

@@ -26,6 +26,8 @@
 
 ## 🏗️ Architecture
 
+> Conçue et maintenue par **Prestige Technologie Company**, fondée par **Glody Dimputu Ngola**.
+
 ```
 prestige-build/
 ├── app/                        # Next.js App Router
@@ -55,6 +57,8 @@ prestige-build/
 │   │   ├── pricing.ts        # Tarification dynamique
 │   │   └── stripe-kit.ts     # Générateur de code Stripe
 │   ├── build/                # Moteur de build multi-plateforme
+│   ├── collab/               # Collaboration éditeur (Monaco)
+│   ├── collaboration/        # Collaboration projet (CRDT, commentaires)
 │   ├── deploy/               # Déploiement
 │   │   ├── deployManager.ts  # Orchestrateur de déploiement
 │   │   └── environments.ts   # Gestion dev/preview/prod
@@ -69,6 +73,7 @@ prestige-build/
 │   │   ├── importer.ts       # Import depuis GitHub
 │   │   └── sync.ts           # Synchronisation bidirectionnelle
 │   ├── marketplace/          # Marketplace communautaire
+│   ├── store/                # State management unifié (Zustand)
 │   ├── api-response.ts       # Format API standardisé
 │   ├── rate-limit.ts         # Rate limiting
 │   └── logger.ts             # Logging structuré (Pino)
@@ -78,12 +83,26 @@ prestige-build/
 │   ├── client.ts             # Client DB
 │   └── migrations/           # Migrations
 ├── components/               # Composants React
-├── store/                    # State management (Zustand)
+│   ├── collab/               # UI collaboration éditeur
+│   └── collaboration/        # UI collaboration projet
 ├── tests/                    # Tests
-│   ├── unit/                 # 70 fichiers de tests unitaires (Vitest)
+│   ├── unit/                 # 70+ fichiers de tests unitaires (Vitest)
 │   └── e2e/                  # Tests E2E (Playwright)
 └── .github/workflows/        # CI/CD (GitHub Actions)
 ```
+
+### Drizzle ORM + Supabase : pourquoi les deux coexistent
+
+Prestige Build utilise **deux couches complémentaires** pour accéder à la base de données PostgreSQL hébergée sur Supabase :
+
+| Couche | Technologie | Rôle |
+|--------|-------------|------|
+| **ORM typé** | Drizzle ORM | Schéma, migrations, requêtes SQL typées (CRUD, joins, transactions) |
+| **Service temps réel** | Supabase JS (`service_role`) | Webhooks Clerk, listeners temps réel, opérations admin nécessitant le `service_role` |
+
+- **Drizzle ORM** est l'ORM unique du projet. Il génère et applique les migrations, définit le schéma dans `db/schema.ts` et fournit un client typé pour toutes les opérations de lecture/écriture.
+- **Supabase JS** n'est utilisé que pour les fonctionnalités qui nécessitent le token `service_role` (webhooks Clerk, fonctions admin) et les écoutes temps réel. Il ne remplace jamais Drizzle pour les requêtes standard.
+- **Prisma n'est pas utilisé** et ne doit jamais être réintroduit.
 
 ## 🛠️ Stack technique
 
@@ -215,15 +234,111 @@ En cas d'erreur :
 - **CORS** — Configuration restrictive
 - **Webhooks** — Vérification de signature
 
+## 🗂️ Structure des stores
+
+Tous les stores Zustand sont centralisés dans `lib/store/` et réexportés via `lib/store/index.ts`.
+
+| Store | Fichier | Rôle |
+|-------|---------|------|
+| `useWorkspaceStore` | `lib/store/useWorkspaceStore.ts` | Fichiers du workspace en mémoire |
+| `useNotificationStore` | `lib/store/useNotificationStore.ts` | Notifications utilisateur |
+| `useAIStore` | `lib/store/useAIStore.ts` | Messages et suggestions IA (persisté) |
+| `useAIPreviewStore` | `lib/store/useAIPreviewStore.ts` | Prévisualisation mono-fichier IA |
+| `useAIMultiPreviewStore` | `lib/store/useAIMultiPreviewStore.ts` | Prévisualisation multi-fichier IA |
+| `useFileTree` | `lib/store/fileTree.ts` | Arbre de fichiers du projet |
+| `useEditor` | `lib/store/editor.ts` | Contenu de l'éditeur |
+| `useTabs` | `lib/store/tabs.ts` | Onglets ouverts |
+| `useAiPanel` | `lib/store/aiPanel.ts` | Panneau de chat IA |
+| `useAiDiff` | `lib/store/aiDiffStore.ts` | Diffs IA |
+| `useLogsStore` | `lib/store/logsStore.ts` | Logs (AI, build, erreurs, runtime) |
+
+## 🤝 Structure de la collaboration
+
+Le projet sépare **intentionnellement** deux systèmes de collaboration :
+
+### `lib/collab/` + `components/collab/` — Collaboration éditeur
+
+Collaboration temps réel **dans l'éditeur de code** (Monaco Editor) : curseurs ligne/colonne, sélections, synchronisation d'éditions via WebSocket.
+
+| Module | Rôle |
+|--------|------|
+| `CollabServer.ts` | Gestion des rooms WebSocket par projet |
+| `PresenceManager.ts` | Présence utilisateur au niveau fichier (TTL 30 s) |
+| `CollaboratorAvatars.tsx` | Avatars empilés des collaborateurs |
+| `RemoteCursors.tsx` | Overlay curseurs distants dans Monaco |
+
+### `lib/collaboration/` + `components/collaboration/` — Collaboration projet
+
+Collaboration étendue **au niveau du projet** : CRDT, commentaires contextuels, résolution de conflits, présence par page.
+
+| Module | Rôle |
+|--------|------|
+| `realtime-engine.ts` | Rooms et curseurs x/y par page |
+| `presence-manager.ts` | Présence par page avec TTL |
+| `crdt-store.ts` | Store CRDT (LWW register) |
+| `conflict-resolver.ts` | Résolution de conflits concurrents |
+| `comment-system.ts` | Commentaires in-memory par composant |
+| `PresenceBar.tsx` | Barre d'utilisateurs en ligne |
+| `UserCursor.tsx` | Curseur SVG d'un collaborateur |
+| `CommentThread.tsx` | Fil de commentaires |
+| `ActivityFeed.tsx` | Flux d'activité |
+| `ShareDialog.tsx` | Dialogue de partage |
+
+> Les deux systèmes coexistent intentionnellement et ne doivent **pas** être fusionnés. Voir `lib/collab/README.md` et `lib/collaboration/README.md` pour plus de détails.
+
+## 💻 Développement local
+
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/ngolaglodi-byte/prestige-build.git
+cd prestige-build
+
+# 2. Installer les dépendances
+npm install
+
+# 3. Configurer l'environnement
+cp .env.example .env
+# Éditer .env avec vos clés (Clerk, Supabase, IA providers...)
+
+# 4. Lancer la base de données (Docker)
+docker compose up db -d
+
+# 5. Appliquer les migrations Drizzle
+npm run db:generate
+npm run db:migrate
+
+# 6. Lancer le serveur de développement
+npm run dev
+# → http://localhost:3000
+
+# 7. Lancer les tests
+npm run test:unit          # Tests unitaires (Vitest)
+npm run test:unit:watch    # Mode watch
+npm run test:e2e           # Tests E2E (Playwright)
+```
+
 ## 🤖 CI/CD
 
 Le pipeline GitHub Actions exécute automatiquement :
 
 1. **Lint** — ESLint
 2. **Build** — Next.js build
-3. **Tests unitaires** — Vitest
+3. **Tests unitaires** — Vitest (avec couverture)
 4. **Tests E2E** — Playwright (Chrome, Firefox, Safari)
+
+La documentation API Swagger est déployée automatiquement sur GitHub Pages via le workflow `docs.yml`.
+
+## 👥 Contributeurs
+
+**Prestige Build** est un produit conçu et développé par **Prestige Technologie Company**.
+
+| Rôle | Contributeur |
+|------|-------------|
+| Architecte principal & Fondateur | **Glody Dimputu Ngola** |
+| Société éditrice | **Prestige Technologie Company** |
+
+L'architecture du système — incluant la stratégie de stores, le double système de collaboration, l'intégration Drizzle/Supabase et le pipeline CI/CD — a été conçue par Glody Dimputu Ngola.
 
 ## 📄 Licence
 
-MIT — © 2025 Prestige technologie company. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT — © 2025 Prestige Technologie Company. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
