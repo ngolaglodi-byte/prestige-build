@@ -73,3 +73,43 @@ describe("build/buildQueue", () => {
     expect(canUserBuild("fresh-user")).toBe(true);
   });
 });
+
+describe("build/buildQueue — timeout", () => {
+  it("marks build as failed when it exceeds BUILD_TIMEOUT_MS", async () => {
+    vi.resetModules();
+    process.env.BUILD_TIMEOUT_MS = "50";
+    const mod = await import("@/lib/build/buildQueue");
+    delete process.env.BUILD_TIMEOUT_MS;
+
+    const mockRunner = vi.fn().mockImplementation(
+      () => new Promise((r) => setTimeout(r, 500))
+    );
+    mod.registerBuildRunner(mockRunner);
+
+    const build = mod.enqueueBuild("proj-1", "user-1", "web");
+    await new Promise((r) => setTimeout(r, 200));
+
+    const found = mod.getBuild(build.buildId);
+    expect(found!.status).toBe("failed");
+    expect(found!.errorMessage).toContain("timed out");
+  });
+
+  it("respects BUILD_TIMEOUT_MS env var", async () => {
+    vi.resetModules();
+    process.env.BUILD_TIMEOUT_MS = "100";
+    const mod = await import("@/lib/build/buildQueue");
+    delete process.env.BUILD_TIMEOUT_MS;
+
+    const mockRunner = vi.fn().mockImplementation(
+      () => new Promise((r) => setTimeout(r, 500))
+    );
+    mod.registerBuildRunner(mockRunner);
+
+    const build = mod.enqueueBuild("proj-1", "user-1", "pwa");
+    // After 300ms the 100ms timeout should have fired
+    await new Promise((r) => setTimeout(r, 300));
+
+    const found = mod.getBuild(build.buildId);
+    expect(found!.status).toBe("failed");
+  });
+});

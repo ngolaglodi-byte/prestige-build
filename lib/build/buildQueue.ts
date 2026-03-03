@@ -24,6 +24,8 @@ const MAX_CONCURRENT_BUILDS = parseInt(
   10
 );
 
+const BUILD_TIMEOUT_MS = parseInt(process.env.BUILD_TIMEOUT_MS ?? "600000", 10);
+
 // In-memory queue and active builds (for single-process environments)
 const buildQueue: QueuedBuild[] = [];
 const activeBuilds = new Map<string, QueuedBuild>();
@@ -143,7 +145,17 @@ function processQueue(): void {
     next.progress = progress;
   };
 
-  registeredRunner(next, onLog, onProgress)
+  const timeoutPromise = new Promise<string>((_, reject) => {
+    setTimeout(
+      () => reject(new Error(`Build timed out after ${BUILD_TIMEOUT_MS / 1000} seconds`)),
+      BUILD_TIMEOUT_MS
+    );
+  });
+
+  Promise.race([
+    registeredRunner(next, onLog, onProgress),
+    timeoutPromise,
+  ])
     .then((artifactUrl) => {
       if (next.status !== "cancelled") {
         next.status = "success";

@@ -1,38 +1,10 @@
 // lib/build/tauriBuilder.ts
 
 import path from "path";
-import { runInSandbox } from "@/lib/preview/sandbox";
+import { runSandboxStep, type LogCallback } from "./sandboxRunner";
 import type { BuildTarget } from "./buildTargets";
 
-export type LogCallback = (msg: string, type?: "info" | "error" | "warn") => void;
-
-async function runStep(
-  projectId: string,
-  cmd: "npx" | "npm" | "node" | "cargo",
-  args: string[],
-  onLog: LogCallback
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const proc = runInSandbox({ projectId, cmd, args });
-
-    proc.stdout.on("data", (d) => onLog(d.toString().trim(), "info"));
-    proc.stderr.on("data", (d) => onLog(d.toString().trim(), "warn"));
-
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(
-          new Error(
-            `Commande échouée avec le code ${code}: ${cmd} ${args.join(" ")}`
-          )
-        );
-      }
-    });
-
-    proc.on("error", reject);
-  });
-}
+export type { LogCallback };
 
 export async function buildWithTauri(
   projectId: string,
@@ -42,7 +14,7 @@ export async function buildWithTauri(
   const projectPath = path.join(process.cwd(), "workspace", projectId);
 
   onLog("🦀 Installation de Tauri CLI…", "info");
-  await runStep(
+  await runSandboxStep(
     projectId,
     "npm",
     ["install", "--save-dev", "@tauri-apps/cli"],
@@ -50,7 +22,7 @@ export async function buildWithTauri(
   );
 
   onLog("🔨 Build avec Tauri…", "info");
-  await runStep(projectId, "npx", ["tauri", "build"], onLog);
+  await runSandboxStep(projectId, "npx", ["tauri", "build"], onLog);
 
   // Chemin de sortie Tauri par défaut
   const tauriTarget = path.join(

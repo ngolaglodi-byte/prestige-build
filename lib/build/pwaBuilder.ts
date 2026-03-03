@@ -3,10 +3,10 @@
 import path from "path";
 import fs from "fs";
 import { spawn } from "child_process";
-import { runInSandbox } from "@/lib/preview/sandbox";
+import { runSandboxStep, type LogCallback } from "./sandboxRunner";
 import { ensureArtifactDir } from "./artifactManager";
 
-export type LogCallback = (msg: string, type?: "info" | "error" | "warn") => void;
+export type { LogCallback };
 
 export interface PwaOptions {
   name?: string;
@@ -20,23 +20,7 @@ async function runBuild(
   projectId: string,
   onLog: LogCallback
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const proc = runInSandbox({
-      projectId,
-      cmd: "npm",
-      args: ["run", "build"],
-    });
-
-    proc.stdout.on("data", (d) => onLog(d.toString().trim(), "info"));
-    proc.stderr.on("data", (d) => onLog(d.toString().trim(), "warn"));
-
-    proc.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`Build web échoué (code ${code})`));
-    });
-
-    proc.on("error", reject);
-  });
+  return runSandboxStep(projectId, "npm", ["run", "build"], onLog);
 }
 
 function generateManifest(options: PwaOptions): object {
