@@ -16,6 +16,8 @@ const isDashboardRoute = createRouteMatcher([
   "/billing(.*)",
   "/team(.*)",
   "/admin(.*)",
+  "/builder(.*)",
+  "/api/builder(.*)",
 ]);
 
 async function rateLimitMiddleware(req: NextRequest) {
@@ -55,7 +57,17 @@ export default hasClerkKeys
       }
     })
   : async function fallbackMiddleware(req: NextRequest) {
-      return (await rateLimitMiddleware(req)) ?? NextResponse.next();
+      const rlResponse = await rateLimitMiddleware(req);
+      if (rlResponse) return rlResponse;
+
+      if (isDashboardRoute(req)) {
+        if (req.nextUrl.pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        return NextResponse.redirect(new URL("/sign-in", req.url), 307);
+      }
+
+      return NextResponse.next();
     };
 
 export const config = {
