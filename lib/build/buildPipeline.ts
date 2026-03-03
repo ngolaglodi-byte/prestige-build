@@ -22,13 +22,10 @@ import {
   canUserBuild,
   type QueuedBuild,
 } from "./buildQueue";
+import { runSandboxStep, type LogCallback } from "./sandboxRunner";
 
 export type { QueuedBuild };
-
-export type LogCallback = (
-  msg: string,
-  type?: "info" | "error" | "warn"
-) => void;
+export type { LogCallback };
 
 // Register the build runner once
 registerBuildRunner(async (build, onLog, onProgress) => {
@@ -108,28 +105,11 @@ async function buildWebStatic(
   buildId: string,
   onLog: LogCallback
 ): Promise<string> {
-  const { runInSandbox } = await import("@/lib/preview/sandbox");
   const projectPath = path.join(process.cwd(), "workspace", projectId);
 
   onLog("🌐 Build web statique…", "info");
 
-  await new Promise<void>((resolve, reject) => {
-    const proc = runInSandbox({
-      projectId,
-      cmd: "npm",
-      args: ["run", "build"],
-    });
-
-    proc.stdout.on("data", (d) => onLog(d.toString().trim(), "info"));
-    proc.stderr.on("data", (d) => onLog(d.toString().trim(), "warn"));
-
-    proc.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`Build web échoué (code ${code})`));
-    });
-
-    proc.on("error", reject);
-  });
+  await runSandboxStep(projectId, "npm", ["run", "build"], onLog);
 
   // Create a zip of the output directory
   const outCandidates = ["out", "dist", "build"];

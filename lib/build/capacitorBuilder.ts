@@ -1,34 +1,10 @@
 // lib/build/capacitorBuilder.ts
 
 import path from "path";
-import { runInSandbox } from "@/lib/preview/sandbox";
+import { runSandboxStep, type LogCallback } from "./sandboxRunner";
 import type { BuildTarget } from "./buildTargets";
 
-export type LogCallback = (msg: string, type?: "info" | "error" | "warn") => void;
-
-async function runStep(
-  projectId: string,
-  cmd: "npx" | "npm" | "node",
-  args: string[],
-  onLog: LogCallback
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const proc = runInSandbox({ projectId, cmd, args });
-
-    proc.stdout.on("data", (d) => onLog(d.toString().trim(), "info"));
-    proc.stderr.on("data", (d) => onLog(d.toString().trim(), "warn"));
-
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Commande échouée avec le code ${code}: ${cmd} ${args.join(" ")}`));
-      }
-    });
-
-    proc.on("error", reject);
-  });
-}
+export type { LogCallback };
 
 export async function buildWithCapacitor(
   projectId: string,
@@ -38,23 +14,23 @@ export async function buildWithCapacitor(
   const projectPath = path.join(process.cwd(), "workspace", projectId);
 
   onLog("🔧 Initialisation de Capacitor…", "info");
-  await runStep(projectId, "npm", ["install", "@capacitor/core", "@capacitor/cli"], onLog);
+  await runSandboxStep(projectId, "npm", ["install", "@capacitor/core", "@capacitor/cli"], onLog);
 
   onLog("📦 Build web avant sync Capacitor…", "info");
-  await runStep(projectId, "npm", ["run", "build"], onLog);
+  await runSandboxStep(projectId, "npm", ["run", "build"], onLog);
 
   onLog("🔄 Synchronisation des assets web…", "info");
-  await runStep(projectId, "npx", ["cap", "sync"], onLog);
+  await runSandboxStep(projectId, "npx", ["cap", "sync"], onLog);
 
   if (target === "android-apk" || target === "android-aab") {
     onLog("📱 Ajout de la plateforme Android…", "info");
-    await runStep(projectId, "npx", ["cap", "add", "android"], onLog);
+    await runSandboxStep(projectId, "npx", ["cap", "add", "android"], onLog);
 
     const gradleTask =
       target === "android-aab" ? "bundleRelease" : "assembleRelease";
 
     onLog(`🔨 Build Android (${gradleTask})…`, "info");
-    await runStep(
+    await runSandboxStep(
       projectId,
       "npm",
       ["run", "build:android", "--", `--gradle-task=${gradleTask}`],
@@ -79,10 +55,10 @@ export async function buildWithCapacitor(
 
   if (target === "ios-ipa") {
     onLog("🍎 Ajout de la plateforme iOS…", "info");
-    await runStep(projectId, "npx", ["cap", "add", "ios"], onLog);
+    await runSandboxStep(projectId, "npx", ["cap", "add", "ios"], onLog);
 
     onLog("🔨 Build iOS (xcodebuild)…", "info");
-    await runStep(
+    await runSandboxStep(
       projectId,
       "npx",
       ["cap", "build", "ios", "--", "--no-open"],

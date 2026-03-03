@@ -1,38 +1,10 @@
 // lib/build/electronBuilder.ts
 
 import path from "path";
-import { runInSandbox } from "@/lib/preview/sandbox";
+import { runSandboxStep, type LogCallback } from "./sandboxRunner";
 import type { BuildTarget } from "./buildTargets";
 
-export type LogCallback = (msg: string, type?: "info" | "error" | "warn") => void;
-
-async function runStep(
-  projectId: string,
-  cmd: "npx" | "npm" | "node",
-  args: string[],
-  onLog: LogCallback
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const proc = runInSandbox({ projectId, cmd, args });
-
-    proc.stdout.on("data", (d) => onLog(d.toString().trim(), "info"));
-    proc.stderr.on("data", (d) => onLog(d.toString().trim(), "warn"));
-
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(
-          new Error(
-            `Commande échouée avec le code ${code}: ${cmd} ${args.join(" ")}`
-          )
-        );
-      }
-    });
-
-    proc.on("error", reject);
-  });
-}
+export type { LogCallback };
 
 function getElectronBuilderTarget(target: BuildTarget): string {
   switch (target) {
@@ -84,7 +56,7 @@ export async function buildWithElectron(
   const appName = options.appName ?? "app";
 
   onLog("📦 Installation de electron-builder…", "info");
-  await runStep(
+  await runSandboxStep(
     projectId,
     "npm",
     ["install", "--save-dev", "electron-builder"],
@@ -92,13 +64,13 @@ export async function buildWithElectron(
   );
 
   onLog("🔨 Build web avant packaging Electron…", "info");
-  await runStep(projectId, "npm", ["run", "build"], onLog);
+  await runSandboxStep(projectId, "npm", ["run", "build"], onLog);
 
   const builderTarget = getElectronBuilderTarget(target);
   const builderArgs = ["electron-builder", ...builderTarget.split(" ")];
 
   onLog(`🚀 Packaging Electron pour ${target}…`, "info");
-  await runStep(projectId, "npx", builderArgs, onLog);
+  await runSandboxStep(projectId, "npx", builderArgs, onLog);
 
   const outputPath = getExpectedOutputPath(projectPath, target, appName);
   onLog(`✅ Build Electron terminé : ${outputPath}`, "info");
