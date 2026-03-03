@@ -8,7 +8,7 @@ import { LogsPanel } from "./LogsPanel";
 import { DeviceType } from "./DeviceSelector";
 import { Framework } from "./FrameworkBadge";
 import { useLogsStore } from "@/lib/store/logsStore";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
 import {
   isWebContainerSupported,
   startWebContainerPreview,

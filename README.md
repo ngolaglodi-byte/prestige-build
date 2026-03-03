@@ -69,6 +69,7 @@ prestige-build/
 │   │   ├── importer.ts       # Import depuis GitHub
 │   │   └── sync.ts           # Synchronisation bidirectionnelle
 │   ├── marketplace/          # Marketplace communautaire
+│   ├── store/               # State management (Zustand)
 │   ├── api-response.ts       # Format API standardisé
 │   ├── rate-limit.ts         # Rate limiting
 │   └── logger.ts             # Logging structuré (Pino)
@@ -78,7 +79,6 @@ prestige-build/
 │   ├── client.ts             # Client DB
 │   └── migrations/           # Migrations
 ├── components/               # Composants React
-├── store/                    # State management (Zustand)
 ├── tests/                    # Tests
 │   ├── unit/                 # 70 fichiers de tests unitaires (Vitest)
 │   └── e2e/                  # Tests E2E (Playwright)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
 
 export function analyzeProject() {
   const workspace = useWorkspaceStore.getState();

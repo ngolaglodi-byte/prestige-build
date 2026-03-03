@@ -1,7 +1,7 @@
 "use client";
 
-import { useAIPreviewStore } from "@/store/useAIPreviewStore";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useAIPreviewStore } from "@/lib/store/useAIPreviewStore";
+import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
 import { DiffEditor } from "@monaco-editor/react";
 import { detectLanguage } from "@/lib/utils/detect-language";
 

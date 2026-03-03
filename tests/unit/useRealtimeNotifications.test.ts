@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useNotificationStore, type Notification } from "@/store/useNotificationStore";
+import { useNotificationStore, type Notification } from "@/lib/store/useNotificationStore";
 
 const makeNotification = (overrides: Partial<Notification> = {}): Notification => ({
   id: "n1",

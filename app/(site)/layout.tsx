@@ -1,9 +1,11 @@
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <OnboardingModal />
       <header className="w-full flex items-center justify-between px-6 py-4 border-b border-white/10">
         <div className="text-xl font-bold">Prestige Build</div>
 
