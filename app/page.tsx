@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import ThreeHeroScene from "@/components/ThreeHeroScene";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -24,6 +25,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#050505] text-white flex flex-col">
+      <OnboardingModal />
 
       {/* HEADER STICKY */}
       <header className="fixed top-0 inset-x-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-xl">
