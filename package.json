@@ -36,7 +36,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@react-three/drei": "~9.56.0",
     "@react-three/fiber": "~8.15.12",
-    "@sentry/nextjs": "^8.0.0",
+    "@sentry/nextjs": "^10.42.0",
     "@supabase/supabase-js": "^2.97.0",
     "@upstash/redis": "^1.36.2",
     "@webcontainer/api": "^1.6.1",
