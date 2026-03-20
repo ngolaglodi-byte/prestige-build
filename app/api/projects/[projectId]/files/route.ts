@@ -1,6 +1,6 @@
 // app/api/projects/[projectId]/files/route.ts
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { users, files } from "@/db/schema";
@@ -15,12 +15,12 @@ export async function GET(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Unauthorized", { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
 
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -52,8 +52,8 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Unauthorized", { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -63,7 +63,7 @@ export async function POST(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -108,8 +108,8 @@ export async function PATCH(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Unauthorized", { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -119,7 +119,7 @@ export async function PATCH(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -180,8 +180,8 @@ export async function DELETE(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Unauthorized", { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
     const body = await req.json();
@@ -192,7 +192,7 @@ export async function DELETE(
     }
 
     // Vérifier ownership du projet
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 

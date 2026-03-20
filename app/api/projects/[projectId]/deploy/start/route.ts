@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { deployProject } from "@/lib/deploy/deployManager";
 import { setDeployState } from "@/lib/deploy/deployRegistry";
 
 export async function POST(_req: Request, { params }: { params: { projectId: string } }) {
-  const { userId } = await auth();
-  if (!userId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
   const { projectId } = params;
 

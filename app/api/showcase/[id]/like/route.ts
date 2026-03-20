@@ -1,7 +1,7 @@
 // app/api/showcase/[id]/like/route.ts
 // POST — toggle like/unlike on a showcase project.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { showcaseProjects, showcaseLikes, users } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -14,10 +14,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
-    const rl = await rateLimitAsync(`showcase:like:${clerkId}`, 60, 60_000);
+    const rl = await rateLimitAsync(`showcase:like:${currentUser.id}`, 60, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);
 
     const { id: showcaseId } = params;
@@ -26,7 +26,7 @@ export async function POST(
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.clerkId, clerkId))
+      .where(eq(users.currentUser.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);

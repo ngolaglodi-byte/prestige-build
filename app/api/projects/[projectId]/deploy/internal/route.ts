@@ -1,7 +1,7 @@
 // app/api/projects/[projectId]/deploy/internal/route.ts
 // Deploys a project to Prestige Cloud (internal hosting via Supabase Storage).
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { apiError } from "@/lib/api-response";
 import { deployProject } from "@/lib/deploy/deployManager";
 import { purgeCache } from "@/lib/deploy/cdnManager";
@@ -15,8 +15,8 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const { projectId } = params;
 

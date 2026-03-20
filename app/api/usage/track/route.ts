@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -20,8 +20,8 @@ const ALLOWED_ACTIONS = [
 ];
 
 export async function POST(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { action, projectId, metadata } = await req.json();
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.clerkId, clerkId))
+    .where(eq(users.currentUser.id, currentUser.id))
     .limit(1);
 
   if (!user) {

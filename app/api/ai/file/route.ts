@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { consumeCredits } from "@/lib/credits/consumeCredits";
 import { checkCredits } from "@/lib/credits/checkCredits";
 import {
@@ -12,8 +12,8 @@ import { validatePath } from "@/lib/ai/safetyValidator";
 const provider = new AIProvider();
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
   const available = provider.getAvailableModels();
   if (available.length === 0) {

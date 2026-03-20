@@ -1,95 +1,138 @@
-export const dynamic = "force-dynamic";
+"use client";
 
-// app/admin/users/page.tsx
-import { db } from "@/db/client";
-import { users, usageLogs } from "@/db/schema";
-import { subscriptions } from "@/db/supabase-schema";
-import { eq, sql } from "drizzle-orm";
-import { PromoteButton, DemoteButton } from "./UserActions";
+import { useEffect, useState } from "react";
+import { UserActions, CreateUserForm } from "./UserActions";
 
-export default async function AdminUsersPage() {
-  const allUsers = await db
-    .select({
-      id: users.id,
-      clerkId: users.clerkId,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      plan: subscriptions.plan,
-      subStatus: subscriptions.status,
-      totalCreditsUsed: sql<number>`COALESCE(SUM(${usageLogs.creditsUsed}), 0)`.as("total_credits_used"),
-    })
-    .from(users)
-    .leftJoin(subscriptions, eq(users.id, subscriptions.userId))
-    .leftJoin(usageLogs, eq(users.id, usageLogs.userId))
-    .groupBy(users.id, subscriptions.plan, subscriptions.status);
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+  role: "ADMIN" | "AGENT";
+  status: "ACTIVE" | "DISABLED" | "PENDING";
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function fetchUsers() {
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error || "Erreur lors du chargement");
+        return;
+      }
+      setUsers(data.users);
+    } catch {
+      setError("Erreur de connexion au serveur");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  function getStatusBadge(status: string) {
+    switch (status) {
+      case "ACTIVE":
+        return <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">Actif</span>;
+      case "DISABLED":
+        return <span className="px-2 py-1 bg-red-600 text-white text-xs rounded">Désactivé</span>;
+      case "PENDING":
+        return <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded">En attente</span>;
+      default:
+        return status;
+    }
+  }
+
+  function getRoleBadge(role: string) {
+    switch (role) {
+      case "ADMIN":
+        return <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded">Admin</span>;
+      case "AGENT":
+        return <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">Agent</span>;
+      default:
+        return role;
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="text-white">
+        <h1 className="text-3xl font-bold mb-6">Gestion des utilisateurs</h1>
+        <p>Chargement...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-white">
+        <h1 className="text-3xl font-bold mb-6">Gestion des utilisateurs</h1>
+        <div className="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Gestion des utilisateurs</h1>
+      <h1 className="text-3xl font-bold mb-6 text-white">Gestion des utilisateurs</h1>
 
-      <table className="w-full bg-white shadow rounded-lg overflow-hidden">
-        <thead className="bg-gray-100 text-left">
-          <tr>
-            <th className="p-4">Nom</th>
-            <th className="p-4">E-mail</th>
-            <th className="p-4">Rôle</th>
-            <th className="p-4">Abonnement</th>
-            <th className="p-4">Utilisation totale</th>
-            <th className="p-4">Actions</th>
-          </tr>
-        </thead>
+      <CreateUserForm onCreated={fetchUsers} />
 
-        <tbody>
-          {allUsers.map((u) => (
-            <tr key={u.id} className="border-t">
-              <td className="p-4">{u.name ?? "Aucun nom"}</td>
-              <td className="p-4">{u.email}</td>
-              <td className="p-4 capitalize">{u.role}</td>
-              <td className="p-4">
-                {u.plan ? (
-                  <span className="capitalize">
-                    {u.plan} ({u.subStatus})
-                  </span>
-                ) : (
-                  "Aucun"
-                )}
-              </td>
-              <td className="p-4">{u.totalCreditsUsed} crédits</td>
-
-              <td className="p-4 flex gap-2 flex-wrap">
-                {u.role !== "admin" ? (
-                  <PromoteButton clerkId={u.clerkId} />
-                ) : (
-                  <DemoteButton clerkId={u.clerkId} />
-                )}
-
-                {u.role !== "suspended" ? (
-                  <form action="/api/admin/users/suspend" method="POST">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <button
-                      type="submit"
-                      className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700"
-                    >
-                      Suspendre
-                    </button>
-                  </form>
-                ) : (
-                  <form action="/api/admin/users/reactivate" method="POST">
-                    <input type="hidden" name="userId" value={u.id} />
-                    <button
-                      type="submit"
-                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Réactiver
-                    </button>
-                  </form>
-                )}
-              </td>
+      <div className="bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-700 text-left">
+            <tr>
+              <th className="p-4 text-gray-300">Nom</th>
+              <th className="p-4 text-gray-300">E-mail</th>
+              <th className="p-4 text-gray-300">Rôle</th>
+              <th className="p-4 text-gray-300">Statut</th>
+              <th className="p-4 text-gray-300">Dernière connexion</th>
+              <th className="p-4 text-gray-300">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} className="border-t border-gray-700">
+                <td className="p-4 text-white">{u.name ?? "—"}</td>
+                <td className="p-4 text-gray-300">{u.email}</td>
+                <td className="p-4">{getRoleBadge(u.role)}</td>
+                <td className="p-4">{getStatusBadge(u.status)}</td>
+                <td className="p-4 text-gray-400 text-sm">
+                  {u.lastLoginAt
+                    ? new Date(u.lastLoginAt).toLocaleString("fr-FR")
+                    : "Jamais"}
+                </td>
+                <td className="p-4">
+                  {u.role !== "ADMIN" && (
+                    <UserActions
+                      userId={u.id}
+                      status={u.status}
+                      onRefresh={fetchUsers}
+                    />
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {users.length === 0 && (
+          <div className="p-8 text-center text-gray-400">
+            Aucun utilisateur trouvé
+          </div>
+        )}
+      </div>
     </div>
   );
 }

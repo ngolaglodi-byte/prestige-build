@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { users, previewSessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -12,9 +12,9 @@ export async function POST(
     // -----------------------------
     // 1. Auth Clerk
     // -----------------------------
-    const { userId: clerkId } = await auth();
+    const currentUser = await getCurrentUser();
 
-    if (!clerkId) {
+    if (!currentUser) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -25,13 +25,13 @@ export async function POST(
     }
 
     // Resolve Clerk ID to internal user UUID
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) {
       return new Response("User not found", { status: 404 });
     }
 
-    const userId = user.id;
+    const userId = currentUser!.id;
 
     // -----------------------------
     // 2. Lire le body

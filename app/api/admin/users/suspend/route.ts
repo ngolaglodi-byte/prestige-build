@@ -1,7 +1,7 @@
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   const { userId: adminClerkId } = await auth();
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
+  const [admin] = await db.select().from(users).where(eq(users.currentUser.id, adminClerkId));
   if (!admin || admin.role !== "admin") {
     return new Response("Forbidden", { status: 403 });
   }

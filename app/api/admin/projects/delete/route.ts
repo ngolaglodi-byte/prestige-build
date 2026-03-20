@@ -2,7 +2,7 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
+  const [admin] = await db.select().from(users).where(eq(users.currentUser.id, adminClerkId));
   if (!admin || admin.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

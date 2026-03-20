@@ -1,31 +1,26 @@
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId: adminClerkId } = await auth();
-    if (!adminClerkId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
-    if (!admin || admin.role !== "admin") {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const body = await req.json();
-    const clerkId = body.clerkId;
-    if (!clerkId || typeof clerkId !== "string") {
-      return NextResponse.json({ error: "Missing clerkId" }, { status: 400 });
+    const targetUserId = body.userId;
+    if (!targetUserId || typeof targetUserId !== "string") {
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
     const result = await db
       .update(users)
-      .set({ role: "user" })
-      .where(eq(users.clerkId, clerkId))
+      .set({ role: "AGENT" })
+      .where(eq(users.id, targetUserId))
       .returning();
 
     if (result.length === 0) {

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { users, previewSessions } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
@@ -9,17 +9,17 @@ export async function GET(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return new Response("Unauthorized", { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
     const projectId = params.projectId;
 
     // Resolve Clerk ID to internal user UUID
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
-    const userId = user.id;
+    const userId = currentUser!.id;
 
     const previewRows = await db
       .select()

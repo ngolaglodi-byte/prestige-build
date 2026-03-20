@@ -10,23 +10,55 @@ import {
   doublePrecision,
   unique,
   pgEnum,
+  inet,
 } from "drizzle-orm/pg-core";
 
-// USERS (Clerk sync)
+// ── USER ROLES ────────────────────────────────────────────────────────────
+// Prestige Build interne : ADMIN ou AGENT uniquement
+export const userRoleEnum = pgEnum("user_role", ["ADMIN", "AGENT"]);
+
+// ── USER STATUS ───────────────────────────────────────────────────────────
+export const userStatusEnum = pgEnum("user_status", ["ACTIVE", "DISABLED", "PENDING"]);
+
+// USERS (Authentification locale Prestige Build)
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  clerkId: varchar("clerk_id", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: text("password_hash"), // nullable si compte invité pas encore activé
   name: varchar("name", { length: 255 }),
   avatar: text("avatar"),
-  role: text("role").notNull().default("user"),
+  role: userRoleEnum("role").notNull().default("AGENT"),
+  status: userStatusEnum("status").notNull().default("PENDING"),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
 });
 
-// NOTE: plans, user_plans, user_limits, projects, and subscriptions are
-// managed by Supabase and are defined in db/supabase-schema.ts.
-// They are excluded here so that Drizzle does not generate migrations for them.
+// ── SESSIONS ──────────────────────────────────────────────────────────────
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  ip: varchar("ip", { length: 45 }),
+  userAgent: text("user_agent"),
+});
+
+// ── AUDIT LOGS ────────────────────────────────────────────────────────────
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 100 }).notNull(),
+  targetUserId: uuid("target_user_id").references(() => users.id, { onDelete: "set null" }),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 // DOMAINS
 export const domains = pgTable("domains", {
@@ -35,68 +67,6 @@ export const domains = pgTable("domains", {
   type: varchar("type", { length: 20 }).notNull(), // subdomain | custom
   host: varchar("host", { length: 255 }).notNull().unique(),
   verified: boolean("verified").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// CREDIT PURCHASES
-export const creditPurchases = pgTable("credit_purchases", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  creditsAmount: integer("credits_amount").notNull(),
-  amountPaid: integer("amount_paid").notNull(),
-  currency: varchar("currency", { length: 10 }).notNull(),
-  provider: varchar("provider", { length: 50 }).notNull().default("pawapay"),
-  status: varchar("status", { length: 20 }).notNull(),
-  rawPayload: jsonb("raw_payload"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// USAGE LOGS
-export const usageLogs = pgTable("usage_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id"),
-  tokensUsed: integer("tokens_used").notNull(),
-  creditsUsed: integer("credits_used").notNull(),
-  action: varchar("action", { length: 50 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// BILLING EVENTS
-export const billingEvents = pgTable("billing_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id"),
-  provider: varchar("provider", { length: 50 }).notNull().default("pawapay"),
-  amount: integer("amount").notNull(),
-  currency: varchar("currency", { length: 10 }).notNull(),
-  status: varchar("status", { length: 20 }).notNull(),
-  rawPayload: jsonb("raw_payload"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// ADMIN CREDIT LOGS (AJOUTÉ)
-export const adminCreditLogs = pgTable("admin_credit_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-
-  adminId: uuid("admin_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-
-  amount: integer("amount").notNull(),
-
-  reason: text("reason"),
-
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -263,14 +233,6 @@ export const integrations = pgTable("integrations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// ADMIN PRICING CONFIG
-export const adminPricingConfig = pgTable("admin_pricing_config", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  key: varchar("key", { length: 100 }).notNull().unique(),
-  value: jsonb("value").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 // ADMIN AI CONFIG
 export const adminAiConfig = pgTable("admin_ai_config", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -324,17 +286,6 @@ export const builds = pgTable("builds", {
   errorMessage: text("error_message"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// BUILD QUOTAS
-export const buildQuotas = pgTable("build_quotas", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull().unique(),
-  buildsToday: integer("builds_today").default(0),
-  buildsThisMonth: integer("builds_this_month").default(0),
-  lastBuildAt: timestamp("last_build_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

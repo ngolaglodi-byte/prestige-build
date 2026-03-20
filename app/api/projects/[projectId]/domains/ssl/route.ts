@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { domains } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
-  const { userId } = await auth();
-  if (!userId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
   const { projectId } = params;
   const { domainId } = await req.json();

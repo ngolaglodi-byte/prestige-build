@@ -1,10 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // GET /api/templates — List templates (public or user's own)
 export async function GET(req: Request) {
-  const { userId } = await auth();
+  const currentUser = await getCurrentUser();
 
   const { searchParams } = new URL(req.url);
   const search = (searchParams.get("search") || "").slice(0, 200);
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     .select("*", { count: "exact" });
 
   if (scope === "mine") {
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     query = query.eq("user_id", userId);
   } else {
     query = query.eq("is_public", true);
@@ -56,8 +56,8 @@ export async function GET(req: Request) {
 
 // POST /api/templates — Create a template
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const { name, description, category, tags, files, isPublic } = body;

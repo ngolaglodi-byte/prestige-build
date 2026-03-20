@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
@@ -19,8 +19,8 @@ const PostBody = z.object({
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const body = await req.json();
     const parsed = PostBody.safeParse(body);
@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     const userRows = await db
       .select()
       .from(users)
-      .where(eq(users.clerkId, clerkId))
+      .where(eq(users.currentUser.id, currentUser.id))
       .limit(1);
 
     const user = userRows[0];

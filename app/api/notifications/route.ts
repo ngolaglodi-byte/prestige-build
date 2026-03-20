@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { notifications, users } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
   if (!user) return NextResponse.json({ notifications: [] });
 
   const items = await db
@@ -22,8 +22,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
   const { id } = await req.json();
 

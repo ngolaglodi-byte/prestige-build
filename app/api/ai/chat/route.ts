@@ -1,7 +1,7 @@
 // app/api/ai/chat/route.ts
 // POST /api/ai/chat — Streaming AI chat with SSE.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import OpenAI from "openai";
 import { rateLimitAsync } from "@/lib/rate-limit";
@@ -34,8 +34,8 @@ Sois précis, direct et pédagogique.`;
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`chat:${userId}`, 30, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);

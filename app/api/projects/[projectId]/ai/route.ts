@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { users, files } from "@/db/schema";
@@ -44,8 +44,8 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { projectId } = await params;
     const body = await req.json();
@@ -59,7 +59,7 @@ export async function POST(
     }
 
     // Resolve Clerk ID to internal user UUID
-    const userRows = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function POST(
       );
     }
 
-    const userId = user.id;
+    const userId = currentUser!.id;
 
     // Vérifier que le projet existe et appartient à l'utilisateur
     const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);

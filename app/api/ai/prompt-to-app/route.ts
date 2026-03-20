@@ -3,7 +3,7 @@
 // using the AI orchestrator, creates a project in the DB, and returns the
 // generated files via SSE streaming.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { orchestrate } from "@/lib/ai/orchestrator";
 import { apiError } from "@/lib/api-response";
@@ -17,8 +17,8 @@ const PostBody = z.object({
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const body = await req.json();
     const parsed = PostBody.safeParse(body);

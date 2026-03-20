@@ -1,7 +1,7 @@
 // app/api/figma/import/route.ts
 // POST /api/figma/import — Import a Figma file and generate React/Tailwind code.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { apiOk, apiError } from "@/lib/api-response";
@@ -30,8 +30,8 @@ function parseFigmaUrl(url: string): { fileKey: string; nodeIds?: string } {
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const rl = await rateLimitAsync(`figma:import:${userId}`, 10, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { renameProjectFile } from "@/lib/projects/fileSystem";
 
 export async function PATCH(req: Request, { params }: { params: { projectId: string } }) {
-  const { userId } = await auth();
-  if (!userId) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
     return new Response("Unauthorized", { status: 401 });
   }
 

@@ -1,12 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
-import { ensureUserExists } from "@/lib/ensure-user";
 
 export async function GET(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       console.error("[projects/list] Unauthorized: no userId from Clerk");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -16,8 +15,8 @@ export async function GET(req: Request) {
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "6")));
 
-    const user = await ensureUserExists(clerkId);
-    const userId = user.id;
+    // User is already available from currentUser
+    const userId = currentUser!.id;
 
     const supabase = getSupabaseServiceClient();
 

@@ -1,22 +1,53 @@
-import { auth } from "@clerk/nextjs/server";
-import { ensureUserExists } from "@/lib/ensure-user";
+/**
+ * Authentication helpers for Prestige Build.
+ * Uses local authentication (email + password) with JWT sessions.
+ */
+import { getCurrentUser } from "@/lib/auth/session";
 
+/**
+ * Gets the current user's ID from the session.
+ * Throws if not authenticated.
+ */
 export async function getCurrentUserId(): Promise<string> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) throw new Error("Unauthorized");
-
-  const user = await ensureUserExists(clerkId);
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+  if (user.status !== "ACTIVE") throw new Error("Account not active");
   return user.id;
 }
 
+/**
+ * Gets the current user with role information.
+ */
 export async function getCurrentUserWithRole(): Promise<{
   id: string;
-  clerkId: string;
-  role: string;
+  email: string;
+  role: "ADMIN" | "AGENT";
+  status: "ACTIVE" | "DISABLED" | "PENDING";
+  name: string | null;
 } | null> {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return null;
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    status: user.status,
+    name: user.name,
+  };
+}
 
-  const user = await ensureUserExists(clerkId);
-  return { id: user.id, clerkId, role: user.role };
+/**
+ * Checks if the current user is an admin.
+ */
+export async function isAdmin(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user?.role === "ADMIN" && user?.status === "ACTIVE";
+}
+
+/**
+ * Checks if the current user is active (either ADMIN or AGENT).
+ */
+export async function isActiveUser(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user?.status === "ACTIVE";
 }
