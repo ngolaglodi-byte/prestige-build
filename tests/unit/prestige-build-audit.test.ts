@@ -3,12 +3,18 @@
  * 
  * Ce fichier teste les 6 critères d'audit définis par l'auditeur interne
  * de Prestige Technologie Company.
+ * 
+ * OBJECTIF: Score 10/10 sur chaque critère d'audit.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   parseGeneratedFiles,
   mergeFiles,
+  validateCode,
+  attemptCodeFix,
+  parseFileTagsFormat,
+  validateAndFixFiles,
 } from "@/lib/builder/code-generator";
 import {
   SYSTEM_PROMPT_GENERATE,
@@ -30,6 +36,12 @@ import {
   pageTemplate,
   apiRouteTemplate,
   layoutTemplate,
+  headerTemplate,
+  sidebarTemplate,
+  footerTemplate,
+  loginPageTemplate,
+  dashboardPageTemplate,
+  usersPageTemplate,
 } from "@/lib/builder/template-engine";
 
 // --------------------------------------------------------------------------
@@ -655,5 +667,447 @@ export default function Sidebar() {
     // Vérifie que le contenu contient Tailwind classes
     const headerFile = files.find(f => f.path === "components/Header.tsx");
     expect(headerFile?.content).toContain("className=");
+  });
+});
+
+// ==========================================================================
+// NOUVELLES AMÉLIORATIONS POUR SCORE 10/10
+// ==========================================================================
+
+// --------------------------------------------------------------------------
+// CRITÈRE 1 AMÉLIORÉ: Compréhension du prompt (10/10)
+// --------------------------------------------------------------------------
+
+describe("AUDIT 1 AMÉLIORÉ: Compréhension du prompt (10/10)", () => {
+  beforeEach(() => {
+    resetMessageCounter();
+  });
+
+  describe("Extraction des composants UI", () => {
+    it("détecte le header dans le prompt", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Ajoute un header avec le logo", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.uiComponents.hasHeader).toBe(true);
+      expect(reqs.features).toContain("header");
+    });
+
+    it("détecte le sidebar/menu latéral", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Avec un menu latéral de navigation", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.uiComponents.hasSidebar).toBe(true);
+      expect(reqs.features).toContain("sidebar");
+    });
+
+    it("détecte le footer", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Ajoute un footer avec les mentions légales", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.uiComponents.hasFooter).toBe(true);
+      expect(reqs.features).toContain("footer");
+    });
+
+    it("détecte les tableaux/tables", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Affiche les utilisateurs dans un tableau", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.uiComponents.hasTable).toBe(true);
+    });
+
+    it("détecte les formulaires", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Crée un formulaire d'inscription", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.uiComponents.hasForm).toBe(true);
+    });
+  });
+
+  describe("Extraction des entités", () => {
+    it("détecte les utilisateurs", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Gestion des utilisateurs", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.entities).toContain("users");
+    });
+
+    it("détecte les produits", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Liste des produits", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.entities).toContain("products");
+    });
+
+    it("détecte les commandes", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Suivi des commandes", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.entities).toContain("orders");
+    });
+
+    it("ajoute les entités aux pages", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Gestion des utilisateurs et produits", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.pages).toContain("users");
+      expect(reqs.pages).toContain("products");
+    });
+  });
+
+  describe("Extraction des styles demandés", () => {
+    it("détecte un design moderne", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Design moderne et épuré", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.styleRequirements.isModern).toBe(true);
+      expect(reqs.styleRequirements.isClean).toBe(true);
+    });
+
+    it("détecte un design responsive", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "L'application doit être responsive", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.styleRequirements.isResponsive).toBe(true);
+    });
+
+    it("détecte un design professionnel", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Un look professionnel et business", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.styleRequirements.isProfessional).toBe(true);
+    });
+  });
+
+  describe("Détection du type d'application", () => {
+    it("détecte une application dashboard", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Crée un dashboard avec des statistiques", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.appType).toBe("dashboard");
+    });
+
+    it("détecte une application interne", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Application interne pour la gestion", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.appType).toBe("internal");
+    });
+
+    it("détecte un site e-commerce", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Crée une boutique e-commerce avec panier", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.appType).toBe("ecommerce");
+    });
+
+    it("détecte un outil/utilitaire", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Un outil de conversion", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.appType).toBe("tool");
+    });
+  });
+
+  describe("Extraction des workflows", () => {
+    it("détecte les workflows d'authentification", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Connexion et inscription des utilisateurs", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.workflows).toContain("login");
+      expect(reqs.workflows).toContain("register");
+    });
+
+    it("détecte les opérations CRUD", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Créer, modifier et supprimer des produits", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.workflows).toContain("create");
+      expect(reqs.workflows).toContain("edit");
+      expect(reqs.workflows).toContain("delete");
+    });
+
+    it("détecte la recherche et le filtrage", () => {
+      const messages = [
+        { id: "1", role: "user" as const, content: "Avec recherche et filtres", timestamp: "" },
+      ];
+      const reqs = extractRequirements(messages);
+      expect(reqs.workflows).toContain("search");
+    });
+  });
+});
+
+// --------------------------------------------------------------------------
+// CRITÈRE 2 AMÉLIORÉ: Génération de code (10/10)
+// --------------------------------------------------------------------------
+
+describe("AUDIT 2 AMÉLIORÉ: Génération de code (10/10)", () => {
+  describe("Templates de composants améliorés", () => {
+    it("génère un header complet", () => {
+      const code = headerTemplate("Mon App");
+      expect(code).toContain('"use client"');
+      expect(code).toContain("export default function Header");
+      expect(code).toContain("Mon App");
+      expect(code).toContain("className=");
+    });
+
+    it("génère un sidebar avec navigation", () => {
+      const code = sidebarTemplate(["Dashboard", "Users"]);
+      expect(code).toContain('"use client"');
+      expect(code).toContain("export default function Sidebar");
+      expect(code).toContain("Dashboard");
+      expect(code).toContain("Users");
+    });
+
+    it("génère un footer", () => {
+      const code = footerTemplate("Ma Société");
+      expect(code).toContain('"use client"');
+      expect(code).toContain("export default function Footer");
+      expect(code).toContain("Ma Société");
+    });
+
+    it("génère une page de login complète", () => {
+      const code = loginPageTemplate();
+      expect(code).toContain('"use client"');
+      expect(code).toContain("useState");
+      expect(code).toContain("email");
+      expect(code).toContain("password");
+      expect(code).toContain("handleSubmit");
+      expect(code).toContain("className=");
+    });
+
+    it("génère une page dashboard", () => {
+      const code = dashboardPageTemplate();
+      expect(code).toContain("export default function DashboardPage");
+      expect(code).toContain("Dashboard");
+      expect(code).toContain("className=");
+    });
+
+    it("génère une page de gestion des utilisateurs", () => {
+      const code = usersPageTemplate();
+      expect(code).toContain('"use client"');
+      expect(code).toContain("useState");
+      expect(code).toContain("useEffect");
+      expect(code).toContain("interface User");
+      expect(code).toContain("Utilisateurs");
+    });
+  });
+
+  describe("Validation du code généré", () => {
+    it("valide du code avec des accolades équilibrées", () => {
+      const code = `function test() { return { a: 1 }; }`;
+      const result = validateCode(code, "test.tsx");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("détecte les accolades non équilibrées", () => {
+      const code = `function test() { return { a: 1 };`;
+      const result = validateCode(code, "test.tsx");
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Unbalanced braces {}");
+    });
+
+    it("détecte les parenthèses non équilibrées", () => {
+      const code = `function test( { return 1; }`;
+      const result = validateCode(code, "test.tsx");
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Unbalanced parentheses ()");
+    });
+
+    it("valide du JSON correctement formaté", () => {
+      const code = `{"name": "test", "value": 123}`;
+      const result = validateCode(code, "data.json");
+      expect(result.isValid).toBe(true);
+    });
+
+    it("détecte du JSON invalide", () => {
+      const code = `{name: test}`;
+      const result = validateCode(code, "data.json");
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Invalid JSON syntax");
+    });
+  });
+
+  describe("Auto-correction du code", () => {
+    it("ajoute 'use client' aux composants avec hooks", () => {
+      const code = `import React, { useState } from "react";
+export default function Test() { const [x, setX] = useState(0); }`;
+      const fixed = attemptCodeFix(code, "components/Test.tsx");
+      expect(fixed).toContain('"use client"');
+    });
+
+    it("ajoute une nouvelle ligne à la fin", () => {
+      const code = `export default function Test() {}`;
+      const fixed = attemptCodeFix(code, "test.tsx");
+      expect(fixed.endsWith("\n")).toBe(true);
+    });
+  });
+
+  describe("Parsing de formats alternatifs", () => {
+    it("parse le format <file> tags", () => {
+      const input = `<file path="app/page.tsx">export default function Page() {}</file>`;
+      const files = parseFileTagsFormat(input);
+      expect(files).toHaveLength(1);
+      expect(files[0].path).toBe("app/page.tsx");
+    });
+
+    it("parse plusieurs fichiers avec <file> tags", () => {
+      const input = `
+        <file path="app/page.tsx">// page</file>
+        <file path="app/layout.tsx">// layout</file>
+      `;
+      const files = parseFileTagsFormat(input);
+      expect(files).toHaveLength(2);
+    });
+  });
+});
+
+// --------------------------------------------------------------------------
+// CRITÈRE 3 AMÉLIORÉ: Construction et Preview (10/10)
+// --------------------------------------------------------------------------
+
+describe("AUDIT 3 AMÉLIORÉ: Construction et Preview (10/10)", () => {
+  describe("Validation et correction des fichiers", () => {
+    it("valide et corrige un ensemble de fichiers", () => {
+      const files = [
+        { path: "components/Test.tsx", content: `import { useState } from "react";\nexport default function Test() { return <div />; }` },
+      ];
+      const { files: processed, validationResults } = validateAndFixFiles(files);
+      
+      expect(processed).toHaveLength(1);
+      expect(validationResults.get("components/Test.tsx")).toBeDefined();
+    });
+  });
+
+  describe("Templates avec options avancées", () => {
+    it("génère une page avec header et sidebar", () => {
+      const code = pageTemplate("Dashboard", "<h1>Content</h1>", {
+        withHeader: true,
+        withSidebar: true,
+      });
+      expect(code).toContain("Header");
+      expect(code).toContain("Sidebar");
+    });
+
+    it("génère un layout complet", () => {
+      const code = layoutTemplate("Mon App", {
+        withHeader: true,
+        withSidebar: true,
+        withFooter: true,
+      });
+      expect(code).toContain("Header");
+      expect(code).toContain("Sidebar");
+      expect(code).toContain("Footer");
+    });
+
+    it("génère une API route avec authentification", () => {
+      const code = apiRouteTemplate("", { withAuth: true, entityName: "users" });
+      expect(code).toContain("getCurrentUser");
+      expect(code).toContain("Unauthorized");
+      expect(code).toContain("users");
+    });
+  });
+});
+
+// --------------------------------------------------------------------------
+// PROMPT DE TEST COMPLET POUR SCORE 10/10
+// --------------------------------------------------------------------------
+
+describe("VALIDATION FINALE: Prompt de test complet (Score 10/10)", () => {
+  beforeEach(() => {
+    resetMessageCounter();
+  });
+
+  const FULL_TEST_PROMPT = `Crée une application interne complète avec login, dashboard, 
+gestion des utilisateurs, header, sidebar, footer, et un design moderne en Tailwind. 
+L'application doit être responsive, propre, professionnelle et respecter les standards internes.`;
+
+  it("extrait TOUS les éléments du prompt de test", () => {
+    const messages = [
+      { id: "1", role: "user" as const, content: FULL_TEST_PROMPT, timestamp: "" },
+    ];
+    const reqs = extractRequirements(messages);
+
+    // Vérification de l'authentification
+    expect(reqs.hasAuth).toBe(true);
+    expect(reqs.features).toContain("authentication");
+
+    // Vérification des pages
+    expect(reqs.pages).toContain("dashboard");
+    expect(reqs.pages).toContain("users"); // Via entités
+
+    // Vérification des composants UI
+    expect(reqs.uiComponents.hasHeader).toBe(true);
+    expect(reqs.uiComponents.hasSidebar).toBe(true);
+    expect(reqs.uiComponents.hasFooter).toBe(true);
+
+    // Vérification des styles
+    expect(reqs.styleRequirements.isModern).toBe(true);
+    expect(reqs.styleRequirements.isResponsive).toBe(true);
+    expect(reqs.styleRequirements.isProfessional).toBe(true);
+    expect(reqs.styleRequirements.isClean).toBe(true);
+
+    // Vérification du type d'app
+    expect(reqs.appType).toBe("internal");
+
+    // Vérification des entités
+    expect(reqs.entities).toContain("users");
+  });
+
+  it("génère un prompt de conversation enrichi", () => {
+    const session = createSession("test");
+    const updated = addMessage(session, "user", FULL_TEST_PROMPT);
+    updated.requirements = extractRequirements(updated.messages);
+    
+    const prompt = buildConversationPrompt(updated);
+    
+    // Le prompt doit contenir les informations extraites
+    expect(prompt).toContain("authentication");
+    expect(prompt).toContain("header");
+    expect(prompt).toContain("sidebar");
+  });
+
+  it("permet de passer à la phase suivante avec assez de détails", () => {
+    const session = createSession("test");
+    const updated = addMessage(session, "user", FULL_TEST_PROMPT);
+    updated.requirements = extractRequirements(updated.messages);
+    
+    // Avec les features détectées, on peut avancer
+    expect(updated.requirements.features.length).toBeGreaterThan(0);
+    expect(shouldAdvance(updated)).toBe(true);
+  });
+
+  it("tous les templates génèrent du code valide", () => {
+    const loginCode = loginPageTemplate();
+    const dashboardCode = dashboardPageTemplate();
+    const usersCode = usersPageTemplate();
+    const headerCode = headerTemplate("Test");
+    const sidebarCode = sidebarTemplate();
+    const footerCode = footerTemplate();
+
+    // Tous doivent être valides
+    expect(validateCode(loginCode, "app/login/page.tsx").isValid).toBe(true);
+    expect(validateCode(dashboardCode, "app/dashboard/page.tsx").isValid).toBe(true);
+    expect(validateCode(usersCode, "app/users/page.tsx").isValid).toBe(true);
+    expect(validateCode(headerCode, "components/Header.tsx").isValid).toBe(true);
+    expect(validateCode(sidebarCode, "components/Sidebar.tsx").isValid).toBe(true);
+    expect(validateCode(footerCode, "components/Footer.tsx").isValid).toBe(true);
   });
 });
