@@ -12,43 +12,23 @@ describe.skip("API Billing (Not Implemented)", () => {
 
   // ---------- GET /api/billing ----------
   describe("GET /api/billing", () => {
-    it("rejects unauthenticated requests", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
+    it.todo("rejects unauthenticated requests");
   });
 
   // ---------- GET /api/billing/history ----------
   describe("GET /api/billing/history", () => {
-    it("rejects unauthenticated requests", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
+    it.todo("rejects unauthenticated requests");
   });
 
   // ---------- POST /api/billing/pay ----------
   describe("POST /api/billing/pay", () => {
-    it("rejects unauthenticated requests", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
-
-    it("rejects invalid plan", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
-
-    it("rejects missing phoneNumber", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
+    it.todo("rejects unauthenticated requests");
+    it.todo("rejects invalid plan");
+    it.todo("rejects missing phoneNumber");
   });
 
   // ---------- GET /api/billing/rates ----------
   describe("GET /api/billing/rates", () => {
-    it("returns valid rates response", async () => {
-      // Test placeholder - billing routes not implemented
-      expect(true).toBe(true);
-    });
+    it.todo("returns valid rates response");
   });
 });
