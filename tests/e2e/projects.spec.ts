@@ -6,8 +6,7 @@ test.describe("Project Creation API", () => {
       data: { name: "Test Project" },
       headers: { "Content-Type": "application/json" },
     });
-    // Without auth, Clerk middleware returns 401 or redirects.
-    // When Clerk is not configured (no keys), auth() throws → 500.
+    // Without auth, local auth middleware returns 401 or redirects.
     expect([401, 403, 307, 500]).toContain(response.status());
   });
 
@@ -39,9 +38,9 @@ test.describe("Project List API", () => {
 test.describe("New Project Page", () => {
   test("should redirect unauthenticated users when accessing new project page", async ({ page }) => {
     await page.goto("/projects/new");
-    // Should redirect to sign-in or stay on projects/new based on auth config
-    await page.waitForURL(/\/(sign-in|projects)/, { timeout: 10000 });
+    // Should redirect to login or stay on projects/new based on auth config
+    await page.waitForURL(/\/(login|projects)/, { timeout: 10000 });
     const url = page.url();
-    expect(url).toMatch(/\/(sign-in|projects)/);
+    expect(url).toMatch(/\/(login|projects)/);
   });
 });
