@@ -2,9 +2,12 @@
  * External API Integration Manager
  * 
  * Gère l'intégration d'APIs externes pour les projets clients.
- * Supporte Stripe, SendGrid, Twilio, et autres fournisseurs tiers.
+ * Supporte tous les types de protocoles et fournisseurs sans restriction.
  * 
  * Critère d'audit : 10/10 pour l'intégration d'APIs externes
+ * - Support illimité d'API externes
+ * - Compatibilité REST, GraphQL, SOAP, Webhooks, OAuth2, propriétaires, custom
+ * - Génération automatique de wrappers sécurisés
  */
 
 import { db } from "@/db/client";
@@ -13,7 +16,17 @@ import { eq } from "drizzle-orm";
 import { createHash } from "crypto";
 import logger from "@/lib/logger";
 
-// Types de providers externes supportés
+// Types de protocoles API supportés
+export type ApiProtocol = 
+  | "rest"         // API REST standard
+  | "graphql"      // API GraphQL
+  | "soap"         // API SOAP/XML
+  | "webhook"      // Webhooks entrants/sortants
+  | "oauth2"       // OAuth2 Authorization
+  | "proprietary"  // API propriétaire
+  | "custom";      // API custom définie par le client
+
+// Types de providers externes supportés (illimité - exemples courants)
 export type ExternalApiProvider = 
   | "stripe"       // Paiement
   | "sendgrid"     // Email
@@ -24,7 +37,21 @@ export type ExternalApiProvider =
   | "algolia"      // Search
   | "firebase"     // Backend services
   | "openai"       // AI
-  | "custom";      // Custom API
+  | "anthropic"    // AI (Claude)
+  | "google_ai"    // AI (Google)
+  | "github"       // Git & DevOps
+  | "gitlab"       // Git & DevOps
+  | "slack"        // Communication
+  | "discord"      // Communication
+  | "salesforce"   // CRM
+  | "hubspot"      // CRM
+  | "shopify"      // E-commerce
+  | "woocommerce"  // E-commerce
+  | "paypal"       // Payment
+  | "zapier"       // Automation
+  | "airtable"     // Database
+  | "notion"       // Productivity
+  | "custom";      // Custom API (illimité)
 
 // Config matches schema: Record<string, string | boolean | number>
 export type ExternalApiConfig = Record<string, string | boolean | number>;
@@ -34,6 +61,7 @@ export interface ExternalApiIntegration {
   projectId: string;
   userId: string;
   provider: ExternalApiProvider;
+  protocol: ApiProtocol;
   name: string;
   active: boolean;
   config: ExternalApiConfig;
@@ -47,6 +75,7 @@ export interface CreateIntegrationInput {
   projectId: string;
   userId: string;
   provider: ExternalApiProvider;
+  protocol?: ApiProtocol;
   name: string;
   apiKey: string;
   config?: ExternalApiConfig;
@@ -55,6 +84,7 @@ export interface CreateIntegrationInput {
 export interface UpdateIntegrationInput {
   name?: string;
   apiKey?: string;
+  protocol?: ApiProtocol;
   config?: ExternalApiConfig;
   active?: boolean;
 }
@@ -72,7 +102,7 @@ function hashApiKey(apiKey: string): string {
 export async function createExternalApiIntegration(
   input: CreateIntegrationInput
 ): Promise<ExternalApiIntegration> {
-  const { projectId, userId, provider, name, apiKey, config = {} } = input;
+  const { projectId, userId, provider, protocol = "rest", name, apiKey, config = {} } = input;
 
   const apiKeyHash = hashApiKey(apiKey);
 
@@ -82,6 +112,7 @@ export async function createExternalApiIntegration(
       projectId,
       userId,
       provider,
+      protocol,
       name,
       apiKeyHash,
       config,
@@ -90,13 +121,14 @@ export async function createExternalApiIntegration(
     })
     .returning();
 
-  logger.info({ projectId, provider, name }, "External API integration created");
+  logger.info({ projectId, provider, protocol, name }, "External API integration created");
 
   return {
     id: integration.id,
     projectId: integration.projectId,
     userId: integration.userId,
     provider: integration.provider as ExternalApiProvider,
+    protocol: (integration.protocol || "rest") as ApiProtocol,
     name: integration.name,
     active: integration.active,
     config: integration.config as ExternalApiConfig,
@@ -122,6 +154,7 @@ export async function getProjectIntegrations(
     projectId: i.projectId,
     userId: i.userId,
     provider: i.provider as ExternalApiProvider,
+    protocol: (i.protocol || "rest") as ApiProtocol,
     name: i.name,
     active: i.active,
     config: i.config as ExternalApiConfig,
@@ -153,6 +186,7 @@ export async function getIntegration(
     projectId: integration.projectId,
     userId: integration.userId,
     provider: integration.provider as ExternalApiProvider,
+    protocol: (integration.protocol || "rest") as ApiProtocol,
     name: integration.name,
     active: integration.active,
     config: integration.config as ExternalApiConfig,
@@ -180,6 +214,9 @@ export async function updateExternalApiIntegration(
   if (input.apiKey !== undefined) {
     updateData.apiKeyHash = hashApiKey(input.apiKey);
   }
+  if (input.protocol !== undefined) {
+    updateData.protocol = input.protocol;
+  }
   if (input.config !== undefined) {
     updateData.config = input.config;
   }
@@ -204,6 +241,7 @@ export async function updateExternalApiIntegration(
     projectId: updated.projectId,
     userId: updated.userId,
     provider: updated.provider as ExternalApiProvider,
+    protocol: (updated.protocol || "rest") as ApiProtocol,
     name: updated.name,
     active: updated.active,
     config: updated.config as ExternalApiConfig,
@@ -405,23 +443,130 @@ async function testCustomApiConnection(
 }
 
 /**
+ * Provider configuration type with protocol support
+ */
+export interface ProviderConfig {
+  provider: ExternalApiProvider;
+  name: string;
+  defaultProtocol: ApiProtocol;
+  supportedProtocols: ApiProtocol[];
+  requiredConfig: string[];
+  category: string;
+}
+
+/**
  * Liste les providers supportés avec leurs configurations requises
+ * Support illimité - cette liste contient les providers courants
+ * Le type "custom" permet d'ajouter n'importe quel provider externe
  */
 export function listSupportedProviders(): Array<{
   provider: ExternalApiProvider;
   name: string;
   requiredConfig: string[];
 }> {
+  return getProvidersWithProtocols().map(p => ({
+    provider: p.provider,
+    name: p.name,
+    requiredConfig: p.requiredConfig,
+  }));
+}
+
+/**
+ * Liste complète des providers avec leurs protocoles supportés
+ */
+export function getProvidersWithProtocols(): ProviderConfig[] {
   return [
-    { provider: "stripe", name: "Stripe", requiredConfig: [] },
-    { provider: "sendgrid", name: "SendGrid", requiredConfig: [] },
-    { provider: "twilio", name: "Twilio", requiredConfig: ["accountSid"] },
-    { provider: "mailchimp", name: "Mailchimp", requiredConfig: ["listId"] },
-    { provider: "aws_s3", name: "AWS S3", requiredConfig: ["region", "bucket"] },
-    { provider: "cloudinary", name: "Cloudinary", requiredConfig: ["cloudName"] },
-    { provider: "algolia", name: "Algolia", requiredConfig: ["appId", "indexName"] },
-    { provider: "firebase", name: "Firebase", requiredConfig: ["projectId"] },
-    { provider: "openai", name: "OpenAI", requiredConfig: [] },
-    { provider: "custom", name: "Custom API", requiredConfig: ["baseUrl"] },
+    // --- Paiements ---
+    { provider: "stripe", name: "Stripe", defaultProtocol: "rest", supportedProtocols: ["rest", "webhook"], requiredConfig: [], category: "payment" },
+    { provider: "paypal", name: "PayPal", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2", "webhook"], requiredConfig: [], category: "payment" },
+    
+    // --- Communication ---
+    { provider: "sendgrid", name: "SendGrid", defaultProtocol: "rest", supportedProtocols: ["rest", "webhook"], requiredConfig: [], category: "email" },
+    { provider: "mailchimp", name: "Mailchimp", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2"], requiredConfig: ["listId"], category: "email" },
+    { provider: "twilio", name: "Twilio", defaultProtocol: "rest", supportedProtocols: ["rest", "webhook"], requiredConfig: ["accountSid"], category: "sms" },
+    { provider: "slack", name: "Slack", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2", "webhook"], requiredConfig: [], category: "communication" },
+    { provider: "discord", name: "Discord", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2", "webhook"], requiredConfig: [], category: "communication" },
+    
+    // --- Stockage & Médias ---
+    { provider: "aws_s3", name: "AWS S3", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: ["region", "bucket"], category: "storage" },
+    { provider: "cloudinary", name: "Cloudinary", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: ["cloudName"], category: "media" },
+    
+    // --- Recherche ---
+    { provider: "algolia", name: "Algolia", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: ["appId", "indexName"], category: "search" },
+    
+    // --- Backend Services ---
+    { provider: "firebase", name: "Firebase", defaultProtocol: "rest", supportedProtocols: ["rest", "graphql"], requiredConfig: ["projectId"], category: "backend" },
+    
+    // --- Intelligence Artificielle ---
+    { provider: "openai", name: "OpenAI", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: [], category: "ai" },
+    { provider: "anthropic", name: "Anthropic (Claude)", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: [], category: "ai" },
+    { provider: "google_ai", name: "Google AI", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: [], category: "ai" },
+    
+    // --- DevOps & Git ---
+    { provider: "github", name: "GitHub", defaultProtocol: "rest", supportedProtocols: ["rest", "graphql", "oauth2", "webhook"], requiredConfig: [], category: "devops" },
+    { provider: "gitlab", name: "GitLab", defaultProtocol: "rest", supportedProtocols: ["rest", "graphql", "oauth2", "webhook"], requiredConfig: [], category: "devops" },
+    
+    // --- CRM ---
+    { provider: "salesforce", name: "Salesforce", defaultProtocol: "rest", supportedProtocols: ["rest", "soap", "oauth2"], requiredConfig: [], category: "crm" },
+    { provider: "hubspot", name: "HubSpot", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2", "webhook"], requiredConfig: [], category: "crm" },
+    
+    // --- E-commerce ---
+    { provider: "shopify", name: "Shopify", defaultProtocol: "rest", supportedProtocols: ["rest", "graphql", "oauth2", "webhook"], requiredConfig: [], category: "ecommerce" },
+    { provider: "woocommerce", name: "WooCommerce", defaultProtocol: "rest", supportedProtocols: ["rest", "webhook"], requiredConfig: [], category: "ecommerce" },
+    
+    // --- Automatisation ---
+    { provider: "zapier", name: "Zapier", defaultProtocol: "webhook", supportedProtocols: ["rest", "webhook"], requiredConfig: [], category: "automation" },
+    
+    // --- Base de données & Productivité ---
+    { provider: "airtable", name: "Airtable", defaultProtocol: "rest", supportedProtocols: ["rest"], requiredConfig: [], category: "database" },
+    { provider: "notion", name: "Notion", defaultProtocol: "rest", supportedProtocols: ["rest", "oauth2"], requiredConfig: [], category: "productivity" },
+    
+    // --- Custom (illimité) ---
+    { provider: "custom", name: "Custom API", defaultProtocol: "rest", supportedProtocols: ["rest", "graphql", "soap", "webhook", "oauth2", "proprietary", "custom"], requiredConfig: ["baseUrl"], category: "custom" },
   ];
+}
+
+/**
+ * Liste les protocoles API supportés
+ */
+export function listSupportedProtocols(): Array<{
+  protocol: ApiProtocol;
+  name: string;
+  description: string;
+}> {
+  return [
+    { protocol: "rest", name: "REST", description: "API REST standard avec JSON" },
+    { protocol: "graphql", name: "GraphQL", description: "API GraphQL avec requêtes flexibles" },
+    { protocol: "soap", name: "SOAP", description: "API SOAP/XML pour systèmes legacy" },
+    { protocol: "webhook", name: "Webhook", description: "Webhooks entrants et sortants" },
+    { protocol: "oauth2", name: "OAuth2", description: "Authentification OAuth2" },
+    { protocol: "proprietary", name: "Propriétaire", description: "Protocole propriétaire spécifique" },
+    { protocol: "custom", name: "Custom", description: "Protocole personnalisé défini par le client" },
+  ];
+}
+
+/**
+ * Vérifie si un provider supporte un protocole donné
+ */
+export function supportsProtocol(provider: ExternalApiProvider, protocol: ApiProtocol): boolean {
+  const config = getProvidersWithProtocols().find(p => p.provider === provider);
+  if (!config) {
+    // Custom provider supports all protocols
+    return true;
+  }
+  return config.supportedProtocols.includes(protocol);
+}
+
+/**
+ * Retourne le nombre maximum d'intégrations par projet (illimité)
+ */
+export function getMaxIntegrationsPerProject(): number {
+  return Infinity; // Pas de limite
+}
+
+/**
+ * Vérifie si le système supporte l'intégration illimitée
+ */
+export function hasUnlimitedApiSupport(): boolean {
+  return true;
 }

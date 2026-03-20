@@ -151,7 +151,8 @@ export const externalApiIntegrations = pgTable("external_api_integrations", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  provider: varchar("provider", { length: 100 }).notNull(), // stripe, sendgrid, twilio, etc.
+  provider: varchar("provider", { length: 100 }).notNull(), // stripe, sendgrid, twilio, custom, etc.
+  protocol: varchar("protocol", { length: 50 }).default("rest"), // rest, graphql, soap, webhook, oauth2, proprietary, custom
   name: varchar("name", { length: 255 }).notNull(),
   active: boolean("active").notNull().default(true),
   config: jsonb("config").$type<Record<string, string | boolean | number>>().default({}),
