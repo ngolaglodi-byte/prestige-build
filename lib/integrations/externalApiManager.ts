@@ -304,10 +304,17 @@ async function testProviderConnection(
       case "custom":
         return await testCustomApiConnection(apiKey, config);
       default:
-        // Pour les autres providers, on vérifie juste que la clé n'est pas vide
-        return apiKey.length > 0 
-          ? { success: true } 
-          : { success: false, error: "API key is empty" };
+        // Pour les providers sans test spécifique (mailchimp, aws_s3, cloudinary, algolia, firebase),
+        // on effectue une validation basique du format de la clé API.
+        // Note: Une validation complète nécessiterait une connexion réelle à chaque service.
+        if (!apiKey || apiKey.length === 0) {
+          return { success: false, error: "API key is empty" };
+        }
+        // Validation basique: la clé doit avoir au moins 10 caractères
+        if (apiKey.length < 10) {
+          return { success: false, error: "API key seems too short (minimum 10 characters)" };
+        }
+        return { success: true };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

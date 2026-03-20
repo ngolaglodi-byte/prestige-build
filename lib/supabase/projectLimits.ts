@@ -154,16 +154,29 @@ export function calculateEffectiveLimits(
   };
 }
 
+// Résultat du scaling avec information d'erreur
+export interface ScaleResult {
+  success: boolean;
+  limits?: ProjectLimitRecord;
+  error?: string;
+}
+
 /**
  * Applique un scaling aux limites d'un projet
+ * @param projectId - ID du projet
+ * @param newScaleFactor - Facteur de scaling (doit être >= 1.0)
+ * @returns Un objet avec success, limits et error optionnel
  */
 export async function scaleProjectLimits(
   projectId: string,
   newScaleFactor: number
-): Promise<ProjectLimitRecord | null> {
+): Promise<ScaleResult> {
   if (newScaleFactor < 1.0) {
     logger.warn({ projectId, newScaleFactor }, "Scale factor must be >= 1.0");
-    return null;
+    return { 
+      success: false, 
+      error: "Scale factor must be >= 1.0. Downscaling is not allowed." 
+    };
   }
 
   const [updated] = await db
@@ -176,22 +189,28 @@ export async function scaleProjectLimits(
     .returning();
 
   if (!updated) {
-    return null;
+    return { 
+      success: false, 
+      error: "Project limits not found. Ensure project limits are initialized first." 
+    };
   }
 
   logger.info({ projectId, newScaleFactor }, "Project limits scaled");
 
   return {
-    id: updated.id,
-    projectId: updated.projectId,
-    projectType: updated.projectType as ProjectType,
-    dbMinMb: updated.dbMinMb,
-    dbRecommendedMb: updated.dbRecommendedMb,
-    storageMinMb: updated.storageMinMb,
-    storageRecommendedMb: updated.storageRecommendedMb,
-    scaleFactor: updated.scaleFactor,
-    createdAt: updated.createdAt,
-    updatedAt: updated.updatedAt ?? undefined,
+    success: true,
+    limits: {
+      id: updated.id,
+      projectId: updated.projectId,
+      projectType: updated.projectType as ProjectType,
+      dbMinMb: updated.dbMinMb,
+      dbRecommendedMb: updated.dbRecommendedMb,
+      storageMinMb: updated.storageMinMb,
+      storageRecommendedMb: updated.storageRecommendedMb,
+      scaleFactor: updated.scaleFactor,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt ?? undefined,
+    },
   };
 }
 
