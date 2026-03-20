@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
   if (scope === "mine") {
     if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    query = query.eq("user_id", userId);
+    query = query.eq("user_id", currentUser.id);
   } else {
     query = query.eq("is_public", true);
   }
@@ -57,7 +57,9 @@ export async function GET(req: Request) {
 // POST /api/templates — Create a template
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
   const { name, description, category, tags, files, isPublic } = body;
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
       tags: tags || [],
       files,
       is_public: isPublic ?? false,
-      user_id: userId,
+      user_id: currentUser.id,
     })
     .select()
     .single();

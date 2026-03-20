@@ -12,7 +12,7 @@ export async function GET() {
     const currentUser = await getCurrentUser();
     if (!currentUser || currentUser.role !== "ADMIN") {
       return NextResponse.json(
-        { ok: false, error: "Accès réservé aux administrateurs" },
+        { ok: false, error: "Admin access required" },
         { status: 403 }
       );
     }
@@ -37,7 +37,7 @@ export async function GET() {
   } catch (error) {
     console.error("[admin/users] Error:", error);
     return NextResponse.json(
-      { ok: false, error: "Erreur lors du chargement des utilisateurs" },
+      { ok: false, error: "Error loading users" },
       { status: 500 }
     );
   }

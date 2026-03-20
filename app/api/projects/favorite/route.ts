@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const { data: user, error: userError } = await supabase
     .from("users")
     .select("id")
-    .eq("clerk_id", currentUser.id)
+    .eq("id", currentUser.id)
     .single();
 
   if (userError || !user) {

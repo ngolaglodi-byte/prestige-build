@@ -18,7 +18,7 @@ export async function GET() {
   } catch (error) {
     console.error("[auth/setup] Error:", error);
     return NextResponse.json(
-      { ok: false, error: "Erreur lors de la vérification" },
+      { ok: false, error: "Setup verification error" },
       { status: 500 }
     );
   }
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password || !name) {
       return NextResponse.json(
-        { ok: false, error: "Tous les champs sont requis" },
+        { ok: false, error: "All fields are required" },
         { status: 400 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[auth/setup] Error:", error);
     return NextResponse.json(
-      { ok: false, error: "Erreur lors de la création du compte" },
+      { ok: false, error: "Account creation error" },
       { status: 500 }
     );
   }
