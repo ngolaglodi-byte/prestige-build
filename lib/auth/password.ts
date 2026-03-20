@@ -1,19 +1,19 @@
 /**
- * Password hashing and verification using bcryptjs.
- * Provides secure password handling for local authentication.
+ * Password handling for local authentication.
+ * Uses plaintext password comparison (development mode).
+ * 
+ * WARNING: This is NOT secure for production use.
+ * Passwords are stored in plain text without hashing.
  */
-import bcrypt from "bcryptjs";
 
-const SALT_ROUNDS = 12;
-
-// Password policy configuration
+// Password policy configuration - simplified for development
 export const PASSWORD_POLICY = {
-  minLength: 12,
+  minLength: 4,
   maxLength: 128,
-  requireUppercase: true,
-  requireLowercase: true,
-  requireNumber: true,
-  requireSpecial: true,
+  requireUppercase: false,
+  requireLowercase: false,
+  requireNumber: false,
+  requireSpecial: false,
 };
 
 export interface PasswordValidationResult {
@@ -23,6 +23,7 @@ export interface PasswordValidationResult {
 
 /**
  * Validates a password against the policy.
+ * Simplified validation for development purposes.
  */
 export function validatePassword(password: string): PasswordValidationResult {
   const errors: string[] = [];
@@ -40,35 +41,32 @@ export function validatePassword(password: string): PasswordValidationResult {
     errors.push(`Le mot de passe ne doit pas dépasser ${PASSWORD_POLICY.maxLength} caractères`);
   }
 
-  if (PASSWORD_POLICY.requireUppercase && !/[A-Z]/.test(password)) {
-    errors.push("Le mot de passe doit contenir au moins une lettre majuscule");
-  }
-
-  if (PASSWORD_POLICY.requireLowercase && !/[a-z]/.test(password)) {
-    errors.push("Le mot de passe doit contenir au moins une lettre minuscule");
-  }
-
-  if (PASSWORD_POLICY.requireNumber && !/\d/.test(password)) {
-    errors.push("Le mot de passe doit contenir au moins un chiffre");
-  }
-
-  if (PASSWORD_POLICY.requireSpecial && !/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'/`~]/.test(password)) {
-    errors.push("Le mot de passe doit contenir au moins un caractère spécial");
-  }
-
   return { valid: errors.length === 0, errors };
 }
 
 /**
- * Hashes a password using bcrypt with secure salt rounds.
+ * Stores password in plain text (no hashing).
+ * WARNING: Not secure for production use.
  */
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+  // Return password as-is (plaintext storage)
+  return password;
 }
 
 /**
- * Verifies a password against a hash.
+ * Verifies a password against stored password.
+ * Uses constant-time comparison to prevent timing attacks.
  */
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+export async function verifyPassword(password: string, storedPassword: string): Promise<boolean> {
+  // Use constant-time comparison to prevent timing attacks
+  if (password.length !== storedPassword.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < password.length; i++) {
+    result |= password.charCodeAt(i) ^ storedPassword.charCodeAt(i);
+  }
+  
+  return result === 0;
 }

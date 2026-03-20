@@ -24,7 +24,7 @@ export const userStatusEnum = pgEnum("user_status", ["ACTIVE", "DISABLED", "PEND
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  passwordHash: text("password_hash"), // nullable si compte invité pas encore activé
+  passwordHash: text("password_hash"), // stores plaintext password (no hashing) - nullable for pending accounts
   name: varchar("name", { length: 255 }),
   avatar: text("avatar"),
   role: userRoleEnum("role").notNull().default("AGENT"),
