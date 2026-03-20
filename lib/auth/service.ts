@@ -31,16 +31,59 @@ export interface CreateUserResult {
   success: boolean;
   error?: string;
   userId?: string;
+  email?: string;
   tempPassword?: string;
 }
 
 /**
- * Validates email format for Prestige Build (format: initial.nom@otc.com)
+ * Validates email format for Prestige Build (format: initial.nom@ptc.com)
+ * Format: first letter of first name + dot + last name + @ptc.com
+ * Examples: g.ngola@ptc.com, p.build@ptc.com
  */
 export function validateEmailFormat(email: string): boolean {
-  // Format: initial.nom@otc.com (flexible pattern for company emails)
-  const emailRegex = /^[a-z]+\.[a-z]+@otc\.com$/i;
+  // Format: initial.nom@ptc.com (single letter + dot + name)
+  const emailRegex = /^[a-z]\.[a-z]+@ptc\.com$/i;
   return emailRegex.test(email.toLowerCase());
+}
+
+/**
+ * Generates an email address from a full name.
+ * Format: initial.lastname@ptc.com
+ * Example: "Glodi Ngola" → "g.ngola@ptc.com"
+ */
+export function generateEmailFromName(fullName: string): string {
+  const parts = fullName.trim().toLowerCase().split(/\s+/);
+  if (parts.length < 2) {
+    throw new Error("Le nom complet doit contenir au moins un prénom et un nom");
+  }
+  const firstName = parts[0];
+  const lastName = parts[parts.length - 1];
+  // Remove accents and special characters
+  const normalizedLastName = lastName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/g, "");
+  const normalizedFirstInitial = firstName[0]
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return `${normalizedFirstInitial}.${normalizedLastName}@ptc.com`;
+}
+
+/**
+ * Normalizes an email address to the correct format.
+ * If the email is already valid, returns it as-is (lowercase).
+ * Otherwise, attempts to generate a valid email from the input.
+ */
+export function normalizeEmail(email: string): string {
+  const normalized = email.toLowerCase().trim();
+  if (validateEmailFormat(normalized)) {
+    return normalized;
+  }
+  // If it looks like a name, try to generate an email
+  if (!normalized.includes("@")) {
+    return generateEmailFromName(normalized);
+  }
+  return normalized;
 }
 
 /**
@@ -168,18 +211,27 @@ export async function logoutUser(userId: string): Promise<void> {
 
 /**
  * Creates a new AGENT user (admin only).
+ * If email is not provided, auto-generates from name.
  */
 export async function createAgent(
   adminUserId: string,
-  email: string,
+  email: string | undefined,
   name: string,
   tempPassword?: string
 ): Promise<CreateUserResult> {
-  const normalizedEmail = email.toLowerCase().trim();
+  // Auto-generate email from name if not provided
+  let normalizedEmail: string;
+  try {
+    normalizedEmail = email 
+      ? email.toLowerCase().trim() 
+      : generateEmailFromName(name);
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Erreur lors de la génération de l'email" };
+  }
 
   // Validate email format
   if (!validateEmailFormat(normalizedEmail)) {
-    return { success: false, error: "Format d'email invalide. Utilisez le format initial.nom@otc.com" };
+    return { success: false, error: "Format d'email invalide. Utilisez le format initial.nom@ptc.com (ex: g.ngola@ptc.com)" };
   }
 
   // Check if email already exists
@@ -219,6 +271,7 @@ export async function createAgent(
   return {
     success: true,
     userId,
+    email: normalizedEmail,
     tempPassword: password,
   };
 }
