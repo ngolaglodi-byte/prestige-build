@@ -1316,6 +1316,26 @@ responsive, propre, professionnel et conforme aux standards internes Prestige.`;
       expect(servicesCode).toContain("rounded-2xl");
       expect(contactCode).toContain("focus:ring-");
     });
+
+    it("génère les templates avec des paramètres personnalisés", () => {
+      // Hero section with custom parameters
+      const heroCode = heroSectionTemplate("Custom Title", "Custom Subtitle", "Custom CTA");
+      expect(heroCode).toContain("Custom Title");
+      expect(heroCode).toContain("Custom Subtitle");
+      expect(heroCode).toContain("Custom CTA");
+      expect(validateCode(heroCode, "components/HeroSection.tsx").isValid).toBe(true);
+
+      // Services page with custom company name
+      const servicesCode = servicesPageTemplate("Custom Company Inc");
+      expect(servicesCode).toContain("Custom Company Inc");
+      expect(validateCode(servicesCode, "app/services/page.tsx").isValid).toBe(true);
+
+      // Professional home page with custom parameters
+      const homeCode = professionalHomePageTemplate("Custom Corp", "Custom tagline");
+      expect(homeCode).toContain("Custom Corp");
+      expect(homeCode).toContain("Custom tagline");
+      expect(validateCode(homeCode, "app/page.tsx").isValid).toBe(true);
+    });
   });
 
   // --------------------------------------------------------------------------
@@ -1654,7 +1674,8 @@ export default function Test() { const [x] = useState(0); return <div>{x}</div>;
         mergeFiles([], []).length === 0,
         mergeFiles([{ path: "a", content: "1" }], [{ path: "a", content: "2" }])[0].content === "2",
         attemptCodeFix("test", "test.tsx").endsWith("\n"),
-        true, // Placeholder for additional check
+        // Verify iteration preserves files that aren't modified
+        mergeFiles([{ path: "a", content: "1" }, { path: "b", content: "2" }], [{ path: "a", content: "3" }]).length === 2,
       ];
       
       const score = checks.filter(Boolean).length;
@@ -1672,7 +1693,8 @@ export default function Test() { const [x] = useState(0); return <div>{x}</div>;
         validateCode('{"a":1}', "test.json").isValid,
         !validateCode('{a:1}', "test.json").isValid,
         extractRequirements([]).features.length === 0,
-        true, // Additional robustness check passed
+        // Verify file tags format parsing works
+        parseFileTagsFormat('<file path="test.tsx">code</file>').length === 1,
       ];
       
       const score = checks.filter(Boolean).length;
