@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Helper mock for authenticated user
+function mockAuth(user: { id: string; status: string } | null) {
+  vi.doMock("@/lib/auth/session", () => ({
+    getCurrentUser: vi.fn().mockResolvedValue(user),
+  }));
+}
+
 describe("API Projects CRUD", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -7,15 +14,19 @@ describe("API Projects CRUD", () => {
 
   // ---------- POST /api/projects/create ----------
   describe("POST /api/projects/create", () => {
-    function setupMocks(userId: string | null) {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId }),
-      }));
+    function setupMocks(user: { id: string; status: string } | null) {
+      mockAuth(user);
       vi.doMock("@/lib/supabase", () => ({
         getSupabaseServiceClient: vi.fn(),
       }));
       vi.doMock("@/lib/ensure-user", () => ({
         ensureUserExists: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
     }
 
@@ -34,7 +45,7 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects empty name", async () => {
-      setupMocks("clerk_123");
+      setupMocks({ id: "user_123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/projects/create/route");
       const req = new Request("http://localhost/api/projects/create", {
         method: "POST",
@@ -48,7 +59,7 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects missing name", async () => {
-      setupMocks("clerk_123");
+      setupMocks({ id: "user_123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/projects/create/route");
       const req = new Request("http://localhost/api/projects/create", {
         method: "POST",
@@ -65,8 +76,15 @@ describe("API Projects CRUD", () => {
   // ---------- POST /api/projects/delete ----------
   describe("POST /api/projects/delete", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
+      mockAuth(null);
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/delete/route");
       const req = new Request("http://localhost/api/projects/delete", {
@@ -79,8 +97,15 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects missing id", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
+      mockAuth({ id: "user_123", status: "ACTIVE" });
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/delete/route");
       const req = new Request("http://localhost/api/projects/delete", {
@@ -98,8 +123,15 @@ describe("API Projects CRUD", () => {
   // ---------- POST /api/projects/rename ----------
   describe("POST /api/projects/rename", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
+      mockAuth(null);
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/rename/route");
       const req = new Request("http://localhost/api/projects/rename", {
@@ -112,8 +144,15 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects missing id or name", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
+      mockAuth({ id: "user_123", status: "ACTIVE" });
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/rename/route");
       const req = new Request("http://localhost/api/projects/rename", {
@@ -131,8 +170,15 @@ describe("API Projects CRUD", () => {
   // ---------- POST /api/projects/duplicate ----------
   describe("POST /api/projects/duplicate", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
+      mockAuth(null);
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/duplicate/route");
       const req = new Request("http://localhost/api/projects/duplicate", {
@@ -145,8 +191,15 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects missing id", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
+      mockAuth({ id: "user_123", status: "ACTIVE" });
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/duplicate/route");
       const req = new Request("http://localhost/api/projects/duplicate", {
@@ -164,8 +217,15 @@ describe("API Projects CRUD", () => {
   // ---------- POST /api/projects/favorite ----------
   describe("POST /api/projects/favorite", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
+      mockAuth(null);
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/favorite/route");
       const req = new Request("http://localhost/api/projects/favorite", {
@@ -178,8 +238,15 @@ describe("API Projects CRUD", () => {
     });
 
     it("rejects missing id or isFavorite", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
+      mockAuth({ id: "user_123", status: "ACTIVE" });
+      vi.doMock("@/lib/supabase", () => ({
+        getSupabaseServiceClient: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { POST } = await import("@/app/api/projects/favorite/route");
       const req = new Request("http://localhost/api/projects/favorite", {
@@ -197,14 +264,18 @@ describe("API Projects CRUD", () => {
   // ---------- GET /api/projects/list ----------
   describe("GET /api/projects/list", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/lib/supabase", () => ({
         getSupabaseServiceClient: vi.fn(),
       }));
       vi.doMock("@/lib/ensure-user", () => ({
         ensureUserExists: vi.fn(),
+      }));
+      vi.doMock("@/lib/logger", () => ({
+        default: {
+          error: vi.fn(),
+          info: vi.fn(),
+        },
       }));
       const { GET } = await import("@/app/api/projects/list/route");
       const req = new Request("http://localhost/api/projects/list");

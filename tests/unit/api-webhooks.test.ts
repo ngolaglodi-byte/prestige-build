@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import crypto from "crypto";
 
+// Helper mock for authenticated user
+function mockAuth(user: { id: string; status: string } | null) {
+  vi.doMock("@/lib/auth/session", () => ({
+    getCurrentUser: vi.fn().mockResolvedValue(user),
+  }));
+}
+
 // Helper to build a chainable Drizzle query mock
 function chainMock(result: unknown[] = []) {
   const chain: Record<string, unknown> = {};
@@ -35,13 +42,11 @@ describe("API Webhooks", () => {
   // ---------- POST /api/webhooks/settings ----------
   describe("POST /api/webhooks/settings", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => mockDb());
       vi.doMock("@/db/schema", () => ({
         webhookConfigs: {},
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn() }));
 
@@ -56,13 +61,11 @@ describe("API Webhooks", () => {
     });
 
     it("rejects missing endpointUrl", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_abc" }),
-      }));
-      vi.doMock("@/db/client", () => mockDb([{ id: "user_1", clerkId: "clerk_abc" }]));
+      mockAuth({ id: "user_1", status: "ACTIVE" });
+      vi.doMock("@/db/client", () => mockDb([{ id: "user_1" }]));
       vi.doMock("@/db/schema", () => ({
         webhookConfigs: {},
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn() }));
 
@@ -80,13 +83,11 @@ describe("API Webhooks", () => {
   // ---------- GET /api/webhooks/logs ----------
   describe("GET /api/webhooks/logs", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => mockDb());
       vi.doMock("@/db/schema", () => ({
         webhookLogs: {},
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn(), desc: vi.fn() }));
 
@@ -99,13 +100,11 @@ describe("API Webhooks", () => {
   // ---------- POST /api/webhooks/retry ----------
   describe("POST /api/webhooks/retry", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => mockDb());
       vi.doMock("@/db/schema", () => ({
         webhookLogs: {},
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn() }));
       vi.doMock("@/lib/webhooks", () => ({ retryWebhook: vi.fn() }));
@@ -121,13 +120,11 @@ describe("API Webhooks", () => {
     });
 
     it("rejects missing logId", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_abc" }),
-      }));
-      vi.doMock("@/db/client", () => mockDb([{ id: "user_1", clerkId: "clerk_abc" }]));
+      mockAuth({ id: "user_1", status: "ACTIVE" });
+      vi.doMock("@/db/client", () => mockDb([{ id: "user_1" }]));
       vi.doMock("@/db/schema", () => ({
         webhookLogs: {},
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn(), and: vi.fn() }));
       vi.doMock("@/lib/webhooks", () => ({ retryWebhook: vi.fn() }));
@@ -146,12 +143,10 @@ describe("API Webhooks", () => {
   // ---------- POST /api/webhooks/test ----------
   describe("POST /api/webhooks/test", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => mockDb());
       vi.doMock("@/db/schema", () => ({
-        users: { clerkId: "clerkId" },
+        users: {},
       }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn() }));
       vi.doMock("@/lib/webhooks", () => ({ sendWebhook: vi.fn() }));

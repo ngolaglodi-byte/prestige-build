@@ -18,12 +18,12 @@ test.describe("Homepage", () => {
     await expect(hero).toContainText("Prestige Build");
   });
 
-  test("should have sign-in and sign-up links", async ({ page }) => {
+  test("should have login and setup links", async ({ page }) => {
     await page.goto("/");
-    const signInLink = page.locator('a[href="/sign-in"]').first();
-    const signUpLink = page.locator('a[href="/sign-up"]').first();
-    await expect(signInLink).toBeVisible();
-    await expect(signUpLink).toBeVisible();
+    const loginLink = page.locator('a[href="/login"]').first();
+    const setupLink = page.locator('a[href="/setup"]').first();
+    await expect(loginLink).toBeVisible();
+    await expect(setupLink).toBeVisible();
   });
 
   test("should have navigation links to key sections", async ({ page }) => {
@@ -42,19 +42,19 @@ test.describe("Homepage", () => {
     await expect(pricing).toContainText("Enterprise");
   });
 
-  test("should navigate to sign-up page when clicking sign-up button", async ({ page }) => {
+  test("should navigate to setup page when clicking setup button", async ({ page }) => {
     await page.goto("/");
     await dismissOnboardingModal(page);
-    const signUpLink = page.locator('a[href="/sign-up"]').first();
-    await signUpLink.click();
-    await expect(page).toHaveURL(/\/sign-up/);
+    const setupLink = page.locator('a[href="/setup"]').first();
+    await setupLink.click();
+    await expect(page).toHaveURL(/\/setup/);
   });
 
-  test("should navigate to sign-in page when clicking sign-in button", async ({ page }) => {
+  test("should navigate to login page when clicking login button", async ({ page }) => {
     await page.goto("/");
     await dismissOnboardingModal(page);
-    const signInLink = page.locator('a[href="/sign-in"]').first();
-    await signInLink.click();
-    await expect(page).toHaveURL(/\/sign-in/);
+    const loginLink = page.locator('a[href="/login"]').first();
+    await loginLink.click();
+    await expect(page).toHaveURL(/\/login/);
   });
 });
