@@ -18,6 +18,10 @@ test.describe("Complete E2E Flow", () => {
     await expect(page).toHaveTitle(/Prestige Build/);
     await expect(page.locator("h1")).toContainText("Prestige Build");
 
+    // Dismiss the onboarding modal to allow clicking on other elements
+    await page.evaluate(() => localStorage.setItem("prestige_onboarding_done", "true"));
+    await page.goto("/");
+
     // Step 2: Navigate to sign-up page
     const signUpLink = page.locator('a[href="/sign-up"]').first();
     await expect(signUpLink).toBeVisible();

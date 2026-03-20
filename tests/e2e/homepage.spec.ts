@@ -38,12 +38,18 @@ test.describe("Homepage", () => {
 
   test("should navigate to sign-up page when clicking sign-up button", async ({ page }) => {
     await page.goto("/");
+    // Close the onboarding modal if it appears
+    await page.evaluate(() => localStorage.setItem("prestige_onboarding_done", "true"));
+    await page.goto("/");
     const signUpLink = page.locator('a[href="/sign-up"]').first();
     await signUpLink.click();
     await expect(page).toHaveURL(/\/sign-up/);
   });
 
   test("should navigate to sign-in page when clicking sign-in button", async ({ page }) => {
+    await page.goto("/");
+    // Close the onboarding modal if it appears
+    await page.evaluate(() => localStorage.setItem("prestige_onboarding_done", "true"));
     await page.goto("/");
     const signInLink = page.locator('a[href="/sign-in"]').first();
     await signInLink.click();

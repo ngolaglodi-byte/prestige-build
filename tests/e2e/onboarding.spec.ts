@@ -63,7 +63,9 @@ test.describe("Onboarding Modal", () => {
       await page.locator("button", { hasText: "Suivant" }).click();
     }
 
-    const commencer = page.locator("a", { hasText: "Commencer" });
+    // Use a more specific selector targeting the onboarding modal's "Commencer" link
+    const modal = page.locator('[class*="fixed"][class*="z-[100]"]');
+    const commencer = modal.locator('a[href="/projects"]', { hasText: "Commencer" });
     await expect(commencer).toBeVisible({ timeout: 5000 });
     await expect(commencer).toHaveAttribute("href", "/projects");
   });
