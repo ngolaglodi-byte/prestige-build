@@ -1,4 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
+
+/** Helper to dismiss the onboarding modal by setting localStorage flag and reloading. */
+async function dismissOnboardingModal(page: Page) {
+  await page.evaluate(() => localStorage.setItem("prestige_onboarding_done", "true"));
+  await page.goto("/");
+}
 
 test.describe("Homepage", () => {
   test("should load the homepage with correct title", async ({ page }) => {
@@ -38,6 +44,7 @@ test.describe("Homepage", () => {
 
   test("should navigate to sign-up page when clicking sign-up button", async ({ page }) => {
     await page.goto("/");
+    await dismissOnboardingModal(page);
     const signUpLink = page.locator('a[href="/sign-up"]').first();
     await signUpLink.click();
     await expect(page).toHaveURL(/\/sign-up/);
@@ -45,6 +52,7 @@ test.describe("Homepage", () => {
 
   test("should navigate to sign-in page when clicking sign-in button", async ({ page }) => {
     await page.goto("/");
+    await dismissOnboardingModal(page);
     const signInLink = page.locator('a[href="/sign-in"]').first();
     await signInLink.click();
     await expect(page).toHaveURL(/\/sign-in/);
