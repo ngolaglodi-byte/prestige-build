@@ -47,6 +47,7 @@ export interface UIComponents {
   hasList: boolean;
   hasForm: boolean;
   hasModal: boolean;
+  hasHeroSection: boolean;
 }
 
 export interface StyleRequirements {
@@ -119,6 +120,7 @@ export function createSession(projectId: string): ConversationSession {
         hasList: false,
         hasForm: false,
         hasModal: false,
+        hasHeroSection: false,
       },
       styleRequirements: {
         isModern: false,
@@ -182,6 +184,8 @@ function extractUIComponents(text: string): UIComponents {
       /\b(formulaire|form|inscription|enregistrer|soumettre|submit|input|saisie)\b/.test(text),
     hasModal:
       /\b(modal|popup|pop.?up|dialogue|dialog|fenêtre.?modale)\b/.test(text),
+    hasHeroSection:
+      /\b(hero|hero.?section|section.?hero|bannière|banniere|banner|landing|accueil.?principal|section.?principale)\b/.test(text),
   };
 }
 
@@ -257,7 +261,7 @@ function detectAppType(text: string, features: string[], pages: string[]): "dash
   if (/\b(outil|tool|utilitaire|utility|calculateur|converter|générateur)\b/.test(text)) {
     return "tool";
   }
-  if (/\b(site.?web|website|site.?vitrine|landing|portfolio|blog)\b/.test(text)) {
+  if (/\b(site.?web|website|site.?vitrine|site.?professionnel|landing|portfolio|blog)\b/.test(text)) {
     return "website";
   }
   // Infer from detected features
@@ -361,6 +365,7 @@ export function extractRequirements(
     "notifications",
     "help",
     "support",
+    "services",
   ];
   for (const p of pagePatterns) {
     if (userMessages.includes(p)) pages.push(p);
@@ -402,6 +407,7 @@ export function extractRequirements(
   if (uiComponents.hasTable) features.push("table");
   if (uiComponents.hasForm) features.push("form");
   if (uiComponents.hasModal) features.push("modal");
+  if (uiComponents.hasHeroSection) features.push("hero-section");
 
   return {
     appName,
@@ -498,6 +504,7 @@ function buildUIComponentsDescription(uiComp: UIComponents): string {
   if (uiComp.hasList) parts.push("liste");
   if (uiComp.hasForm) parts.push("formulaire");
   if (uiComp.hasModal) parts.push("modal/popup");
+  if (uiComp.hasHeroSection) parts.push("hero section");
   return parts.length > 0 ? `Composants UI requis: ${parts.join(", ")}.` : "";
 }
 
