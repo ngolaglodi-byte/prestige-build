@@ -55,9 +55,18 @@ export async function hashPassword(password: string): Promise<string> {
 
 /**
  * Verifies a password against stored password.
- * Simple string comparison (no hash verification).
+ * Uses constant-time comparison to prevent timing attacks.
  */
 export async function verifyPassword(password: string, storedPassword: string): Promise<boolean> {
-  // Simple plaintext comparison
-  return password === storedPassword;
+  // Use constant-time comparison to prevent timing attacks
+  if (password.length !== storedPassword.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < password.length; i++) {
+    result |= password.charCodeAt(i) ^ storedPassword.charCodeAt(i);
+  }
+  
+  return result === 0;
 }
