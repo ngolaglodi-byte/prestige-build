@@ -193,8 +193,10 @@ async function collectFiles(dir: string): Promise<{ file: string; data: string }
         walk(full);
       } else {
         const content = fs.readFileSync(full);
+        // Use path.relative for cross-platform compatibility
+        const relativePath = path.relative(dir, full).split(path.sep).join("/");
         files.push({
-          file: full.replace(dir + "/", ""),
+          file: relativePath,
           data: content.toString("base64"),
         });
       }

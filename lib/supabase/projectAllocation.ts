@@ -384,9 +384,16 @@ function detectProjectTypeFromQuotas(dbLimitMb: number, storageLimitMb: number):
   let closestType: ProjectType = "website";
   let minDistance = Infinity;
 
+  // Weight DB higher as it's more critical and expensive
+  const DB_WEIGHT = 1.5;
+  const STORAGE_WEIGHT = 1.0;
+
   for (const [type, quotas] of types) {
-    const distance = Math.abs(quotas.dbRecommendedMb - dbLimitMb) + 
-                     Math.abs(quotas.storageRecommendedMb - storageLimitMb);
+    // Use weighted normalized distance for better matching
+    const dbDistance = Math.abs(quotas.dbRecommendedMb - dbLimitMb) / quotas.dbRecommendedMb;
+    const storageDistance = Math.abs(quotas.storageRecommendedMb - storageLimitMb) / quotas.storageRecommendedMb;
+    const distance = (dbDistance * DB_WEIGHT) + (storageDistance * STORAGE_WEIGHT);
+    
     if (distance < minDistance) {
       minDistance = distance;
       closestType = type;
