@@ -91,23 +91,54 @@ export function UserActions({ userId, status, onRefresh }: UserActionsProps) {
   );
 }
 
+/**
+ * Generates email preview from name (for UI)
+ * Note: This duplicates logic from lib/auth/service.ts because that's server-side code
+ * and this is a client component. We keep it in sync manually.
+ */
+function generateEmailPreview(fullName: string): string {
+  try {
+    const parts = fullName.trim().toLowerCase().split(/\s+/);
+    if (parts.length < 2) return "";
+    const firstName = parts[0];
+    const lastName = parts[parts.length - 1];
+    const normalizedLastName = lastName
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z]/g, "");
+    const normalizedFirstInitial = firstName[0]
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    return `${normalizedFirstInitial}.${normalizedLastName}@ptc.com`;
+  } catch {
+    return "";
+  }
+}
+
 export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [createdEmail, setCreatedEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Auto-generate email preview from name
+  const emailPreview = name && !email.trim() ? generateEmailPreview(name) : "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setTempPassword(null);
+    setCreatedEmail(null);
 
+    const trimmedEmail = email.trim();
+    
     startTransition(async () => {
       const res = await fetch("/api/admin/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email: trimmedEmail || undefined, name }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -115,6 +146,7 @@ export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
         return;
       }
       setTempPassword(data.tempPassword);
+      setCreatedEmail(data.email);
       setEmail("");
       setName("");
       onCreated();
@@ -134,6 +166,9 @@ export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
       {tempPassword && (
         <div className="bg-green-900/50 border border-green-700 text-green-200 px-4 py-3 rounded-lg mb-4">
           <p className="font-medium">Compte créé avec succès !</p>
+          {createdEmail && (
+            <p className="mt-2">Email: <code className="bg-gray-900 px-2 py-1 rounded">{createdEmail}</code></p>
+          )}
           <p className="mt-2">Mot de passe temporaire:</p>
           <code className="block mt-1 bg-gray-900 p-2 rounded text-sm">{tempPassword}</code>
           <p className="mt-2 text-sm">L&apos;utilisateur devra changer ce mot de passe à la première connexion.</p>
@@ -154,19 +189,26 @@ export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white"
               placeholder="Prénom Nom"
             />
+            {emailPreview && (
+              <p className="mt-1 text-sm text-gray-400">
+                Email généré automatiquement: <span className="text-blue-400">{emailPreview}</span>
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
-              Email
+              Email <span className="text-gray-500">(optionnel)</span>
             </label>
             <input
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white"
-              placeholder="initial.nom@otc.com"
+              placeholder="initial.nom@ptc.com"
             />
+            <p className="mt-1 text-sm text-gray-500">
+              Laissez vide pour générer automatiquement
+            </p>
           </div>
         </div>
         <button

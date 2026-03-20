@@ -15,9 +15,9 @@ export async function POST(req: NextRequest) {
 
     const { email, name, tempPassword } = await req.json();
 
-    if (!email || !name) {
+    if (!name) {
       return NextResponse.json(
-        { ok: false, error: "Email et nom requis" },
+        { ok: false, error: "Nom requis" },
         { status: 400 }
       );
     }
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       userId: result.userId,
+      email: result.email,
       tempPassword: result.tempPassword,
     });
   } catch (error) {

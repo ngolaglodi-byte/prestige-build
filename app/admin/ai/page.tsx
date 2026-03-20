@@ -8,37 +8,37 @@ export default async function AdminAiPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Gestion de l&apos;IA</h1>
+      <h1 className="text-3xl font-bold mb-6 text-white">Gestion de l&apos;IA</h1>
 
       {/* Liste des fournisseurs */}
-      <table className="w-full bg-white shadow rounded-lg overflow-hidden mb-8">
-        <thead className="bg-gray-100 text-left">
+      <table className="w-full bg-gray-800 shadow rounded-lg overflow-hidden mb-8">
+        <thead className="bg-gray-700 text-left">
           <tr>
-            <th className="p-4">Fournisseur</th>
-            <th className="p-4">Statut</th>
-            <th className="p-4">Priorité</th>
-            <th className="p-4">Tokens max</th>
-            <th className="p-4">Actions</th>
+            <th className="p-4 text-gray-300">Fournisseur</th>
+            <th className="p-4 text-gray-300">Statut</th>
+            <th className="p-4 text-gray-300">Priorité</th>
+            <th className="p-4 text-gray-300">Tokens max</th>
+            <th className="p-4 text-gray-300">Actions</th>
           </tr>
         </thead>
 
         <tbody>
           {providers.map((p) => (
-            <tr key={p.id} className="border-t">
-              <td className="p-4 font-semibold">{p.provider}</td>
+            <tr key={p.id} className="border-t border-gray-700">
+              <td className="p-4 font-semibold text-white">{p.provider}</td>
               <td className="p-4">
                 <span
                   className={`px-2 py-1 rounded text-sm ${
                     p.enabled
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-green-600 text-white"
+                      : "bg-red-600 text-white"
                   }`}
                 >
                   {p.enabled ? "Activé" : "Désactivé"}
                 </span>
               </td>
-              <td className="p-4">{p.priority}</td>
-              <td className="p-4">{p.maxTokens.toLocaleString("fr-FR")}</td>
+              <td className="p-4 text-gray-300">{p.priority}</td>
+              <td className="p-4 text-gray-300">{p.maxTokens.toLocaleString("fr-FR")}</td>
               <td className="p-4">
                 <div className="flex gap-2 flex-wrap">
                   {/* Toggle */}
@@ -67,14 +67,14 @@ export default async function AdminAiPage() {
                       type="number"
                       name="priority"
                       defaultValue={p.priority}
-                      className="border rounded px-2 py-1 w-20"
+                      className="bg-gray-700 border border-gray-600 rounded px-2 py-1 w-20 text-white"
                       placeholder="Priorité"
                     />
                     <input
                       type="number"
                       name="maxTokens"
                       defaultValue={p.maxTokens}
-                      className="border rounded px-2 py-1 w-28"
+                      className="bg-gray-700 border border-gray-600 rounded px-2 py-1 w-28 text-white"
                       placeholder="Tokens max"
                     />
                     <button
@@ -91,9 +91,15 @@ export default async function AdminAiPage() {
         </tbody>
       </table>
 
+      {providers.length === 0 && (
+        <div className="p-8 text-center text-gray-400">
+          Aucun fournisseur IA configuré
+        </div>
+      )}
+
       {/* Ajouter un fournisseur */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-gray-800 shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4 text-white">
           Ajouter un fournisseur IA
         </h2>
         <form
@@ -102,12 +108,12 @@ export default async function AdminAiPage() {
           className="flex gap-4 items-end flex-wrap"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Fournisseur
             </label>
             <select
               name="provider"
-              className="border rounded px-3 py-2"
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
               required
             >
               <option value="GPT">GPT</option>
@@ -117,27 +123,27 @@ export default async function AdminAiPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Priorité
             </label>
             <input
               type="number"
               name="priority"
               defaultValue={0}
-              className="border rounded px-3 py-2 w-24"
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 w-24 text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Tokens max
             </label>
             <input
               type="number"
               name="maxTokens"
               defaultValue={4096}
-              className="border rounded px-3 py-2 w-28"
+              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 w-28 text-white"
               required
             />
           </div>
