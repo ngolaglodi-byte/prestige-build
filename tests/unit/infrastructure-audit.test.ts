@@ -517,13 +517,22 @@ describe("RÉSUMÉ AUDIT PRESTIGE BUILD - Infrastructure Client", () => {
   });
 
   it("CRITÈRE 5: Intégrations API externes - SCORE 10/10", () => {
-    // Vérifie que les providers externes sont supportés
+    // Vérifie que les providers externes sont supportés (illimité)
     const providers = listSupportedProviders();
     
-    expect(providers.length).toBeGreaterThanOrEqual(10);
+    // Au moins 20 providers prédéfinis
+    expect(providers.length).toBeGreaterThanOrEqual(20);
+    
+    // Providers essentiels
     expect(providers.map(p => p.provider)).toContain("stripe");
     expect(providers.map(p => p.provider)).toContain("sendgrid");
     expect(providers.map(p => p.provider)).toContain("openai");
     expect(providers.map(p => p.provider)).toContain("custom");
+    
+    // Providers additionnels
+    expect(providers.map(p => p.provider)).toContain("anthropic");
+    expect(providers.map(p => p.provider)).toContain("github");
+    expect(providers.map(p => p.provider)).toContain("salesforce");
+    expect(providers.map(p => p.provider)).toContain("shopify");
   });
 });
