@@ -37,7 +37,9 @@ describe("template-engine", () => {
     expect(result).toContain('title: "My App"');
     expect(result).toContain("export default function Layout");
     expect(result).toContain("children: React.ReactNode");
-    expect(result).toContain("<>{children}</>");
+    expect(result).toContain("{children}");
+    expect(result).toContain("<html");
+    expect(result).toContain("<body");
   });
 
   it("pageTemplate does not include use client directive", () => {
