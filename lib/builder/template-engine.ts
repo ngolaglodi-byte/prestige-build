@@ -564,3 +564,424 @@ export default function UsersPage() {
 }
 `;
 }
+
+/**
+ * Generate a Hero section component for landing pages.
+ */
+export function heroSectionTemplate(
+  title: string = "Bienvenue",
+  subtitle: string = "Votre solution professionnelle",
+  ctaText: string = "Commencer"
+): string {
+  return `"use client";
+
+import React from "react";
+import Link from "next/link";
+
+export default function HeroSection() {
+  return (
+    <section className="relative min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight">
+          ${title}
+        </h1>
+        <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto">
+          ${subtitle}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href="/contact"
+            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-blue-600/25"
+          >
+            ${ctaText}
+          </Link>
+          <Link
+            href="/services"
+            className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all border border-white/20"
+          >
+            Découvrir nos services
+          </Link>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-900 to-transparent" />
+    </section>
+  );
+}
+`;
+}
+
+/**
+ * Generate a Services page component.
+ */
+export function servicesPageTemplate(companyName: string = "Notre Entreprise"): string {
+  return `import React from "react";
+
+export const metadata = { 
+  title: "Nos Services",
+  description: "Découvrez nos services professionnels" 
+};
+
+interface Service {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const services: Service[] = [
+  {
+    title: "Développement Web",
+    description: "Sites web modernes, applications et plateformes sur mesure avec les dernières technologies.",
+    icon: "🌐",
+  },
+  {
+    title: "Applications Mobiles",
+    description: "Applications iOS et Android natives ou cross-platform performantes.",
+    icon: "📱",
+  },
+  {
+    title: "Solutions Cloud",
+    description: "Infrastructure cloud scalable, sécurisée et optimisée pour vos besoins.",
+    icon: "☁️",
+  },
+  {
+    title: "Consulting IT",
+    description: "Accompagnement stratégique et technique pour vos projets de transformation digitale.",
+    icon: "💡",
+  },
+  {
+    title: "Dashboard & Analytics",
+    description: "Tableaux de bord interactifs et outils d'analyse de données avancés.",
+    icon: "📊",
+  },
+  {
+    title: "Maintenance & Support",
+    description: "Support technique réactif et maintenance continue de vos solutions.",
+    icon: "🛠️",
+  },
+];
+
+function ServiceCard({ title, description, icon }: Service) {
+  return (
+    <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 hover:border-blue-500/50 transition-all group">
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-blue-400 transition-colors">
+        {title}
+      </h3>
+      <p className="text-gray-400 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <main className="min-h-screen bg-gray-900 text-gray-100">
+      {/* Hero Section */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Nos Services</h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            ${companyName} vous accompagne dans tous vos projets digitaux avec des solutions sur mesure.
+          </p>
+        </div>
+      </section>
+
+      {/* Services Grid */}
+      <section className="pb-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service) => (
+              <ServiceCard key={service.title} {...service} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-t border-gray-800">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6">Prêt à démarrer votre projet ?</h2>
+          <p className="text-gray-400 mb-8">
+            Contactez-nous pour discuter de vos besoins et obtenir un devis personnalisé.
+          </p>
+          <a
+            href="/contact"
+            className="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all"
+          >
+            Nous contacter
+          </a>
+        </div>
+      </section>
+    </main>
+  );
+}
+`;
+}
+
+/**
+ * Generate a Contact page component.
+ */
+export function contactPageTemplate(): string {
+  return `"use client";
+
+import React, { useState } from "react";
+
+export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    company: "",
+    message: "",
+  });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error("Erreur lors de l'envoi");
+      
+      setStatus("success");
+      setFormData({ name: "", email: "", company: "", message: "" });
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-900 text-gray-100 py-20 px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Contact Info */}
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Contactez-nous</h1>
+            <p className="text-xl text-gray-400 mb-10">
+              Une question, un projet ? N'hésitez pas à nous contacter. Notre équipe vous répondra dans les plus brefs délais.
+            </p>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">📧</span>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Email</p>
+                  <p className="text-white">contact@prestige-tech.com</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">📍</span>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Adresse</p>
+                  <p className="text-white">Paris, France</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">📞</span>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Téléphone</p>
+                  <p className="text-white">+33 1 23 45 67 89</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Form */}
+          <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
+            <h2 className="text-2xl font-semibold mb-6">Envoyez-nous un message</h2>
+
+            {status === "success" && (
+              <div className="mb-6 p-4 bg-green-900/50 border border-green-500 rounded-xl text-green-200">
+                Message envoyé avec succès ! Nous vous répondrons rapidement.
+              </div>
+            )}
+
+            {status === "error" && (
+              <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-xl text-red-200">
+                Erreur lors de l'envoi. Veuillez réessayer.
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                  Nom complet
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Jean Dupont"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="jean@exemple.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-2">
+                  Entreprise (optionnel)
+                </label>
+                <input
+                  id="company"
+                  name="company"
+                  type="text"
+                  value={formData.company}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Votre entreprise"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  rows={5}
+                  value={formData.message}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Décrivez votre projet ou posez vos questions..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all"
+              >
+                {status === "loading" ? "Envoi en cours..." : "Envoyer le message"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+`;
+}
+
+/**
+ * Generate a complete professional site home page with hero section.
+ */
+export function professionalHomePageTemplate(
+  companyName: string = "Prestige Technologie Company",
+  tagline: string = "Solutions digitales innovantes"
+): string {
+  return `import React from "react";
+import Link from "next/link";
+import HeroSection from "@/components/HeroSection";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
+export const metadata = {
+  title: "${companyName}",
+  description: "${tagline}",
+};
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <Header />
+      
+      <HeroSection />
+
+      {/* Features Section */}
+      <section className="py-20 px-6 bg-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            Pourquoi nous choisir ?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 hover:border-blue-500/50 transition-all">
+              <div className="text-3xl mb-4">🚀</div>
+              <h3 className="text-xl font-semibold mb-3">Performance</h3>
+              <p className="text-gray-400">Solutions optimisées pour des performances maximales.</p>
+            </div>
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 hover:border-blue-500/50 transition-all">
+              <div className="text-3xl mb-4">🔒</div>
+              <h3 className="text-xl font-semibold mb-3">Sécurité</h3>
+              <p className="text-gray-400">Sécurité de niveau entreprise pour tous vos projets.</p>
+            </div>
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 hover:border-blue-500/50 transition-all">
+              <div className="text-3xl mb-4">💡</div>
+              <h3 className="text-xl font-semibold mb-3">Innovation</h3>
+              <p className="text-gray-400">Technologies de pointe et méthodologies modernes.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-y border-gray-800">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Prêt à transformer votre entreprise ?
+          </h2>
+          <p className="text-xl text-gray-400 mb-10">
+            Découvrez nos services et commencez votre transformation digitale dès aujourd'hui.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/services"
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all"
+            >
+              Voir nos services
+            </Link>
+            <Link
+              href="/contact"
+              className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all border border-white/20"
+            >
+              Nous contacter
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+}
+`;
+}
