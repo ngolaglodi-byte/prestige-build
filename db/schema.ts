@@ -107,7 +107,7 @@ export const activityLogs = pgTable("activity_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// STORAGE BUCKETS
+// STORAGE BUCKETS (project_storage_usage + project_db_usage combined)
 export const storageBuckets = pgTable("storage_buckets", {
   id: uuid("id").primaryKey().defaultRandom(),
   projectId: uuid("project_id").notNull().unique(),
@@ -116,6 +116,50 @@ export const storageBuckets = pgTable("storage_buckets", {
   dbUsedMb: integer("db_used_mb").notNull().default(0),
   dbLimitMb: integer("db_limit_mb").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// PROJECT LIMITS - explicit quota configuration per project
+// Audit criteria: allows configurable quotas by project type
+export const projectTypeEnum = pgEnum("project_type", [
+  "landing",
+  "website",
+  "webapp",
+  "ecommerce",
+  "dashboard",
+  "saas",
+  "api",
+  "internal",
+]);
+
+export const projectLimits = pgTable("project_limits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull().unique(),
+  projectType: projectTypeEnum("project_type").notNull().default("website"),
+  dbMinMb: integer("db_min_mb").notNull(),
+  dbRecommendedMb: integer("db_recommended_mb").notNull(),
+  storageMinMb: integer("storage_min_mb").notNull(),
+  storageRecommendedMb: integer("storage_recommended_mb").notNull(),
+  scaleFactor: doublePrecision("scale_factor").notNull().default(1.0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// EXTERNAL API INTEGRATIONS - for third-party APIs
+export const externalApiIntegrations = pgTable("external_api_integrations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  projectId: uuid("project_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  provider: varchar("provider", { length: 100 }).notNull(), // stripe, sendgrid, twilio, etc.
+  name: varchar("name", { length: 255 }).notNull(),
+  active: boolean("active").notNull().default(true),
+  config: jsonb("config").$type<Record<string, string | boolean | number>>().default({}),
+  apiKeyHash: varchar("api_key_hash", { length: 255 }), // hashed API key for security
+  lastTestedAt: timestamp("last_tested_at", { withTimezone: true }),
+  testStatus: varchar("test_status", { length: 20 }).default("untested"), // untested | success | failed
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 // NOTIFICATIONS

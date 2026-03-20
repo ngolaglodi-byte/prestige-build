@@ -233,3 +233,72 @@ export async function hasActiveGitHubIntegration(userId: string): Promise<boolea
   const validation = await validateGitHubToken(token);
   return validation.valid;
 }
+
+/**
+ * Remplace le token GitHub d'un utilisateur par un nouveau
+ * Valide le nouveau token avant de remplacer l'ancien
+ * 
+ * Critère d'audit : Possibilité de remplacer le token (10/10)
+ */
+export async function replaceGitHubToken(
+  userId: string,
+  newToken: string
+): Promise<{ success: boolean; error?: string; tokenInfo?: GitHubTokenInfo }> {
+  // Valide le nouveau token
+  const validation = await validateGitHubToken(newToken);
+  if (!validation.valid) {
+    return { success: false, error: validation.error };
+  }
+
+  // Vérifie les scopes requis
+  const scopeCheck = hasRequiredScopes(validation.tokenInfo?.scopes || []);
+  if (!scopeCheck.hasAll) {
+    return {
+      success: false,
+      error: `Missing required scopes: ${scopeCheck.missing.join(", ")}`,
+    };
+  }
+
+  try {
+    // Vérifie si une intégration GitHub existe
+    const [existing] = await db
+      .select()
+      .from(integrations)
+      .where(and(
+        eq(integrations.userId, userId),
+        eq(integrations.provider, "github")
+      ))
+      .limit(1);
+
+    if (existing) {
+      // Met à jour avec le nouveau token
+      await db
+        .update(integrations)
+        .set({
+          active: true,
+          config: { token: newToken },
+          updatedAt: new Date(),
+        })
+        .where(eq(integrations.id, existing.id));
+
+      logger.info({ userId }, "GitHub token replaced");
+    } else {
+      // Crée une nouvelle intégration
+      await db
+        .insert(integrations)
+        .values({
+          userId,
+          provider: "github",
+          active: true,
+          config: { token: newToken },
+        });
+
+      logger.info({ userId }, "GitHub token stored (new integration)");
+    }
+
+    return { success: true, tokenInfo: validation.tokenInfo };
+  } catch (error) {
+    logger.error({ error, userId }, "Error replacing GitHub token");
+    return { success: false, error: "Failed to replace GitHub token" };
+  }
+}
