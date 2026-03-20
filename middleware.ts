@@ -20,6 +20,7 @@ const publicRoutes = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/setup",
+  "/api/auth/change-password",
 ];
 
 // Routes that require ADMIN role
