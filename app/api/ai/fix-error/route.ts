@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { AIProvider, type AIModel } from "@/lib/ai/provider";
 
 const provider = new AIProvider();
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
     return new Response("Unauthorized", { status: 401 });
   }
 

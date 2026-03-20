@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { webhookLogs, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export async function GET() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return NextResponse.json({ logs: [] });
 
   const logs = await db

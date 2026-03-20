@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 
 interface UserRole {
   id: string;
-  clerkId: string;
-  role: string;
+  email: string;
+  role: "ADMIN" | "AGENT";
+  status: "ACTIVE" | "DISABLED" | "PENDING";
+  name: string | null;
 }
 
 let cachedPromise: Promise<UserRole | null> | null = null;
@@ -29,5 +31,9 @@ export function useUserRole() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { user, loading, isAdmin: user?.role === "admin" };
+  return { user, loading, isAdmin: user?.role === "ADMIN" };
+}
+
+export function clearUserCache() {
+  cachedPromise = null;
 }

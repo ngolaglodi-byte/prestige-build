@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { listProjectTree, buildTree } from "@/lib/projects/fileSystem";
 
 type Params = {
@@ -9,8 +9,8 @@ type Params = {
 };
 
 export async function GET(_req: Request, { params }: Params) {
-  const { userId } = await auth();
-  if (!userId) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
     return new Response("Unauthorized", { status: 401 });
   }
 

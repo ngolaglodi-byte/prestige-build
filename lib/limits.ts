@@ -1,6 +1,5 @@
 import { db } from "@/db/client";
 import { previewSessions } from "@/db/schema";
-import { plans, userPlans, userLimits } from "@/db/supabase-schema";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -12,49 +11,20 @@ export type EffectiveLimits = {
   maxMemoryMb: number;
 };
 
+// Default limits for all users (internal tool - no billing restrictions)
+const DEFAULT_LIMITS: EffectiveLimits = {
+  maxActivePreviews: 3,
+  maxCpuPercent: 200,
+  maxMemoryMb: 512,
+};
+
 /**
- * Récupère les limites réelles d'un utilisateur :
- * - Plan (Free, Starter, Pro…)
- * - Overrides (UserLimits)
+ * Récupère les limites réelles d'un utilisateur.
+ * Sans système de billing, tous les utilisateurs ont les mêmes limites.
  */
-export async function getUserLimits(userId: string): Promise<EffectiveLimits> {
-  // Get user's plan via user_plans join
-  const userPlanRows = await db
-    .select({
-      maxActivePreviews: plans.maxActivePreviews,
-      maxCpuPercent: plans.maxCpuPercent,
-      maxMemoryMb: plans.maxMemoryMb,
-    })
-    .from(userPlans)
-    .innerJoin(plans, eq(userPlans.planId, plans.id))
-    .where(eq(userPlans.userId, userId))
-    .limit(1);
-
-  const plan = userPlanRows[0] ?? null;
-
-  // Get user-specific overrides
-  const overrideRows = await db
-    .select()
-    .from(userLimits)
-    .where(eq(userLimits.userId, userId))
-    .limit(1);
-
-  const overrides = overrideRows[0] ?? null;
-
-  if (!plan) {
-    // fallback ultra safe
-    return {
-      maxActivePreviews: 1,
-      maxCpuPercent: 20,
-      maxMemoryMb: 256,
-    };
-  }
-
-  return {
-    maxActivePreviews: overrides?.maxActivePreviews ?? plan.maxActivePreviews,
-    maxCpuPercent: overrides?.maxCpuPercent ?? plan.maxCpuPercent,
-    maxMemoryMb: overrides?.maxMemoryMb ?? plan.maxMemoryMb,
-  };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getUserLimits(_userId: string): Promise<EffectiveLimits> {
+  return DEFAULT_LIMITS;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { apiKeys, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -10,10 +10,10 @@ function hashKey(key: string): string {
 }
 
 export async function GET() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return NextResponse.json({ keys: [] });
 
   const keys = await db
@@ -33,10 +33,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return new Response("User not found", { status: 404 });
 
   const { label } = await req.json();
@@ -58,10 +58,10 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return new Response("User not found", { status: 404 });
 
   const { id } = await req.json();
@@ -75,10 +75,10 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return new Response("Unauthorized", { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return new Response("User not found", { status: 404 });
 
   const { id } = await req.json();

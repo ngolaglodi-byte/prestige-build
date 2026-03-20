@@ -1,29 +1,27 @@
 import { db } from "@/db/client";
-import { users, adminAiConfig } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
+import { adminAiConfig } from "@/db/schema";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { userId: adminClerkId } = await auth();
-  if (!adminClerkId) {
-    return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
-  if (!admin || admin.role !== "admin") {
-    return new Response("Forbidden", { status: 403 });
+  try {
+    const body = await req.json();
+    const { provider, priority, maxTokens } = body;
+
+    if (!provider || typeof priority !== "number" || typeof maxTokens !== "number") {
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+
+    await db.insert(adminAiConfig).values({ provider, priority, maxTokens });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[admin/ai/add] Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const form = await req.formData();
-  const provider = form.get("provider") as string;
-  const priority = parseInt(form.get("priority") as string, 10);
-  const maxTokens = parseInt(form.get("maxTokens") as string, 10);
-
-  if (isNaN(priority) || isNaN(maxTokens)) {
-    return new Response("Invalid priority or maxTokens value", { status: 400 });
-  }
-
-  await db.insert(adminAiConfig).values({ provider, priority, maxTokens });
-
-  return Response.redirect(new URL("/admin/ai", req.url));
 }

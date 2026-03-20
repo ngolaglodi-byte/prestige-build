@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { teamProjects, teamMembers, users } from "@/db/schema";
 import { projects } from "@/db/supabase-schema";
@@ -11,13 +11,13 @@ export async function GET(
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   const { teamId } = await params;
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.clerkId, clerkId))
+    .where(eq(users.id, currentUser.id))
     .limit(1);
   if (!user) return NextResponse.json({ projects: [] });
 
@@ -54,13 +54,13 @@ export async function POST(
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   const { teamId } = await params;
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.clerkId, clerkId))
+    .where(eq(users.id, currentUser.id))
     .limit(1);
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 

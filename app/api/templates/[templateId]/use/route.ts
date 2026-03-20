@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -7,8 +7,10 @@ export async function POST(
   req: Request,
   { params }: { params: { templateId: string } }
 ) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { templateId } = params;
   const body = await req.json();
@@ -38,7 +40,7 @@ export async function POST(
   }
 
   // Check access
-  if (!template.is_public && template.user_id !== userId) {
+  if (!template.is_public && template.user_id !== currentUser.id) {
     return NextResponse.json({ error: "Access denied." }, { status: 403 });
   }
 
@@ -47,7 +49,7 @@ export async function POST(
     .from("projects")
     .insert({
       name: projectName,
-      user_id: userId,
+      user_id: currentUser.id,
     })
     .select()
     .single();

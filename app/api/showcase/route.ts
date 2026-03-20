@@ -2,7 +2,7 @@
 // GET — public listing with pagination, filters
 // POST — submit a project to the showcase (requires auth)
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { showcaseProjects, users } from "@/db/schema";
@@ -89,10 +89,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
-    const rl = await rateLimitAsync(`showcase:submit:${clerkId}`, 5, 3_600_000);
+    const rl = await rateLimitAsync(`showcase:submit:${currentUser.id}`, 5, 3_600_000);
     if (!rl.success) return apiError("Too many submissions", 429);
 
     const body = await req.json();
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.clerkId, clerkId))
+      .where(eq(users.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       })
       .returning();
 
-    logger.info({ userId, showcaseId: created.id }, "Showcase project submitted");
+    logger.info({ userId: currentUser.id, showcaseId: created.id }, "Showcase project submitted");
 
     return apiOk(created, 201);
   } catch (err) {

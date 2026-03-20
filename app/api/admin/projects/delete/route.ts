@@ -1,28 +1,28 @@
 import { db } from "@/db/client";
-import { users } from "@/db/schema";
+import { getCurrentUser } from "@/lib/auth/session";
 import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { userId: adminClerkId } = await auth();
-  if (!adminClerkId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
-  if (!admin || admin.role !== "admin") {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const form = await req.formData();
-  const projectId = form.get("projectId") as string;
-  if (!projectId) {
-    return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
+  try {
+    const body = await req.json();
+    const { projectId } = body;
+
+    if (!projectId) {
+      return NextResponse.json({ error: "Project ID required" }, { status: 400 });
+    }
+
+    await db.delete(projects).where(eq(projects.id, projectId));
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[admin/projects/delete] Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  await db.delete(projects).where(eq(projects.id, projectId));
-
-  return Response.redirect(new URL("/admin/projects", req.url));
 }

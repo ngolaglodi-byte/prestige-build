@@ -1,7 +1,7 @@
 // app/api/figma/import/route.ts
 // POST /api/figma/import — Import a Figma file and generate React/Tailwind code.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { apiOk, apiError } from "@/lib/api-response";
@@ -30,10 +30,12 @@ function parseFigmaUrl(url: string): { fileKey: string; nodeIds?: string } {
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
-    if (!userId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return apiError("Unauthorized", 401);
+    }
 
-    const rl = await rateLimitAsync(`figma:import:${userId}`, 10, 60_000);
+    const rl = await rateLimitAsync(`figma:import:${currentUser.id}`, 10, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
       ? `https://api.figma.com/v1/files/${fileKey}?ids=${nodeIds}`
       : `https://api.figma.com/v1/files/${fileKey}`;
 
-    logger.info({ userId, projectId, fileKey }, "Fetching Figma file");
+    logger.info({ userId: currentUser.id, projectId, fileKey }, "Fetching Figma file");
 
     const figmaRes = await fetch(figmaApiUrl, {
       headers: { "X-Figma-Token": figmaToken },
@@ -73,7 +75,7 @@ export async function POST(req: Request) {
     const designTree = parseFigmaFile(fileKey, figmaData);
     const { files, summary } = figmaToCode(designTree);
 
-    logger.info({ userId, projectId, fileKey, summary }, "Figma import complete");
+    logger.info({ userId: currentUser.id, projectId, fileKey, summary }, "Figma import complete");
 
     return apiOk({ files, summary });
   } catch (err) {

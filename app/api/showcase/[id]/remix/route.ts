@@ -1,7 +1,7 @@
 // app/api/showcase/[id]/remix/route.ts
 // POST — fork/clone a showcase project.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { showcaseProjects, files, users } from "@/db/schema";
@@ -20,10 +20,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
-    const rl = await rateLimitAsync(`showcase:remix:${clerkId}`, 10, 3_600_000);
+    const rl = await rateLimitAsync(`showcase:remix:${currentUser.id}`, 10, 3_600_000);
     if (!rl.success) return apiError("Too many remixes", 429);
 
     const { id: showcaseId } = params;
@@ -38,7 +38,7 @@ export async function POST(
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.clerkId, clerkId))
+      .where(eq(users.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);
@@ -101,7 +101,7 @@ export async function POST(
       .where(eq(showcaseProjects.id, showcaseId));
 
     logger.info(
-      { userId, showcaseId, newProjectId, filesCopied: originalFiles.length },
+      { userId: currentUser.id, showcaseId, newProjectId, filesCopied: originalFiles.length },
       "Showcase remix created"
     );
 

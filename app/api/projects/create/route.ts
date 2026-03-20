@@ -1,15 +1,14 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { randomUUID } from "crypto";
-import { ensureUserExists } from "@/lib/ensure-user";
 import logger from "@/lib/logger";
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      logger.error("[projects/create] Unauthorized: no userId from Clerk");
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      logger.error("[projects/create] Unauthorized: no active user");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -21,8 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Project name is required" }, { status: 400 });
     }
 
-    const user = await ensureUserExists(clerkId);
-    const userId = user.id;
+    const userId = currentUser.id;
 
     const supabase = getSupabaseServiceClient();
 

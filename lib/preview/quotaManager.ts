@@ -1,17 +1,14 @@
 // lib/preview/quotaManager.ts
 
-import { db } from "@/db/client";
-import { plans, userPlans, userLimits } from "@/db/supabase-schema";
-import { eq } from "drizzle-orm";
-
 type UserQuota = {
   maxActivePreviews: number;
   maxCpuPercent: number;
   maxMemoryBytes: number;
 };
 
+// Default quota for all users (no billing/plans system)
 const DEFAULT_QUOTA: UserQuota = {
-  maxActivePreviews: 2,
+  maxActivePreviews: 3,
   maxCpuPercent: 200,
   maxMemoryBytes: 512 * 1024 * 1024,
 };
@@ -24,48 +21,7 @@ export async function loadUserQuota(userId: string): Promise<UserQuota> {
     return quotaCache.get(userId)!;
   }
 
-  const limitsRows = await db
-    .select()
-    .from(userLimits)
-    .where(eq(userLimits.userId, userId))
-    .limit(1);
-
-  const limitOverride = limitsRows[0] ?? null;
-
-  if (limitOverride) {
-    const q: UserQuota = {
-      maxActivePreviews: limitOverride.maxActivePreviews,
-      maxCpuPercent: limitOverride.maxCpuPercent,
-      maxMemoryBytes: limitOverride.maxMemoryMb * 1024 * 1024,
-    };
-    quotaCache.set(userId, q);
-    return q;
-  }
-
-  // fallback plan → UserPlan → Plan
-  const userPlanRows = await db
-    .select({
-      maxActivePreviews: plans.maxActivePreviews,
-      maxCpuPercent: plans.maxCpuPercent,
-      maxMemoryMb: plans.maxMemoryMb,
-    })
-    .from(userPlans)
-    .innerJoin(plans, eq(userPlans.planId, plans.id))
-    .where(eq(userPlans.userId, userId))
-    .limit(1);
-
-  const userPlan = userPlanRows[0] ?? null;
-
-  if (userPlan) {
-    const q: UserQuota = {
-      maxActivePreviews: userPlan.maxActivePreviews,
-      maxCpuPercent: userPlan.maxCpuPercent,
-      maxMemoryBytes: userPlan.maxMemoryMb * 1024 * 1024,
-    };
-    quotaCache.set(userId, q);
-    return q;
-  }
-
+  // Return default quota for all users (internal tool - no billing restrictions)
   quotaCache.set(userId, DEFAULT_QUOTA);
   return DEFAULT_QUOTA;
 }

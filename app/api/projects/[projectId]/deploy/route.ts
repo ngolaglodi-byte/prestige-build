@@ -1,7 +1,7 @@
 // app/api/projects/[projectId]/deploy/route.ts
 // POST /api/projects/[projectId]/deploy — One-click Vercel deploy.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { apiOk, apiError } from "@/lib/api-response";
 import logger from "@/lib/logger";
 import { deployProject } from "@/lib/deploy/deployManager";
@@ -11,12 +11,12 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const { projectId } = params;
 
-    logger.info({ userId, projectId }, "Deploy triggered");
+    logger.info({ userId: currentUser.id, projectId }, "Deploy triggered");
 
     // Fire-and-forget: do not await the full deploy pipeline
     deployProject(projectId).catch((err) => {

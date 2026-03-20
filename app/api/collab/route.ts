@@ -4,7 +4,7 @@
 // a REST/SSE interface for collab operations using the CollabServer and
 // PresenceManager libraries.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { apiOk, apiError } from "@/lib/api-response";
 import {
   processMessage,
@@ -21,8 +21,8 @@ import logger from "@/lib/logger";
 
 export async function POST(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const body = (await req.json()) as CollabMessage;
 
@@ -31,21 +31,21 @@ export async function POST(req: Request) {
     }
 
     // Ensure userId is set from auth
-    body.userId = clerkId;
+    body.userId = currentUser.id;
 
     // Update presence
     if (body.type === "join" || body.type === "cursor" || body.type === "edit") {
-      const name = (body.payload as { name?: string })?.name ?? clerkId;
-      updateCollabPresence(body.projectId, clerkId, {
-        userId: clerkId,
+      const name = (body.payload as { name?: string })?.name ?? currentUser.id;
+      updateCollabPresence(body.projectId, currentUser.id, {
+        userId: currentUser.id,
         name,
-        color: assignColor(clerkId),
+        color: assignColor(currentUser.id),
         fileId: body.fileId ?? null,
       });
     }
 
     if (body.type === "leave") {
-      removeCollabPresence(body.projectId, clerkId);
+      removeCollabPresence(body.projectId, currentUser.id);
     }
 
     const broadcast = processMessage(body);
@@ -61,8 +61,8 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return apiError("Unauthorized", 401);
 
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");

@@ -1,27 +1,32 @@
 import { db } from "@/db/client";
-import { users, domains } from "@/db/schema";
+import { getCurrentUser } from "@/lib/auth/session";
+import { domains } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { userId: adminClerkId } = await auth();
-  if (!adminClerkId) {
-    return new Response("Unauthorized", { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const [admin] = await db.select().from(users).where(eq(users.clerkId, adminClerkId));
-  if (!admin || admin.role !== "admin") {
-    return new Response("Forbidden", { status: 403 });
+  try {
+    const body = await req.json();
+    const { domainId } = body;
+
+    if (!domainId) {
+      return NextResponse.json({ error: "Domain ID required" }, { status: 400 });
+    }
+
+    // Simulates SSL regeneration — in production this would trigger actual SSL cert provisioning
+    await db
+      .update(domains)
+      .set({ verified: true })
+      .where(eq(domains.id, domainId));
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[admin/domains/ssl] Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const form = await req.formData();
-  const domainId = form.get("domainId") as string;
-
-  // Simulates SSL regeneration — in production this would trigger actual SSL cert provisioning
-  await db
-    .update(domains)
-    .set({ verified: true })
-    .where(eq(domains.id, domainId));
-
-  return Response.redirect(new URL("/admin/domains", req.url));
 }

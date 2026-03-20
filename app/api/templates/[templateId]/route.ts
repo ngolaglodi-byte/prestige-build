@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -26,8 +26,8 @@ export async function GET(
 
   // Only allow access to public templates or own templates
   if (!data.is_public) {
-    const { userId } = await auth();
-    if (!userId || data.user_id !== userId) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || data.user_id !== currentUser.id) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
   }
@@ -40,8 +40,10 @@ export async function DELETE(
   req: Request,
   { params }: { params: { templateId: string } }
 ) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { templateId } = params;
 
@@ -54,7 +56,7 @@ export async function DELETE(
     .from("templates")
     .delete()
     .eq("id", templateId)
-    .eq("user_id", userId);
+    .eq("user_id", currentUser.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 

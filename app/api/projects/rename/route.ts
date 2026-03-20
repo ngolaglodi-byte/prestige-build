@@ -1,10 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: Request) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const currentUser = await getCurrentUser();
+  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, name } = await req.json();
   if (!id || !name) return NextResponse.json({ error: "Missing id or name" }, { status: 400 });
@@ -18,14 +18,14 @@ export async function POST(req: Request) {
   const { data: user, error: userError } = await supabase
     .from("users")
     .select("id")
-    .eq("clerk_id", clerkId)
+    .eq("id", currentUser.id)
     .single();
 
   if (userError || !user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const userId = user.id;
+  const userId = currentUser!.id;
 
   const { data, error } = await supabase
     .from("projects")

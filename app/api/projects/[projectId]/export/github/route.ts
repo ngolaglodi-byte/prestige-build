@@ -1,7 +1,7 @@
 // app/api/projects/[projectId]/export/github/route.ts
 // POST /api/projects/[projectId]/export/github — Export project to GitHub.
 
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { rateLimitAsync } from "@/lib/rate-limit";
 import { apiOk, apiError } from "@/lib/api-response";
@@ -22,10 +22,12 @@ export async function POST(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) return apiError("Unauthorized", 401);
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return apiError("Unauthorized", 401);
+    }
 
-    const rl = await rateLimitAsync(`github:export:${userId}`, 10, 60_000);
+    const rl = await rateLimitAsync(`github:export:${currentUser.id}`, 10, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
@@ -37,7 +39,7 @@ export async function POST(
     const { projectId } = params;
     const { repoName, repoDescription, isPrivate, githubToken, branch, commitMessage } = parsed.data;
 
-    logger.info({ userId, projectId, repoName }, "GitHub export triggered");
+    logger.info({ userId: currentUser.id, projectId, repoName }, "GitHub export triggered");
 
     const result = await exportToGitHub({
       projectId,
