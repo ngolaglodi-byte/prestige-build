@@ -1,13 +1,10 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { users, files } from "@/db/schema";
+import { files } from "@/db/schema";
 import { projects } from "@/db/supabase-schema";
 import { eq, and } from "drizzle-orm";
 import { orchestrate, type OrchestrationAction } from "@/lib/ai/orchestrator";
-import { consumeCredits } from "@/lib/credits/consumeCredits";
-import { checkCredits } from "@/lib/credits/checkCredits";
-import { checkAIGenerationLimit } from "@/lib/usage/trackUsage";
 import { validateActions, type FileAction } from "@/lib/ai/safetyValidator";
 
 /**
@@ -45,7 +42,9 @@ export async function POST(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { projectId } = await params;
     const body = await req.json();
@@ -58,17 +57,7 @@ export async function POST(
       );
     }
 
-    // Resolve Clerk ID to internal user UUID
-    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
-    const user = userRows[0];
-    if (!user) {
-      return NextResponse.json(
-        { ok: false, error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    const userId = currentUser!.id;
+    const userId = currentUser.id;
 
     // Vérifier que le projet existe et appartient à l'utilisateur
     const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
@@ -78,18 +67,6 @@ export async function POST(
       return NextResponse.json(
         { ok: false, error: "Projet non trouvé." },
         { status: 403 }
-      );
-    }
-
-    // Vérifier la limite de générations IA
-    const genLimit = await checkAIGenerationLimit(userId);
-    if (!genLimit.allowed) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: `Limite de générations IA atteinte (${genLimit.used}/${genLimit.limit} ce mois-ci).`,
-        },
-        { status: 429 }
       );
     }
 
@@ -123,22 +100,6 @@ export async function POST(
       filePath,
       projectFiles: filePaths,
       model,
-    });
-
-    // Vérifier et consommer les crédits
-    const hasCredits = await checkCredits(userId, result.creditCost);
-    if (!hasCredits) {
-      return NextResponse.json(
-        { ok: false, error: "Crédits insuffisants." },
-        { status: 402 }
-      );
-    }
-
-    await consumeCredits({
-      userId,
-      projectId,
-      credits: result.creditCost,
-      action: `ai.orchestrate.${action}`,
     });
 
     // Extraire les fichiers générés (si format multi-fichiers)

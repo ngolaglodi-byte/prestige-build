@@ -38,7 +38,7 @@ export async function POST(
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.currentUser.id, currentUser.id))
+      .where(eq(users.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);
@@ -101,7 +101,7 @@ export async function POST(
       .where(eq(showcaseProjects.id, showcaseId));
 
     logger.info(
-      { userId, showcaseId, newProjectId, filesCopied: originalFiles.length },
+      { userId: currentUser.id, showcaseId, newProjectId, filesCopied: originalFiles.length },
       "Showcase remix created"
     );
 

@@ -20,7 +20,7 @@ export async function GET(
 
     const projectId = params.projectId;
 
-    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -63,7 +63,7 @@ export async function POST(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -119,7 +119,7 @@ export async function PATCH(
       return new Response("Missing file path", { status: 400 });
     }
 
-    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 
@@ -192,7 +192,7 @@ export async function DELETE(
     }
 
     // Vérifier ownership du projet
-    const userRows = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
+    const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
     if (!user) return new Response("User not found", { status: 404 });
 

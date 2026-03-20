@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
-import { consumeCredits } from "@/lib/credits/consumeCredits";
-import { checkCredits } from "@/lib/credits/checkCredits";
 import { estimateComplexity } from "@/lib/ai/complexity";
 import { tokenRules } from "@/lib/ai/tokenRules";
 import { AIProvider, type AIModel } from "@/lib/ai/provider";
-import { checkAIGenerationLimit } from "@/lib/usage/trackUsage";
 
 const provider = new AIProvider();
 
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) {
+  if (!currentUser || currentUser.status !== "ACTIVE") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -23,50 +20,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { prompt, code, projectId, model: requestedModel } = await req.json();
+  const { prompt, code, model: requestedModel } = await req.json();
 
   /* ---------------------------------------------------------
    * 1. Detect complexity
    * --------------------------------------------------------- */
   const complexity = estimateComplexity(prompt, code);
-  const { maxTokens, creditCost } = tokenRules[complexity];
+  const { maxTokens } = tokenRules[complexity];
 
   /* ---------------------------------------------------------
-   * 1b. Check AI generation limit for the plan
-   * --------------------------------------------------------- */
-  const genLimit = await checkAIGenerationLimit(userId);
-  if (!genLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: `AI generation limit reached (${genLimit.used}/${genLimit.limit} this month)`,
-      },
-      { status: 429 }
-    );
-  }
-
-  /* ---------------------------------------------------------
-   * 2. Check credits
-   * --------------------------------------------------------- */
-  const hasCredits = await checkCredits(userId, creditCost);
-  if (!hasCredits) {
-    return NextResponse.json(
-      { error: "Insufficient credits" },
-      { status: 402 }
-    );
-  }
-
-  /* ---------------------------------------------------------
-   * 3. Consume credits
-   * --------------------------------------------------------- */
-  await consumeCredits({
-    userId,
-    projectId: projectId ?? null,
-    credits: creditCost,
-    action: `ai.generate.${complexity}`,
-  });
-
-  /* ---------------------------------------------------------
-   * 4. AI call with multi-provider fallback and retry
+   * 2. AI call with multi-provider fallback and retry
    * --------------------------------------------------------- */
   const preferredModel: AIModel = requestedModel ?? provider.resolveModel("gpt");
 
@@ -101,7 +64,6 @@ export async function POST(req: Request) {
       result,
       complexity,
       maxTokensUsed: maxTokens,
-      creditsUsed: creditCost,
       model: usedModel,
     });
   } catch (err) {

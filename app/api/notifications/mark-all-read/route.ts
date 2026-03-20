@@ -11,7 +11,7 @@ export async function PATCH() {
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.currentUser.id, currentUser.id))
+    .where(eq(users.id, currentUser.id))
     .limit(1);
   if (!user) return NextResponse.json({ updated: false });
 

@@ -1,8 +1,10 @@
 # Prestige Build
 
-> Plateforme SaaS de génération de code propulsée par l'IA — collaborative, multi-provider, et prête pour la production.
+> **Outil interne de génération de code propulsé par l'IA** — Plateforme collaborative de Prestige Technologie Company.
 
 ![CI](https://github.com/ngolaglodi-byte/prestige-build/actions/workflows/ci.yml/badge.svg)
+
+⚠️ **Outil interne entreprise** — Authentification locale uniquement, pas d'inscription publique.
 
 ## ✨ Fonctionnalités
 
@@ -17,12 +19,34 @@
 - **Sync GitHub bidirectionnelle** — Importez et exportez des projets vers/depuis GitHub avec détection de conflits
 - **Équipes** — Collaboration multi-utilisateurs avec gestion des rôles
 - **Templates** — Bibliothèque de templates réutilisables
-- **Marketplace communautaire** — Publiez, clonez et remixez des projets avec recherche, tags et favoris
-- **Facturation** — Système de crédits et abonnements
-- **Stripe Kit** — Générez des intégrations Stripe (checkout, webhooks, plans, abonnements) dans vos applications
 - **API Keys** — Gestion et suivi d'utilisation des clés API
 - **Webhooks** — Système d'événements avec retry automatique
 - **Admin** — Panneau d'administration complet
+
+## 🔐 Authentification
+
+Prestige Build utilise un système d'authentification **local** (email + mot de passe) avec RBAC strict :
+
+| Rôle | Description | Permissions |
+|------|-------------|-------------|
+| **ADMIN** | Administrateur système | Création/gestion des agents, accès à tous les projets, journaux d'audit |
+| **AGENT** | Utilisateur interne | Accès au dashboard, création de projets, utilisation de l'IA |
+
+### Caractéristiques de sécurité
+
+- ✅ Hachage des mots de passe avec bcrypt (12 rounds)
+- ✅ Sessions JWT avec cookies httpOnly, secure, sameSite
+- ✅ Protection brute-force (verrouillage après 5 échecs)
+- ✅ Politique de mot de passe stricte (12+ caractères, complexité)
+- ✅ Journaux d'audit complets
+- ✅ Pas d'inscription publique — comptes créés par l'admin uniquement
+
+### Parcours utilisateur
+
+1. **Configuration initiale** : `/setup` — Création du premier compte ADMIN
+2. **Connexion** : `/login` — Authentification email + mot de passe
+3. **Dashboard** : `/dashboard` — Accès aux projets et outils
+4. **Admin** : `/admin` — Gestion des utilisateurs (ADMIN uniquement)
 
 ## 🏗️ Architecture
 
@@ -33,20 +57,19 @@ prestige-build/
 ├── app/                        # Next.js App Router
 │   ├── (dashboard)/           # Routes protégées du tableau de bord
 │   ├── (site)/                # Pages publiques du site
-│   ├── api/                   # 80+ endpoints API REST
+│   ├── api/                   # 70+ endpoints API REST
 │   │   ├── ai/               # Génération IA, Agent, Conversation
+│   │   ├── auth/             # Authentification locale
 │   │   ├── projects/         # CRUD projets
 │   │   ├── teams/            # Gestion d'équipes
-│   │   ├── billing/          # Facturation
 │   │   ├── deploy/           # Déploiement & environnements
 │   │   ├── github/           # Import & sync GitHub
-│   │   ├── marketplace/      # Marketplace communautaire
-│   │   ├── stripe-kit/       # Générateur Stripe
 │   │   ├── health/           # Health check
 │   │   ├── docs/             # Documentation OpenAPI
 │   │   └── cron/             # Tâches planifiées
 │   ├── admin/                # Panneau admin
-│   └── auth/                 # Authentification
+│   ├── login/                # Page de connexion
+│   └── setup/                # Configuration initiale
 ├── lib/                       # Logique métier partagée
 │   ├── ai/                   # Orchestration IA (23 modules)
 │   │   ├── agent.ts          # Agent multi-étapes
@@ -98,10 +121,10 @@ Prestige Build utilise **deux couches complémentaires** pour accéder à la bas
 | Couche | Technologie | Rôle |
 |--------|-------------|------|
 | **ORM typé** | Drizzle ORM | Schéma, migrations, requêtes SQL typées (CRUD, joins, transactions) |
-| **Service temps réel** | Supabase JS (`service_role`) | Webhooks Clerk, listeners temps réel, opérations admin nécessitant le `service_role` |
+| **Service temps réel** | Supabase JS (`service_role`) | Listeners temps réel, opérations nécessitant le `service_role` |
 
 - **Drizzle ORM** est l'ORM unique du projet. Il génère et applique les migrations, définit le schéma dans `db/schema.ts` et fournit un client typé pour toutes les opérations de lecture/écriture.
-- **Supabase JS** n'est utilisé que pour les fonctionnalités qui nécessitent le token `service_role` (webhooks Clerk, fonctions admin) et les écoutes temps réel. Il ne remplace jamais Drizzle pour les requêtes standard.
+- **Supabase JS** n'est utilisé que pour les fonctionnalités qui nécessitent le token `service_role` et les écoutes temps réel. Il ne remplace jamais Drizzle pour les requêtes standard.
 - **Prisma n'est pas utilisé** et ne doit jamais être réintroduit.
 
 ## 🛠️ Stack technique
@@ -111,7 +134,7 @@ Prestige Build utilise **deux couches complémentaires** pour accéder à la bas
 | **Frontend** | Next.js 14, React 18, TypeScript, Tailwind CSS |
 | **Backend** | Next.js API Routes, Node.js |
 | **Base de données** | PostgreSQL + Drizzle ORM + Supabase |
-| **Authentification** | Clerk |
+| **Authentification** | Local (email + password, JWT, bcrypt) |
 | **IA** | OpenAI, Anthropic Claude, Google Gemini |
 | **State** | Zustand |
 | **Tests** | Vitest (unit), Playwright (E2E — Chrome, Firefox, Safari) |
@@ -164,16 +187,12 @@ docker compose up --build
 | Variable | Description | Requis |
 |----------|------------|--------|
 | `DATABASE_URL` | URL de connexion PostgreSQL | ✅ |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clé publique Clerk | ✅ |
-| `CLERK_SECRET_KEY` | Clé secrète Clerk | ✅ |
-| `CLERK_WEBHOOK_SECRET` | Secret webhook Clerk | ✅ |
+| `SESSION_SECRET` | Secret pour les sessions JWT (min 32 caractères) | ✅ |
 | `OPENAI_API_KEY` | Clé API OpenAI | ⚡ |
 | `ANTHROPIC_API_KEY` | Clé API Anthropic | ⚡ |
 | `GOOGLE_GENERATIVE_AI_KEY` | Clé API Google AI | ⚡ |
 | `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry | ❌ |
 | `CRON_SECRET` | Secret pour les tâches CRON | ❌ |
-| `STRIPE_SECRET_KEY` | Clé secrète Stripe (pour Stripe Kit) | ❌ |
-| `STRIPE_WEBHOOK_SECRET` | Secret webhook Stripe | ❌ |
 | `FIGMA_ACCESS_TOKEN` | Token d'accès Figma | ❌ |
 | `GITHUB_TOKEN` | Token d'accès GitHub (pour sync) | ❌ |
 | `VERCEL_TOKEN` | Token API Vercel (pour déploiement) | ❌ |
@@ -227,12 +246,15 @@ En cas d'erreur :
 
 ## 🔒 Sécurité
 
-- **Authentification** — Clerk avec protection des routes dashboard
+- **Authentification** — Locale avec JWT, sessions sécurisées, cookies httpOnly
+- **RBAC** — Rôles ADMIN et AGENT avec contrôle d'accès strict
+- **Protection brute-force** — Verrouillage de compte après 5 échecs
+- **Mots de passe** — Hachage bcrypt (12 rounds), politique de complexité
 - **Rate limiting** — 60 requêtes/min par IP sur les routes API
 - **Validation** — Zod sur toutes les entrées API
 - **Headers de sécurité** — CSP, HSTS, X-Frame-Options, etc.
 - **CORS** — Configuration restrictive
-- **Webhooks** — Vérification de signature
+- **Journaux d'audit** — Traçabilité complète des actions utilisateur
 
 ## 🗂️ Structure des stores
 

@@ -5,7 +5,9 @@ import { createClient } from "@supabase/supabase-js";
 // POST /api/templates/import — Import a template from JSON
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const body = await req.json();
   const { name, description, category, tags, files } = body;
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
       tags: tags || [],
       files,
       is_public: false,
-      user_id: userId,
+      user_id: currentUser.id,
     })
     .select()
     .single();

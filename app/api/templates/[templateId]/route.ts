@@ -27,7 +27,7 @@ export async function GET(
   // Only allow access to public templates or own templates
   if (!data.is_public) {
     const currentUser = await getCurrentUser();
-    if (!userId || data.user_id !== userId) {
+    if (!currentUser || data.user_id !== currentUser.id) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
   }
@@ -41,7 +41,9 @@ export async function DELETE(
   { params }: { params: { templateId: string } }
 ) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { templateId } = params;
 
@@ -54,7 +56,7 @@ export async function DELETE(
     .from("templates")
     .delete()
     .eq("id", templateId)
-    .eq("user_id", userId);
+    .eq("user_id", currentUser.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 

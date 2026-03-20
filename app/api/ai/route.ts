@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { users } from "@/db/schema";
 import { projects } from "@/db/supabase-schema";
 import { eq } from "drizzle-orm";
 import { orchestrate } from "@/lib/ai/orchestrator";
@@ -20,7 +19,9 @@ const PostBody = z.object({
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return apiError("Unauthorized", 401);
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return apiError("Unauthorized", 401);
+    }
 
     const body = await req.json();
     const parsed = PostBody.safeParse(body);
@@ -31,16 +32,6 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     const { prompt, action, model, code, filePath } = parsed.data;
     const projectId = params.projectId;
 
-    // Resolve Clerk ID to internal user UUID
-    const userRows = await db
-      .select()
-      .from(users)
-      .where(eq(users.currentUser.id, currentUser.id))
-      .limit(1);
-
-    const user = userRows[0];
-    if (!user) return apiError("User not found", 404);
-
     const projectRows = await db
       .select()
       .from(projects)
@@ -49,7 +40,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
 
     const project = projectRows[0];
 
-    if (!project || project.userId !== user.id) {
+    if (!project || project.userId !== currentUser.id) {
       return apiError("Forbidden", 403);
     }
 

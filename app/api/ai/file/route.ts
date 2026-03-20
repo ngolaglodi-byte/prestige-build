@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
-import { consumeCredits } from "@/lib/credits/consumeCredits";
-import { checkCredits } from "@/lib/credits/checkCredits";
 import {
   readProjectFileContent,
   writeSingleFile,
@@ -13,7 +11,9 @@ const provider = new AIProvider();
 
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return new Response("Unauthorized", { status: 401 });
+  if (!currentUser || currentUser.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const available = provider.getAvailableModels();
   if (available.length === 0) {
@@ -41,25 +41,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const CREDITS_COST = 5;
-
-  const hasCredits = await checkCredits(userId, CREDITS_COST);
-  if (!hasCredits) {
-    return NextResponse.json(
-      { error: "Insufficient credits" },
-      { status: 402 }
-    );
-  }
-
   const currentContent =
     readProjectFileContent(projectId, filePath) ?? "";
-
-  await consumeCredits({
-    userId,
-    projectId,
-    credits: CREDITS_COST,
-    action: "ai.file.edit",
-  });
 
   const systemPrompt = [
     "Tu es un éditeur de code senior.",
@@ -92,7 +75,6 @@ ${instructions}`;
       success: true,
       projectId,
       filePath,
-      creditsUsed: CREDITS_COST,
       model: usedModel,
     });
   } catch (err) {

@@ -19,7 +19,7 @@ export async function GET(
   const { projectId } = params;
   const encoder = new TextEncoder();
 
-  logger.info({ userId, projectId }, "Deploy status SSE stream opened");
+  logger.info({ userId: currentUser.id, projectId }, "Deploy status SSE stream opened");
 
   const readable = new ReadableStream({
     start(controller) {
@@ -43,7 +43,7 @@ export async function GET(
           }
           clearInterval(interval);
           controller.close();
-          logger.info({ userId, projectId, status: state.status }, "Deploy status SSE stream closed");
+          logger.info({ userId: currentUser.id, projectId, status: state.status }, "Deploy status SSE stream closed");
         }
       }, POLL_INTERVAL_MS);
     },

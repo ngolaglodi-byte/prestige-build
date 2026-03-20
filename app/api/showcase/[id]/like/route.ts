@@ -26,7 +26,7 @@ export async function POST(
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.currentUser.id, currentUser.id))
+      .where(eq(users.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);
@@ -80,7 +80,7 @@ export async function POST(
       .where(eq(showcaseProjects.id, showcaseId))
       .limit(1);
 
-    logger.info({ userId, showcaseId, liked }, "Showcase like toggled");
+    logger.info({ userId: currentUser.id, showcaseId, liked }, "Showcase like toggled");
 
     return apiOk({ liked, likes: updated[0]?.likes ?? 0 });
   } catch (err) {

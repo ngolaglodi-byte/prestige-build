@@ -23,9 +23,11 @@ export async function POST(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return apiError("Unauthorized", 401);
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return apiError("Unauthorized", 401);
+    }
 
-    const rl = await rateLimitAsync(`github:export:${userId}`, 10, 60_000);
+    const rl = await rateLimitAsync(`github:export:${currentUser.id}`, 10, 60_000);
     if (!rl.success) return apiError("Too many requests", 429);
 
     const body = await req.json();
@@ -37,7 +39,7 @@ export async function POST(
     const { projectId } = params;
     const { repoName, repoDescription, isPrivate, githubToken, branch, commitMessage } = parsed.data;
 
-    logger.info({ userId, projectId, repoName }, "GitHub export triggered");
+    logger.info({ userId: currentUser.id, projectId, repoName }, "GitHub export triggered");
 
     const result = await exportToGitHub({
       projectId,

@@ -8,7 +8,7 @@ export async function GET() {
   const currentUser = await getCurrentUser();
   if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [user] = await db.select().from(users).where(eq(users.currentUser.id, currentUser.id)).limit(1);
+  const [user] = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
   if (!user) return NextResponse.json({ members: [] });
 
   const members = await db

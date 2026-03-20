@@ -14,7 +14,7 @@ export async function DELETE(req: Request) {
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.currentUser.id, currentUser.id))
+    .where(eq(users.id, currentUser.id))
     .limit(1);
   if (!user) return NextResponse.json({ deleted: false });
 

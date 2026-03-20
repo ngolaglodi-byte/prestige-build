@@ -16,7 +16,7 @@ export async function POST(
 
     const { projectId } = params;
 
-    logger.info({ userId, projectId }, "Deploy triggered");
+    logger.info({ userId: currentUser.id, projectId }, "Deploy triggered");
 
     // Fire-and-forget: do not await the full deploy pipeline
     deployProject(projectId).catch((err) => {

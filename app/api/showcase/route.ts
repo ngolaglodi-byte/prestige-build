@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     const userRows = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.currentUser.id, currentUser.id))
+      .where(eq(users.id, currentUser.id))
       .limit(1);
 
     if (!userRows.length) return apiError("User not found", 404);
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       })
       .returning();
 
-    logger.info({ userId, showcaseId: created.id }, "Showcase project submitted");
+    logger.info({ userId: currentUser.id, showcaseId: created.id }, "Showcase project submitted");
 
     return apiOk(created, 201);
   } catch (err) {
