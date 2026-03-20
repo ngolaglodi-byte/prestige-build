@@ -691,21 +691,27 @@ describe("RÉSUMÉ AUDIT - Support illimité d'API externes (10/10)", () => {
 
   it("CRITÈRES VALIDÉS", () => {
     // Affichage des critères validés
-    const criteria = [
-      "✅ Support illimité d'API externes sans restriction de nombre",
-      "✅ Compatibilité API REST",
-      "✅ Compatibilité API GraphQL",
-      "✅ Compatibilité API SOAP",
-      "✅ Compatibilité API Webhooks",
-      "✅ Compatibilité API OAuth2",
-      "✅ Compatibilité API propriétaires",
-      "✅ Compatibilité API custom définies par le client",
-      "✅ Génération automatique de wrappers sécurisés dans lib/api/",
-      "✅ Support de 20+ fournisseurs prédéfinis",
-      "✅ Provider 'custom' pour intégration de tout fournisseur",
-    ];
+    // Verification summary - all criteria are validated in the tests above
+    // This test documents what was verified
+    const verifiedCriteria = {
+      unlimitedSupport: hasUnlimitedApiSupport(),
+      protocolsCount: listSupportedProtocols().length >= 7,
+      providersCount: listSupportedProviders().length >= 20,
+      hasCustomProvider: listSupportedProviders().some(p => p.provider === "custom"),
+      restWrapperWorks: generateSecureWrapper({
+        provider: "custom",
+        protocol: "rest",
+        name: "verify",
+        baseUrl: "https://api.example.com",
+        authType: "bearer",
+      }).success,
+    };
 
-    expect(criteria.length).toBe(11);
-    expect(criteria.every(c => c.startsWith("✅"))).toBe(true);
+    // Verify all criteria pass
+    expect(verifiedCriteria.unlimitedSupport).toBe(true);
+    expect(verifiedCriteria.protocolsCount).toBe(true);
+    expect(verifiedCriteria.providersCount).toBe(true);
+    expect(verifiedCriteria.hasCustomProvider).toBe(true);
+    expect(verifiedCriteria.restWrapperWorks).toBe(true);
   });
 });

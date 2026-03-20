@@ -163,8 +163,12 @@ export class ${className}Client {
     ${getAuthHeaderCode(config.authType)}
   }
 
-  private sanitizeInput(input: string): string {
-    // Prevent injection attacks
+  /**
+   * Sanitizes user input to prevent XSS and injection attacks.
+   * Use this method to sanitize any user-provided data before 
+   * including it in API requests or displaying in HTML.
+   */
+  public sanitizeInput(input: string): string {
     return input.replace(/[<>'"&]/g, (char) => {
       const entities: Record<string, string> = {
         '<': '&lt;',
@@ -281,6 +285,10 @@ const result = await client.get("/endpoint");
 
 // POST request
 const created = await client.post("/endpoint", { data: "value" });
+
+// Sanitize user input before sending
+const userInput = client.sanitizeInput(untrustedUserData);
+const safe = await client.post("/search", { query: userInput });
 `;
 
   return {
@@ -1197,7 +1205,12 @@ export class ${className}Client {
     return headers;
   }
 
-  private sanitizeInput(input: string): string {
+  /**
+   * Sanitizes user input to prevent XSS and injection attacks.
+   * Use this method to sanitize any user-provided data before 
+   * including it in API requests or displaying in HTML.
+   */
+  public sanitizeInput(input: string): string {
     return input.replace(/[<>'"&]/g, (char) => {
       const entities: Record<string, string> = {
         '<': '&lt;',
