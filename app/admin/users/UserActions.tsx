@@ -93,6 +93,8 @@ export function UserActions({ userId, status, onRefresh }: UserActionsProps) {
 
 /**
  * Generates email preview from name (for UI)
+ * Note: This duplicates logic from lib/auth/service.ts because that's server-side code
+ * and this is a client component. We keep it in sync manually.
  */
 function generateEmailPreview(fullName: string): string {
   try {
@@ -122,7 +124,7 @@ export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
   const [isPending, startTransition] = useTransition();
 
   // Auto-generate email preview from name
-  const emailPreview = name && !email ? generateEmailPreview(name) : "";
+  const emailPreview = name && !email.trim() ? generateEmailPreview(name) : "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,11 +132,13 @@ export function CreateUserForm({ onCreated }: { onCreated: () => void }) {
     setTempPassword(null);
     setCreatedEmail(null);
 
+    const trimmedEmail = email.trim();
+    
     startTransition(async () => {
       const res = await fetch("/api/admin/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email || undefined, name }),
+        body: JSON.stringify({ email: trimmedEmail || undefined, name }),
       });
       const data = await res.json();
       if (!data.ok) {
