@@ -3,16 +3,16 @@ import { test, expect } from "@playwright/test";
 /**
  * End-to-end integration test for the complete user flow:
  * 1. Visit homepage
- * 2. Navigate to sign-up
- * 3. Navigate to sign-in
+ * 2. Navigate to setup (admin creates accounts internally)
+ * 3. Navigate to login
  * 4. Access dashboard (with mocked auth)
  * 5. Create a project (with mocked auth + API)
  *
- * Since Clerk and Supabase require real credentials, these tests
+ * Since Supabase requires real credentials, these tests
  * verify the full UI flow using route interception for authenticated routes.
  */
 test.describe("Complete E2E Flow", () => {
-  test("full user journey: homepage → sign-up → sign-in → dashboard → create project", async ({ page }) => {
+  test("full user journey: homepage → setup → login → dashboard → create project", async ({ page }) => {
     // Step 1: Visit homepage
     await page.goto("/");
     await expect(page).toHaveTitle(/Prestige Build/);
@@ -22,27 +22,27 @@ test.describe("Complete E2E Flow", () => {
     await page.evaluate(() => localStorage.setItem("prestige_onboarding_done", "true"));
     await page.goto("/");
 
-    // Step 2: Navigate to sign-up page
-    const signUpLink = page.locator('a[href="/sign-up"]').first();
-    await expect(signUpLink).toBeVisible();
-    await signUpLink.click();
-    await expect(page).toHaveURL(/\/sign-up/);
+    // Step 2: Navigate to setup page (for internal tool, admin creates users)
+    const setupLink = page.locator('a[href="/setup"]').first();
+    await expect(setupLink).toBeVisible();
+    await setupLink.click();
+    await expect(page).toHaveURL(/\/setup/);
 
-    // Step 3: Navigate to sign-in page
-    await page.goto("/sign-in");
-    await expect(page).toHaveURL(/\/sign-in/);
+    // Step 3: Navigate to login page
+    await page.goto("/login");
+    await expect(page).toHaveURL(/\/login/);
 
-    // Step 4: Verify the homepage pricing CTA links to sign-up
+    // Step 4: Verify the homepage pricing CTA links to setup
     await page.goto("/");
     const pricingSection = page.locator("#pricing");
     await expect(pricingSection).toBeVisible();
-    const freeStartLink = pricingSection.locator('a[href="/sign-up"]').first();
+    const freeStartLink = pricingSection.locator('a[href="/setup"]').first();
     await expect(freeStartLink).toBeVisible();
   });
 
   test("project creation form has all required fields", async ({ page }) => {
-    // Mock the Clerk auth to bypass authentication
-    await page.route("**/api/clerk/**", (route) => {
+    // Mock the auth to bypass authentication
+    await page.route("**/api/auth/**", (route) => {
       route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -51,23 +51,22 @@ test.describe("Complete E2E Flow", () => {
     });
 
     // Navigate to new project page directly (test form structure)
-    // Since Clerk middleware will redirect, we mock the page content
+    // Since local auth middleware will redirect, we mock the page content
     await page.goto("/projects/new");
     await page.waitForLoadState("domcontentloaded");
 
     // If auth redirects, verify we end up at the right place
     const url = page.url();
     if (url.includes("/projects/new")) {
-      // Page loaded - verify form elements if Clerk is properly configured
-      // When Clerk keys are missing, auth() throws and the page shows an error
+      // Page loaded - verify form elements if auth is properly configured
       const titleLocator = page.locator('h1:has-text("Créer un nouveau projet")');
       if (await titleLocator.count() > 0) {
         await expect(page.locator('input[type="text"]')).toBeVisible();
         await expect(page.locator("button").filter({ hasText: /Créer le projet/ })).toBeVisible();
       }
     } else {
-      // Redirected to sign-in - auth working correctly
-      expect(url).toMatch(/\/(sign-in|projects)/);
+      // Redirected to login - auth working correctly
+      expect(url).toMatch(/\/(login|projects)/);
     }
   });
 
@@ -143,14 +142,13 @@ test.describe("Complete E2E Flow", () => {
     });
 
     // Navigate directly to the new project page
-    // If Clerk blocks, the test gracefully handles the redirect
+    // If auth blocks, the test gracefully handles the redirect
     await page.goto("/projects/new");
     await page.waitForLoadState("domcontentloaded");
 
     const url = page.url();
     if (url.includes("/projects/new")) {
-      // Only interact with form if the page rendered correctly (Clerk configured)
-      // When Clerk keys are missing, auth() throws and the page shows an error
+      // Only interact with form if the page rendered correctly (auth configured)
       const nameInput = page.locator('input[type="text"]');
       if (await nameInput.count() > 0 && await nameInput.isVisible()) {
         // Fill in project name
@@ -172,8 +170,8 @@ test.describe("Complete E2E Flow", () => {
         await page.waitForURL(/\/(projects|workspace)/, { timeout: 10000 });
       }
     } else {
-      // Auth redirect - expected behavior without Clerk credentials
-      expect(url).toMatch(/\/sign-in/);
+      // Auth redirect - expected behavior without credentials
+      expect(url).toMatch(/\/login/);
     }
   });
 });

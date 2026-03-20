@@ -43,10 +43,10 @@ export default function HomePage() {
 
     {/* Desktop Buttons */}
     <div className="hidden md:flex items-center gap-3">
-      <Link href="/sign-in" className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10">
+      <Link href="/login" className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10">
         Se connecter
       </Link>
-      <Link href="/sign-up" className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
+      <Link href="/setup" className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
         S’inscrire
       </Link>
     </div>
@@ -75,10 +75,10 @@ export default function HomePage() {
         <a href="#testimonials" onClick={() => setMobileOpen(false)}>Témoignages</a>
 
         <div className="pt-2 flex gap-3">
-          <Link href="/sign-in" className="flex-1 text-center px-4 py-2 bg-white/5 rounded-lg">
+          <Link href="/login" className="flex-1 text-center px-4 py-2 bg-white/5 rounded-lg">
             Se connecter
           </Link>
-          <Link href="/sign-up" className="flex-1 text-center px-4 py-2 bg-blue-600 rounded-lg">
+          <Link href="/setup" className="flex-1 text-center px-4 py-2 bg-blue-600 rounded-lg">
             S’inscrire
           </Link>
         </div>
@@ -287,7 +287,7 @@ export default function HomePage() {
                 <li>Projets limités</li>
                 <li>Support communautaire</li>
               </ul>
-              <Link href="/sign-up" className="block py-3 bg-blue-600 rounded-xl font-semibold">
+              <Link href="/setup" className="block py-3 bg-blue-600 rounded-xl font-semibold">
                 Commencer
               </Link>
             </div>
@@ -301,7 +301,7 @@ export default function HomePage() {
                 <li>Accès complet à l’espace de travail</li>
                 <li>Support prioritaire</li>
               </ul>
-              <Link href="/sign-up" className="block py-3 bg-blue-600 rounded-xl font-semibold">
+              <Link href="/setup" className="block py-3 bg-blue-600 rounded-xl font-semibold">
                 Passer au supérieur
               </Link>
             </div>

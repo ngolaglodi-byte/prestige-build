@@ -7,8 +7,9 @@ describe("API AI Generate", () => {
 
   describe("POST /api/ai/generate", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
+      // Mock local auth system
+      vi.doMock("@/lib/auth/session", () => ({
+        getCurrentUser: vi.fn().mockResolvedValue(null),
       }));
       vi.doMock("@/lib/ai/provider", () => ({
         AIProvider: vi.fn().mockImplementation(() => ({

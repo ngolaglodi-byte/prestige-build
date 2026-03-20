@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Helper mock for authenticated user
+function mockAuth(user: { id: string; status: string } | null) {
+  vi.doMock("@/lib/auth/session", () => ({
+    getCurrentUser: vi.fn().mockResolvedValue(user),
+  }));
+}
+
 function mockDbWithUser() {
   const chain = {
     from: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue([
-      { id: "user_1", email: "test@test.com", name: "Test User", clerkId: "clerk_123" },
+      { id: "user_1", email: "test@test.com", name: "Test User" },
     ]),
     innerJoin: vi.fn().mockReturnThis(),
     orderBy: vi.fn().mockReturnThis(),
@@ -21,9 +28,7 @@ describe("API Teams", () => {
   // ---------- GET /api/teams ----------
   describe("GET /api/teams", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => ({ db: {} }));
       const { GET } = await import("@/app/api/teams/route");
       const response = await GET();
@@ -34,9 +39,7 @@ describe("API Teams", () => {
   // ---------- POST /api/teams/create ----------
   describe("POST /api/teams/create", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => ({ db: {} }));
       const { POST } = await import("@/app/api/teams/create/route");
       const req = new Request("http://localhost/api/teams/create", {
@@ -49,9 +52,7 @@ describe("API Teams", () => {
     });
 
     it("rejects empty name", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
-      }));
+      mockAuth({ id: "user_123", status: "ACTIVE" });
       vi.doMock("@/db/client", () => ({ db: mockDbWithUser() }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn() }));
       vi.doMock("@/db/schema", () => ({
@@ -68,9 +69,7 @@ describe("API Teams", () => {
     });
 
     it("rejects missing name", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "clerk_123" }),
-      }));
+      mockAuth({ id: "user_123", status: "ACTIVE" });
       vi.doMock("@/db/client", () => ({ db: mockDbWithUser() }));
       vi.doMock("drizzle-orm", () => ({ eq: vi.fn() }));
       vi.doMock("@/db/schema", () => ({
@@ -90,9 +89,7 @@ describe("API Teams", () => {
   // ---------- POST /api/teams/invite ----------
   describe("POST /api/teams/invite", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => ({ db: {} }));
       const { POST } = await import("@/app/api/teams/invite/route");
       const req = new Request("http://localhost/api/teams/invite", {
@@ -108,9 +105,7 @@ describe("API Teams", () => {
   // ---------- POST /api/teams/accept ----------
   describe("POST /api/teams/accept", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@/db/client", () => ({ db: {} }));
       const { POST } = await import("@/app/api/teams/accept/route");
       const req = new Request("http://localhost/api/teams/accept", {

@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Helper mock for authenticated user
+function mockAuth(user: { id: string; status: string } | null) {
+  vi.doMock("@/lib/auth/session", () => ({
+    getCurrentUser: vi.fn().mockResolvedValue(user),
+  }));
+}
+
 // Helper to build a chainable Supabase mock
 function makeSupabaseMock(overrides: {
   selectData?: unknown;
@@ -46,10 +53,8 @@ describe("API Templates", () => {
 
   // ---------- POST /api/templates ----------
   describe("POST /api/templates", () => {
-    function setupMocks(userId: string | null, supaOverrides = {}) {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId }),
-      }));
+    function setupMocks(user: { id: string; status: string } | null, supaOverrides = {}) {
+      mockAuth(user);
       vi.doMock("@supabase/supabase-js", () => makeSupabaseMock(supaOverrides));
     }
 
@@ -68,7 +73,7 @@ describe("API Templates", () => {
     });
 
     it("rejects missing name", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/route");
       const req = new Request("http://localhost/api/templates", {
         method: "POST",
@@ -82,7 +87,7 @@ describe("API Templates", () => {
     });
 
     it("rejects missing files array", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/route");
       const req = new Request("http://localhost/api/templates", {
         method: "POST",
@@ -96,7 +101,7 @@ describe("API Templates", () => {
     });
 
     it("rejects empty files array", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/route");
       const req = new Request("http://localhost/api/templates", {
         method: "POST",
@@ -116,7 +121,7 @@ describe("API Templates", () => {
         files: [{ path: "index.html", content: "<h1>Hi</h1>" }],
         user_id: "user-123",
       };
-      setupMocks("user-123", { insertData: templateData });
+      setupMocks({ id: "user-123", status: "ACTIVE" }, { insertData: templateData });
       const { POST } = await import("@/app/api/templates/route");
       const req = new Request("http://localhost/api/templates", {
         method: "POST",
@@ -132,10 +137,8 @@ describe("API Templates", () => {
 
   // ---------- POST /api/templates/import ----------
   describe("POST /api/templates/import", () => {
-    function setupMocks(userId: string | null, supaOverrides = {}) {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId }),
-      }));
+    function setupMocks(user: { id: string; status: string } | null, supaOverrides = {}) {
+      mockAuth(user);
       vi.doMock("@supabase/supabase-js", () => makeSupabaseMock(supaOverrides));
     }
 
@@ -154,7 +157,7 @@ describe("API Templates", () => {
     });
 
     it("rejects missing name", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/import/route");
       const req = new Request("http://localhost/api/templates/import", {
         method: "POST",
@@ -168,7 +171,7 @@ describe("API Templates", () => {
     });
 
     it("rejects missing files", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/import/route");
       const req = new Request("http://localhost/api/templates/import", {
         method: "POST",
@@ -182,7 +185,7 @@ describe("API Templates", () => {
     });
 
     it("rejects files without path or content", async () => {
-      setupMocks("user-123");
+      setupMocks({ id: "user-123", status: "ACTIVE" });
       const { POST } = await import("@/app/api/templates/import/route");
       const req = new Request("http://localhost/api/templates/import", {
         method: "POST",
@@ -202,7 +205,7 @@ describe("API Templates", () => {
         files: [{ path: "main.js", content: "console.log('hi')" }],
         user_id: "user-123",
       };
-      setupMocks("user-123", { insertData: templateData });
+      setupMocks({ id: "user-123", status: "ACTIVE" }, { insertData: templateData });
       const { POST } = await import("@/app/api/templates/import/route");
       const req = new Request("http://localhost/api/templates/import", {
         method: "POST",
@@ -222,9 +225,7 @@ describe("API Templates", () => {
   // ---------- DELETE /api/templates/[templateId] ----------
   describe("DELETE /api/templates/[templateId]", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@supabase/supabase-js", () => makeSupabaseMock());
       const { DELETE } = await import("@/app/api/templates/[templateId]/route");
       const req = new Request("http://localhost/api/templates/tpl-1", {
@@ -240,9 +241,7 @@ describe("API Templates", () => {
   // ---------- POST /api/templates/[templateId]/use ----------
   describe("POST /api/templates/[templateId]/use", () => {
     it("rejects unauthenticated requests", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: null }),
-      }));
+      mockAuth(null);
       vi.doMock("@supabase/supabase-js", () => makeSupabaseMock());
       const { POST } = await import("@/app/api/templates/[templateId]/use/route");
       const req = new Request("http://localhost/api/templates/tpl-1/use", {
@@ -257,9 +256,7 @@ describe("API Templates", () => {
     });
 
     it("rejects missing project name", async () => {
-      vi.doMock("@clerk/nextjs/server", () => ({
-        auth: vi.fn().mockResolvedValue({ userId: "user-123" }),
-      }));
+      mockAuth({ id: "user-123", status: "ACTIVE" });
       vi.doMock("@supabase/supabase-js", () => makeSupabaseMock());
       const { POST } = await import("@/app/api/templates/[templateId]/use/route");
       const req = new Request("http://localhost/api/templates/tpl-1/use", {
