@@ -330,3 +330,71 @@ ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "revoked" boolean NOT NULL DEFAU
 ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "rate_limit" integer NOT NULL DEFAULT 100;
 ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "last_used_at" timestamp with time zone;
 
+
+-- Add foreign key constraints for project_id columns
+-- Using ALTER TABLE to add constraints after all tables are created
+
+-- project_limits FK to projects
+ALTER TABLE "project_limits" 
+    ADD CONSTRAINT IF NOT EXISTS "project_limits_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- external_api_integrations FK to projects
+ALTER TABLE "external_api_integrations" 
+    ADD CONSTRAINT IF NOT EXISTS "external_api_integrations_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- team_projects FK to projects
+ALTER TABLE "team_projects" 
+    ADD CONSTRAINT IF NOT EXISTS "team_projects_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- webhook_configs FK to projects
+ALTER TABLE "webhook_configs" 
+    ADD CONSTRAINT IF NOT EXISTS "webhook_configs_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- files FK to projects
+ALTER TABLE "files" 
+    ADD CONSTRAINT IF NOT EXISTS "files_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- preview_sessions FK to projects
+ALTER TABLE "preview_sessions" 
+    ADD CONSTRAINT IF NOT EXISTS "preview_sessions_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- preview_sessions FK to users
+ALTER TABLE "preview_sessions" 
+    ADD CONSTRAINT IF NOT EXISTS "preview_sessions_user_id_fk" 
+    FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+
+-- builds FK to projects
+ALTER TABLE "builds" 
+    ADD CONSTRAINT IF NOT EXISTS "builds_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- showcase_projects FK to projects
+ALTER TABLE "showcase_projects" 
+    ADD CONSTRAINT IF NOT EXISTS "showcase_projects_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- conversation_sessions FK to projects
+ALTER TABLE "conversation_sessions" 
+    ADD CONSTRAINT IF NOT EXISTS "conversation_sessions_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- agent_plans FK to projects
+ALTER TABLE "agent_plans" 
+    ADD CONSTRAINT IF NOT EXISTS "agent_plans_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- github_sync_configs FK to projects
+ALTER TABLE "github_sync_configs" 
+    ADD CONSTRAINT IF NOT EXISTS "github_sync_configs_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
+
+-- deployment_environments FK to projects
+ALTER TABLE "deployment_environments" 
+    ADD CONSTRAINT IF NOT EXISTS "deployment_environments_project_id_fk" 
+    FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE;
