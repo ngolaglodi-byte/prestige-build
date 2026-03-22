@@ -6,12 +6,13 @@ const MAX_REQUESTS = 60;
 const CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
 
 // Best-effort in-memory limiter for Edge runtime.
-// Note: state is per-isolate and not shared across regions/instances.
+// Note: state is per-isolate and not shared across regions/instances — users could bypass limits by routing through multiple edge nodes.
 let lastCleanup = 0;
 let isCleaning = false;
 
 function rateLimitMemory(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
   const now = Date.now();
+  // Cleanup is guarded to avoid concurrent mutation; redundant cleanups are harmless in the Edge single-threaded event loop model.
   if (!isCleaning && now - lastCleanup > CLEANUP_INTERVAL_MS) {
     isCleaning = true;
     lastCleanup = now;
