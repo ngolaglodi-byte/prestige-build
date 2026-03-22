@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { rateLimitAsync } from "@/lib/rate-limit";
-import { jwtVerify } from "jose";
+import { rateLimitAsyncEdge } from "@/lib/rate-limit-edge";
+import { jwtVerify } from "jose/jwt/verify";
 
 // Session configuration - must match session.ts
 const SESSION_COOKIE_NAME = "prestige_session";
@@ -69,7 +69,7 @@ function isProtectedRoute(pathname: string): boolean {
 async function rateLimitMiddleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/api/")) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
-    const { success, remaining } = await rateLimitAsync(`api:${ip}`);
+    const { success, remaining } = await rateLimitAsyncEdge(`api:${ip}`);
     if (!success) {
       return NextResponse.json(
         { ok: false, error: "Too many requests" },
