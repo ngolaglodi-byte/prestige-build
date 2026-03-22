@@ -12,7 +12,7 @@ let isCleaning = false;
 
 function rateLimitMemoryWithCleanup(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
   const now = Date.now();
-  // Cleanup is guarded to avoid concurrent mutation; redundant cleanups are harmless in the Edge single-threaded event loop model.
+  // Cleanup is guarded to avoid re-entrant mutation within a request; redundant cleanups are acceptable for this best-effort limiter.
   if (!isCleaning && now - lastCleanup > CLEANUP_INTERVAL_MS) {
     isCleaning = true;
     lastCleanup = now;
@@ -42,11 +42,11 @@ function rateLimitMemoryWithCleanup(key: string, limit: number, windowMs: number
   return { success: true, remaining: limit - entry.count };
 }
 
-export async function rateLimitAsyncEdge(
+export function rateLimitAsyncEdge(
   key: string,
   limit = MAX_REQUESTS,
   windowMs = WINDOW_MS
 ): Promise<{ success: boolean; remaining: number }> {
   // Edge runtime: always use in-memory limiter
-  return rateLimitMemoryWithCleanup(key, limit, windowMs);
+  return Promise.resolve(rateLimitMemoryWithCleanup(key, limit, windowMs));
 }
