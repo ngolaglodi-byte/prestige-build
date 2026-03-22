@@ -3,14 +3,14 @@ const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const ONE_MINUTE_MS = 60_000;
 const WINDOW_MS = ONE_MINUTE_MS;
 const MAX_REQUESTS = 60;
-const CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
+const CLEANUP_INTERVAL_MS = 3 * ONE_MINUTE_MS;
 
 // Best-effort in-memory limiter for Edge runtime.
 // Note: state is per-isolate and not shared across regions/instances — users could bypass limits by routing through multiple edge nodes.
 let lastCleanup = 0;
 let isCleaning = false;
 
-function rateLimitMemory(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
+function rateLimitMemoryWithCleanup(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
   const now = Date.now();
   // Cleanup is guarded to avoid concurrent mutation; redundant cleanups are harmless in the Edge single-threaded event loop model.
   if (!isCleaning && now - lastCleanup > CLEANUP_INTERVAL_MS) {
@@ -48,5 +48,5 @@ export async function rateLimitAsyncEdge(
   windowMs = WINDOW_MS
 ): Promise<{ success: boolean; remaining: number }> {
   // Edge runtime: always use in-memory limiter
-  return rateLimitMemory(key, limit, windowMs);
+  return rateLimitMemoryWithCleanup(key, limit, windowMs);
 }
