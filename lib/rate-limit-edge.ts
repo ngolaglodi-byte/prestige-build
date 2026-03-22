@@ -8,23 +8,29 @@ const CLEANUP_INTERVAL_MS = 3 * ONE_MINUTE_MS;
 // Best-effort in-memory limiter for Edge runtime.
 // Note: state is per-isolate and not shared across regions/instances — users could bypass limits by routing through multiple edge nodes.
 let lastCleanup = 0;
-let isCleaning = false;
+let cleanupScheduled = false;
+
+function scheduleCleanup(windowMs: number) {
+  if (cleanupScheduled) return;
+  cleanupScheduled = true;
+
+  Promise.resolve().then(() => {
+    const now = Date.now();
+    for (const [entryKey, entry] of rateLimitMap.entries()) {
+      if (now - entry.lastReset > windowMs) {
+        rateLimitMap.delete(entryKey);
+      }
+    }
+    lastCleanup = now;
+    cleanupScheduled = false;
+  });
+}
 
 function rateLimitMemory(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
   const now = Date.now();
-  // Cleanup is guarded to avoid reentrant mutation within a request; redundant cleanups are acceptable for this best-effort limiter.
-  if (!isCleaning && now - lastCleanup > CLEANUP_INTERVAL_MS) {
-    isCleaning = true;
-    lastCleanup = now;
-    try {
-      for (const [entryKey, entry] of rateLimitMap.entries()) {
-        if (now - entry.lastReset > windowMs) {
-          rateLimitMap.delete(entryKey);
-        }
-      }
-    } finally {
-      isCleaning = false;
-    }
+  // Cleanup is scheduled to avoid overlapping mutations; best-effort only within a single edge isolate.
+  if (!cleanupScheduled && now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    scheduleCleanup(windowMs);
   }
 
   const entry = rateLimitMap.get(key);
