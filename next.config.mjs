@@ -4,6 +4,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig = {
   output: "standalone",
   webpack: (config) => {
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      fsevents: false,
+    };
+
     // Désactive le cache Webpack uniquement sur Windows (ou si la variable d'env est définie)
     if (process.platform === "win32" || ["true", "1", "yes"].includes(process.env.DISABLE_WEBPACK_CACHE?.toLowerCase())) {
       config.cache = false;
