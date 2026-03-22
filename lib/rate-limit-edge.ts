@@ -3,7 +3,19 @@ const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 60;
 
+// Best-effort in-memory limiter for Edge runtime.
+// Note: state is per-isolate and not shared across regions/instances.
+function cleanupExpired(windowMs: number) {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now - entry.lastReset > windowMs) {
+      rateLimitMap.delete(key);
+    }
+  }
+}
+
 function rateLimitMemory(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
+  cleanupExpired(windowMs);
   const now = Date.now();
   const entry = rateLimitMap.get(key);
 
