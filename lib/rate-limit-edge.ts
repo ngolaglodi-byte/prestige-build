@@ -8,15 +8,21 @@ const CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
 // Best-effort in-memory limiter for Edge runtime.
 // Note: state is per-isolate and not shared across regions/instances.
 let lastCleanup = 0;
+let isCleaning = false;
 
 function rateLimitMemory(key: string, limit: number, windowMs: number): { success: boolean; remaining: number } {
   const now = Date.now();
-  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+  if (!isCleaning && now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    isCleaning = true;
     lastCleanup = now;
-    for (const [entryKey, entry] of rateLimitMap.entries()) {
-      if (now - entry.lastReset > windowMs) {
-        rateLimitMap.delete(entryKey);
+    try {
+      for (const [entryKey, entry] of rateLimitMap.entries()) {
+        if (now - entry.lastReset > windowMs) {
+          rateLimitMap.delete(entryKey);
+        }
       }
+    } finally {
+      isCleaning = false;
     }
   }
 
