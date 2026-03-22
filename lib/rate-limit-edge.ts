@@ -1,8 +1,9 @@
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
-const WINDOW_MS = 60_000;
+const ONE_MINUTE_MS = 60_000;
+const WINDOW_MS = ONE_MINUTE_MS;
 const MAX_REQUESTS = 60;
-const CLEANUP_INTERVAL_MS = 5 * 60_000;
+const CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
 
 // Best-effort in-memory limiter for Edge runtime.
 // Note: state is per-isolate and not shared across regions/instances.
