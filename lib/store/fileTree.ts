@@ -31,17 +31,16 @@ export const useFileTree = create<FileTreeStore>((set) => ({
   refreshFiles: async (projectId: string) => {
     // Validate projectId before making API call
     if (!projectId || projectId.trim() === "") {
-      console.error("[FileTree] refreshFiles called with invalid projectId:", projectId);
+      console.error("[FileTree] refreshFiles called with invalid projectId");
       set({ isLoading: false, error: "ID de projet invalide." });
       return;
     }
 
-    console.log("[FileTree] Fetching files for project:", projectId);
+    console.log("[FileTree] Fetching files for project");
     set({ isLoading: true, error: null });
     
     try {
       const apiUrl = `/api/projects/${projectId}/files`;
-      console.log("[FileTree] API URL:", apiUrl);
       
       const res = await fetch(apiUrl);
       console.log("[FileTree] Response status:", res.status);
@@ -61,7 +60,7 @@ export const useFileTree = create<FileTreeStore>((set) => ({
       }
       
       const data = await res.json();
-      console.log("[FileTree] Response data ok:", data.ok, "files count:", data.files?.length ?? 0);
+      console.log("[FileTree] Response ok:", data.ok, "files count:", Array.isArray(data.files) ? data.files.length : 0);
 
       if (data.ok) {
         const tree = buildFileTree(data.files);

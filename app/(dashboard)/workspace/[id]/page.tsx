@@ -84,12 +84,12 @@ export default function WorkspacePage() {
   // Safely extract projectId from params
   const projectId = useMemo(() => {
     if (!params?.id) {
-      console.warn("[Workspace] params.id is undefined");
+      console.warn("[Workspace] params.id is undefined (may occur during hydration)");
       return null;
     }
     // Handle array case (catch-all routes)
     const idValue = Array.isArray(params.id) ? params.id[0] : params.id;
-    console.log("[Workspace] projectId extracted:", idValue);
+    console.log("[Workspace] projectId extracted successfully");
     return idValue || null;
   }, [params?.id]);
 
@@ -160,15 +160,15 @@ export default function WorkspacePage() {
     }
   }, [projectId, refreshFiles]);
 
-  // Show loading state while determining projectId or loading user
-  if (!projectId && !params?.id) {
-    console.warn("[Workspace] Waiting for params.id...");
+  // Show loading state while params are loading during hydration
+  if (!params?.id) {
+    console.warn("[Workspace] Waiting for params.id during hydration...");
     return <WorkspaceLoadingState />;
   }
 
   // Show error if projectId is invalid after params loaded
   if (!projectId) {
-    console.error("[Workspace] Invalid projectId:", params?.id);
+    console.error("[Workspace] Invalid projectId extracted from params");
     return (
       <WorkspaceErrorState 
         message="ID de projet invalide. Vérifiez l'URL et réessayez."
