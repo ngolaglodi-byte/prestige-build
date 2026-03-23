@@ -13,10 +13,22 @@ interface UserRole {
 let cachedPromise: Promise<UserRole | null> | null = null;
 
 function fetchUserRole(): Promise<UserRole | null> {
+  // Only fetch in browser environment
+  if (typeof window === "undefined") {
+    return Promise.resolve(null);
+  }
+
   if (!cachedPromise) {
+    console.log("[UserRole] Fetching user role...");
     cachedPromise = fetch("/api/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .catch(() => null);
+      .then((res) => {
+        console.log("[UserRole] Response status:", res.status);
+        return res.ok ? res.json() : null;
+      })
+      .catch((err) => {
+        console.error("[UserRole] Fetch error:", err);
+        return null;
+      });
   }
   return cachedPromise;
 }
@@ -27,7 +39,10 @@ export function useUserRole() {
 
   useEffect(() => {
     fetchUserRole()
-      .then((data) => setUser(data))
+      .then((data) => {
+        console.log("[UserRole] User loaded:", data?.id ?? "null");
+        setUser(data);
+      })
       .finally(() => setLoading(false));
   }, []);
 

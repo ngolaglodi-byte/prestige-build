@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, lazy, Suspense } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
@@ -36,11 +36,62 @@ function EditorFallback() {
   );
 }
 
+function WorkspaceLoadingState() {
+  return (
+    <div className="h-screen w-full flex items-center justify-center bg-[#0d0d0d] text-white">
+      <div className="flex items-center gap-3">
+        <div className="w-6 h-6 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+        <span className="text-gray-400">Chargement du workspace…</span>
+      </div>
+    </div>
+  );
+}
+
+function WorkspaceErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const router = useRouter();
+  return (
+    <div className="h-screen w-full flex items-center justify-center bg-[#0d0d0d] text-white">
+      <div className="text-center max-w-md p-8 bg-[#111] border border-white/10 rounded-xl">
+        <div className="text-5xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold mb-2">Erreur de chargement</h2>
+        <p className="text-gray-400 text-sm mb-6">{message}</p>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={() => router.push("/projects")}
+            className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+          >
+            Retour aux projets
+          </button>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 text-sm bg-accent hover:bg-accentDark text-white rounded transition-colors"
+            >
+              Réessayer
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type BottomTab = "preview" | "logs";
 
 export default function WorkspacePage() {
   const params = useParams();
-  const id = params.id as string;
+  
+  // Safely extract projectId from params
+  const projectId = useMemo(() => {
+    if (!params?.id) {
+      console.warn("[Workspace] params.id is undefined (may occur during hydration)");
+      return null;
+    }
+    // Handle array case (catch-all routes)
+    const idValue = Array.isArray(params.id) ? params.id[0] : params.id;
+    console.log("[Workspace] projectId extracted successfully");
+    return idValue || null;
+  }, [params?.id]);
 
   const { user } = useUserRole();
   const localUserId = user?.id ?? "anonymous";
@@ -50,42 +101,85 @@ export default function WorkspacePage() {
   const { saveFile } = useEditor();
   const { activeFile } = useTabs();
   const [bottomTab, setBottomTab] = useState<BottomTab>("preview");
+  const [initError, setInitError] = useState<string | null>(null);
 
+  // Only enable collaboration if we have a valid projectId
   const { cursors, sendCursor, sendEdit } = useCollaboration({
-    projectId: id,
+    projectId: projectId ?? "",
     userId: localUserId,
     userName: localUserName,
-    enabled: true,
+    enabled: !!projectId,
   });
 
   // Expose sendCursor for Monaco onDidChangeCursorPosition
   const handleCursorChange = useCallback(
     (e: { position: { lineNumber: number; column: number } }) => {
-      sendCursor(e.position.lineNumber, e.position.column, activeFile ?? undefined);
+      if (projectId) {
+        sendCursor(e.position.lineNumber, e.position.column, activeFile ?? undefined);
+      }
     },
-    [sendCursor, activeFile]
+    [sendCursor, activeFile, projectId]
   );
 
   // Expose sendEdit for Monaco onDidChangeModelContent
   const handleContentChange = useCallback(
     (e: { changes: readonly { range: unknown; text: string }[] }) => {
-      if (activeFile && e.changes.length > 0) {
+      if (projectId && activeFile && e.changes.length > 0) {
         const change = e.changes[0];
         sendEdit(activeFile, { text: change.text });
       }
     },
-    [sendEdit, activeFile]
+    [sendEdit, activeFile, projectId]
   );
 
+  // Load files when projectId is available
   useEffect(() => {
-    refreshFiles(id);
-  }, [id, refreshFiles]);
-
-  const handleApplyDiffs = async () => {
-    if (activeFile) {
-      await saveFile(id);
+    if (!projectId) {
+      console.warn("[Workspace] Cannot load files: projectId is null");
+      return;
     }
-  };
+    
+    console.log("[Workspace] Loading files for project:", projectId);
+    
+    refreshFiles(projectId).catch((err) => {
+      console.error("[Workspace] Error loading files:", err);
+      setInitError("Erreur lors du chargement des fichiers du projet.");
+    });
+  }, [projectId, refreshFiles]);
+
+  const handleApplyDiffs = useCallback(async () => {
+    if (activeFile && projectId) {
+      await saveFile(projectId);
+    }
+  }, [activeFile, projectId, saveFile]);
+
+  const handleRetry = useCallback(() => {
+    setInitError(null);
+    if (projectId) {
+      refreshFiles(projectId);
+    }
+  }, [projectId, refreshFiles]);
+
+  // Show loading state while params are loading during hydration
+  if (!params?.id) {
+    console.warn("[Workspace] Waiting for params.id during hydration...");
+    return <WorkspaceLoadingState />;
+  }
+
+  // Show error if projectId is invalid after params loaded
+  if (!projectId) {
+    console.error("[Workspace] Invalid projectId extracted from params");
+    return (
+      <WorkspaceErrorState 
+        message="ID de projet invalide. Vérifiez l'URL et réessayez."
+      />
+    );
+  }
+
+  // Show initialization error
+  if (initError) {
+    return <WorkspaceErrorState message={initError} onRetry={handleRetry} />;
+  }
 
   return (
     <div className="h-screen w-full flex bg-[#0d0d0d] text-white overflow-hidden">
@@ -94,7 +188,7 @@ export default function WorkspacePage() {
         <div className="px-3 py-2 border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
           Explorateur
         </div>
-        <FileTree projectId={id} />
+        <FileTree projectId={projectId} />
       </div>
 
       {/* Main area */}
@@ -105,7 +199,7 @@ export default function WorkspacePage() {
             <Tabs />
           </div>
           <div className="px-3 flex-shrink-0">
-            <CollaboratorAvatars projectId={id} userId={localUserId} userName={localUserName} />
+            <CollaboratorAvatars projectId={projectId} userId={localUserId} userName={localUserName} />
           </div>
         </div>
 
@@ -115,7 +209,7 @@ export default function WorkspacePage() {
             {/* Editor */}
             <div className="flex-1 overflow-hidden relative">
               <Suspense fallback={<EditorFallback />}>
-                <CodeEditor projectId={id} onCursorChange={handleCursorChange} onContentChange={handleContentChange} />
+                <CodeEditor projectId={projectId} onCursorChange={handleCursorChange} onContentChange={handleContentChange} />
               </Suspense>
               <RemoteCursors cursors={cursors} currentFileId={activeFile ?? undefined} />
             </div>
@@ -147,17 +241,17 @@ export default function WorkspacePage() {
               <div className="flex-1 overflow-hidden">
                 {bottomTab === "preview" && (
                   <Suspense fallback={<EditorFallback />}>
-                    <PreviewFrame projectId={id} />
+                    <PreviewFrame projectId={projectId} />
                   </Suspense>
                 )}
-                {bottomTab === "logs" && <WorkspaceLogs projectId={id} />}
+                {bottomTab === "logs" && <WorkspaceLogs projectId={projectId} />}
               </div>
             </div>
           </div>
 
           {/* AI Panel */}
           <div className="w-80 border-l border-white/10 flex-shrink-0">
-            <AiPanel projectId={id} />
+            <AiPanel projectId={projectId} />
           </div>
 
           {/* Diff Viewer overlay */}
