@@ -10,8 +10,9 @@ export function getSupabaseBrowserClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
-    console.error("[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable");
-    throw new Error("Missing Supabase configuration");
+    const missing = !url ? "NEXT_PUBLIC_SUPABASE_URL" : "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+    console.error(`[supabase] Missing ${missing} environment variable`);
+    throw new Error(`Missing ${missing} environment variable`);
   }
   browserClient = createClient(url, anonKey);
   return browserClient;
@@ -23,8 +24,9 @@ export function getSupabaseServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
-    console.error("[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variable");
-    throw new Error("Missing Supabase configuration");
+    const missing = !url ? "NEXT_PUBLIC_SUPABASE_URL" : "SUPABASE_SERVICE_ROLE_KEY";
+    console.error(`[supabase] Missing ${missing} environment variable`);
+    throw new Error(`Missing ${missing} environment variable`);
   }
   serviceClient = createClient(url, serviceKey);
   return serviceClient;

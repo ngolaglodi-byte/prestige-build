@@ -36,7 +36,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/projects/list?page=1&pageSize=6&search=");
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "Erreur lors du chargement des projets");
+        setError(data.error || t("dashboard.loadError"));
         setProjects([]);
       } else {
         const data = await res.json();
@@ -44,11 +44,11 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error("[dashboard] Error loading projects:", err);
-      setError("Impossible de charger les projets. Veuillez réessayer.");
+      setError(t("dashboard.loadErrorDesc"));
       setProjects([]);
     }
     setLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadProjectsRef.current = loadProjects;
@@ -175,7 +175,7 @@ export default function DashboardPage() {
           <div className="premium-card p-10 text-center">
             <div className="text-4xl mb-3">⚠️</div>
             <h3 className="text-lg font-semibold mb-1 text-red-400">
-              Erreur de chargement
+              {t("dashboard.errorTitle")}
             </h3>
             <p className="text-muted text-sm mb-4">
               {error}
@@ -184,7 +184,7 @@ export default function DashboardPage() {
               onClick={() => loadProjectsRef.current?.()}
               className="inline-flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accentDark text-white rounded-smooth transition-all text-sm font-medium"
             >
-              Réessayer
+              {t("dashboard.retry")}
             </button>
           </div>
         ) : projects.length === 0 ? (
