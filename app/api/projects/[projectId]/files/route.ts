@@ -16,19 +16,32 @@ export async function GET(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return new Response("Unauthorized", { status: 401 });
+    if (!currentUser) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const projectId = params.projectId;
 
     const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
-    if (!user) return new Response("User not found", { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
-    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    // Only select the columns we need to avoid issues with missing columns
+    const projectRows = await db
+      .select({ id: projects.id, userId: projects.userId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
     const project = projectRows[0];
 
-    if (!project || project.userId !== user.id) {
-      return new Response("Forbidden", { status: 403 });
+    if (!project) {
+      return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
+    }
+
+    if (project.userId !== user.id) {
+      return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
     const fileList = await db
@@ -40,7 +53,7 @@ export async function GET(
     return NextResponse.json({ ok: true, files: fileList });
   } catch (err) {
     console.error("❌ Error loading files:", err);
-    return new Response("Internal server error", { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -53,25 +66,38 @@ export async function POST(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return new Response("Unauthorized", { status: 401 });
+    if (!currentUser) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const projectId = params.projectId;
     const body = await req.json();
     const { path, content } = body;
 
     if (!path) {
-      return new Response("Missing file path", { status: 400 });
+      return NextResponse.json({ ok: false, error: "Missing file path" }, { status: 400 });
     }
 
     const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
-    if (!user) return new Response("User not found", { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
-    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    // Only select the columns we need
+    const projectRows = await db
+      .select({ id: projects.id, userId: projects.userId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
     const project = projectRows[0];
 
-    if (!project || project.userId !== user.id) {
-      return new Response("Forbidden", { status: 403 });
+    if (!project) {
+      return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
+    }
+
+    if (project.userId !== user.id) {
+      return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
     const existingRows = await db
@@ -81,7 +107,7 @@ export async function POST(
       .limit(1);
 
     if (existingRows.length > 0) {
-      return new Response("File already exists", { status: 409 });
+      return NextResponse.json({ ok: false, error: "File already exists" }, { status: 409 });
     }
 
     const insertedRows = await db
@@ -96,7 +122,7 @@ export async function POST(
     return NextResponse.json({ ok: true, file: insertedRows[0] });
   } catch (err) {
     console.error("❌ Error creating file:", err);
-    return new Response("Internal server error", { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -109,25 +135,38 @@ export async function PATCH(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return new Response("Unauthorized", { status: 401 });
+    if (!currentUser) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const projectId = params.projectId;
     const body = await req.json();
     const { path, newPath, content } = body;
 
     if (!path) {
-      return new Response("Missing file path", { status: 400 });
+      return NextResponse.json({ ok: false, error: "Missing file path" }, { status: 400 });
     }
 
     const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
-    if (!user) return new Response("User not found", { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
-    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    // Only select the columns we need
+    const projectRows = await db
+      .select({ id: projects.id, userId: projects.userId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
     const project = projectRows[0];
 
-    if (!project || project.userId !== user.id) {
-      return new Response("Forbidden", { status: 403 });
+    if (!project) {
+      return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
+    }
+
+    if (project.userId !== user.id) {
+      return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
     const existingRows = await db
@@ -139,7 +178,7 @@ export async function PATCH(
     const existing = existingRows[0];
 
     if (!existing) {
-      return new Response("File not found", { status: 404 });
+      return NextResponse.json({ ok: false, error: "File not found" }, { status: 404 });
     }
 
     if (newPath && newPath !== path) {
@@ -150,9 +189,7 @@ export async function PATCH(
         .limit(1);
 
       if (conflictRows.length > 0) {
-        return new Response("A file with this name already exists", {
-          status: 409,
-        });
+        return NextResponse.json({ ok: false, error: "A file with this name already exists" }, { status: 409 });
       }
     }
 
@@ -168,7 +205,7 @@ export async function PATCH(
     return NextResponse.json({ ok: true, file: updatedRows[0] });
   } catch (err) {
     console.error("❌ Error updating file:", err);
-    return new Response("Internal server error", { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -181,26 +218,39 @@ export async function DELETE(
 ) {
   try {
     const currentUser = await getCurrentUser();
-    if (!currentUser) return new Response("Unauthorized", { status: 401 });
+    if (!currentUser) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
 
     const projectId = params.projectId;
     const body = await req.json();
     const { path } = body;
 
     if (!path) {
-      return new Response("Missing file path", { status: 400 });
+      return NextResponse.json({ ok: false, error: "Missing file path" }, { status: 400 });
     }
 
     // Vérifier ownership du projet
     const userRows = await db.select().from(users).where(eq(users.id, currentUser.id)).limit(1);
     const user = userRows[0];
-    if (!user) return new Response("User not found", { status: 404 });
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
+    }
 
-    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    // Only select the columns we need
+    const projectRows = await db
+      .select({ id: projects.id, userId: projects.userId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
     const project = projectRows[0];
 
-    if (!project || project.userId !== user.id) {
-      return new Response("Forbidden", { status: 403 });
+    if (!project) {
+      return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
+    }
+
+    if (project.userId !== user.id) {
+      return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
     }
 
     // Vérifier que le fichier existe
@@ -211,7 +261,7 @@ export async function DELETE(
       .limit(1);
 
     if (existingRows.length === 0) {
-      return new Response("File not found", { status: 404 });
+      return NextResponse.json({ ok: false, error: "File not found" }, { status: 404 });
     }
 
     // Supprimer le fichier
@@ -222,6 +272,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("❌ Error deleting file:", err);
-    return new Response("Internal server error", { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

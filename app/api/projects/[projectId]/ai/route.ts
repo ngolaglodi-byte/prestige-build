@@ -60,12 +60,24 @@ export async function POST(
     const userId = currentUser.id;
 
     // Vérifier que le projet existe et appartient à l'utilisateur
-    const projectRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+    // Only select the columns we need to avoid issues with missing columns
+    const projectRows = await db
+      .select({ id: projects.id, userId: projects.userId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
     const project = projectRows[0];
 
-    if (!project || project.userId !== userId) {
+    if (!project) {
       return NextResponse.json(
         { ok: false, error: "Projet non trouvé." },
+        { status: 404 }
+      );
+    }
+
+    if (project.userId !== userId) {
+      return NextResponse.json(
+        { ok: false, error: "Accès refusé." },
         { status: 403 }
       );
     }
