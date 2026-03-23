@@ -1274,7 +1274,7 @@ responsive, propre, professionnel et conforme aux standards internes Prestige.`;
     });
 
     it("génère une page contact valide", () => {
-      const code = contactPageTemplate("Prestige Technologie Company");
+      const code = contactPageTemplate();
       
       expect(code).toContain('"use client"');
       expect(code).toContain("export default function ContactPage");

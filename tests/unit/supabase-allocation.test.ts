@@ -124,7 +124,6 @@ describe("Allocation Supabase par projet client", () => {
     });
 
     it("retourne les quotas website par défaut pour un type inconnu", () => {
-      // @ts-expect-error - Test avec un type invalide volontairement
       const quotas = calculateProjectQuotas("unknown" as ProjectType);
       
       // Devrait retourner les quotas par défaut (website)
