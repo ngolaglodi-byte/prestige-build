@@ -42,7 +42,7 @@ export const useFileTree = create<FileTreeStore>((set) => ({
           : `Erreur serveur (${res.status})`;
         
         set({ isLoading: false, error: errorText });
-        throw new Error(errorText);
+        return;
       }
       
       const data = await res.json();
@@ -53,12 +53,9 @@ export const useFileTree = create<FileTreeStore>((set) => ({
       } else {
         const errorMessage = data.error || "Impossible de charger les fichiers.";
         set({ isLoading: false, error: errorMessage });
-        throw new Error(errorMessage);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Erreur réseau. Veuillez réessayer.";
-      set({ isLoading: false, error: errorMessage });
-      throw err;
+    } catch {
+      set({ isLoading: false, error: "Erreur réseau. Veuillez réessayer." });
     }
   },
 
