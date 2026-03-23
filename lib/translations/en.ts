@@ -16,6 +16,10 @@ const en = {
   "dashboard.recentActivity": "Recent Activity",
   "dashboard.activityPlaceholder": "Your recent activity will appear here.",
   "dashboard.projectNamePrompt": "Project name:",
+  "dashboard.loadError": "Error loading projects",
+  "dashboard.loadErrorDesc": "Unable to load projects. Please try again.",
+  "dashboard.errorTitle": "Loading Error",
+  "dashboard.retry": "Retry",
 
   // Sidebar
   "sidebar.home": "Home",

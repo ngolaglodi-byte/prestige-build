@@ -25,20 +25,30 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { t, language } = useLanguage();
   const loadProjectsRef = useRef<() => Promise<void>>(undefined);
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/projects/list?page=1&pageSize=6&search=");
-      const data = await res.json();
-      setProjects(data.projects || []);
-    } catch {
-      // silent
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || t("dashboard.loadErrorDesc"));
+        setProjects([]);
+      } else {
+        const data = await res.json();
+        setProjects(data.projects || []);
+      }
+    } catch (err) {
+      console.error("[dashboard] Error loading projects:", err);
+      setError(t("dashboard.loadErrorDesc"));
+      setProjects([]);
     }
     setLoading(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadProjectsRef.current = loadProjects;
@@ -160,6 +170,22 @@ export default function DashboardPage() {
                 className="h-32 bg-surface border border-border rounded-xlSmooth animate-pulse"
               />
             ))}
+          </div>
+        ) : error ? (
+          <div className="premium-card p-10 text-center">
+            <div className="text-4xl mb-3">⚠️</div>
+            <h3 className="text-lg font-semibold mb-1 text-red-400">
+              {t("dashboard.errorTitle")}
+            </h3>
+            <p className="text-muted text-sm mb-4">
+              {error}
+            </p>
+            <button
+              onClick={() => loadProjectsRef.current?.()}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accentDark text-white rounded-smooth transition-all text-sm font-medium"
+            >
+              {t("dashboard.retry")}
+            </button>
           </div>
         ) : projects.length === 0 ? (
           <div className="premium-card p-10 text-center">
