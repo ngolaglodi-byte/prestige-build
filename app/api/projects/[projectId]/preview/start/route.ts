@@ -42,12 +42,15 @@ export async function POST(
       if (text) {
         body = JSON.parse(text);
       }
-    } catch {
-      // Body is empty or invalid JSON - use defaults
+    } catch (parseError) {
+      // Log parse failures for debugging, but use defaults
+      console.warn("[preview/start] Failed to parse request body:", parseError);
     }
-    const cpuPercent = (body.cpuPercent as number) ?? 10;
-    const memoryMb = (body.memoryMb as number) ?? 128;
-    const port = (body.port as number) ?? 3000;
+    
+    // Use runtime type checking for body parameters
+    const cpuPercent = typeof body.cpuPercent === "number" ? body.cpuPercent : 10;
+    const memoryMb = typeof body.memoryMb === "number" ? body.memoryMb : 128;
+    const port = typeof body.port === "number" ? body.port : 3000;
 
     // -----------------------------
     // 3. Vérifier le quota PREVIEWS
