@@ -1,6 +1,6 @@
 import { db } from "@/db/client";
 import { getCurrentUser } from "@/lib/auth/session";
-import { projects } from "@/db/supabase-schema";
+import { projects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";

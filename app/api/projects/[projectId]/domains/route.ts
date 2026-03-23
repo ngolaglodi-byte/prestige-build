@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
-import { domains } from "@/db/schema";
-import { projects } from "@/db/supabase-schema";
+import { domains, projects } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import {
   getDefaultSubdomain,

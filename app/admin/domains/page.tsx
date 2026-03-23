@@ -1,8 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/db/client";
-import { domains, users } from "@/db/schema";
-import { projects } from "@/db/supabase-schema";
+import { domains, users, projects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export default async function AdminDomainsPage() {

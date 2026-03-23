@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/db/client";
-import { teamProjects, teamMembers, users } from "@/db/schema";
-import { projects } from "@/db/supabase-schema";
+import { teamProjects, teamMembers, users, projects } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 // GET /api/teams/[teamId]/projects — List projects shared with a team

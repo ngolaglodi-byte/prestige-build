@@ -18,7 +18,7 @@ Prestige Build utilise **deux clients** pour interagir avec la même base de don
 - **Type safety** : Toutes les requêtes sont typées grâce au schéma TypeScript (`db/schema.ts`).
 - **Migrations** : Drizzle Kit génère et applique les migrations de manière déclarative (`npm run db:generate`, `npm run db:migrate`).
 - **Requêtes complexes** : Jointures, agrégations et sous-requêtes sont exprimées de manière lisible et maintenable.
-- **Schéma unifié** : Les tables Drizzle (`db/schema.ts`) et les tables Supabase en lecture seule (`db/supabase-schema.ts`) sont combinées dans un seul client (`db/client.ts`).
+- **Schéma unifié** : Toutes les tables, incluant `projects`, sont définies dans `db/schema.ts` et gérées par Drizzle.
 
 Drizzle est l'ORM **unique** du projet. Prisma ne doit jamais être réintroduit.
 
@@ -35,7 +35,6 @@ Drizzle est l'ORM **unique** du projet. Prisma ne doit jamais être réintroduit
 | Routes API standard (CRUD, logique métier) | **Drizzle ORM** (`db`) |
 | Webhooks (Clerk, Stripe, événements externes) | **Supabase JS** (`supabase`, `service_role`) |
 | Migrations et schéma | **Drizzle Kit** (`npm run db:generate`) |
-| Requêtes en lecture sur tables Supabase | **Drizzle ORM** (via `db/supabase-schema.ts`) |
 
 **Ne jamais** utiliser Supabase JS dans les routes API standard. Cela contournerait les politiques de sécurité RLS et créerait une incohérence architecturale.
 
@@ -46,16 +45,16 @@ Drizzle est l'ORM **unique** du projet. Prisma ne doit jamais être réintroduit
 ```
 db/
 ├── client.ts             # Client Drizzle (Pool PostgreSQL + schéma combiné)
-├── schema.ts             # Tables gérées par Drizzle (migrations actives)
-├── supabase-schema.ts    # Tables gérées par Supabase (lecture seule, pas de migrations)
+├── schema.ts             # Toutes les tables gérées par Drizzle (migrations actives)
+├── supabase-schema.ts    # Réservé pour tables Supabase (actuellement vide)
 ├── migrations/           # Migrations générées par Drizzle Kit
 └── seed.ts               # Script de peuplement initial
 ```
 
-## Schéma dual
+## Schéma
 
-- **`db/schema.ts`** — Tables dont Drizzle est propriétaire : `users`, `domains`, `creditPurchases`, `usageLogs`, `billingEvents`, `teams`, `files`, `builds`, etc. Ces tables sont incluses dans les migrations Drizzle.
-- **`db/supabase-schema.ts`** — Tables créées et gérées par Supabase : `projects`, `plans`, `user_plans`, `user_limits`, `subscriptions`. Ces tables sont exclues des migrations Drizzle (`drizzle.config.ts`) mais définies pour permettre des requêtes typées.
+- **`db/schema.ts`** — Toutes les tables : `users`, `projects`, `domains`, `files`, `teams`, `builds`, etc. Ces tables sont incluses dans les migrations Drizzle.
+- **`db/supabase-schema.ts`** — Actuellement vide. Réservé pour de futures tables qui seraient gérées directement par Supabase.
 
 ## Intégration dans l'architecture
 
@@ -107,21 +106,17 @@ npm run db:seed
 
 *Document maintenu par l'équipe Prestige Technologie Company.*
 
-## Séparation des schémas — Pourquoi `supabase-schema.ts` ne doit PAS être migré
+## Migration de la table `projects`
 
-`drizzle.config.ts` ne référence que `./db/schema.ts`.
-Le fichier `db/supabase-schema.ts` est **volontairement exclu** de la configuration Drizzle Kit pour les raisons suivantes :
+La table `projects` était précédemment définie dans `db/supabase-schema.ts` comme étant "gérée par Supabase". Cela causait des problèmes car :
+1. Les migrations Drizzle n'incluaient pas la table `projects`
+2. La table devait être créée manuellement dans Supabase
+3. Des erreurs survenaient lors de l'ouverture du workspace si la table n'existait pas
 
-1. **Propriété** — Les tables définies dans `supabase-schema.ts` (`projects`, `plans`, `user_plans`, `user_limits`, `subscriptions`) sont créées et gérées directement par Supabase (via son Dashboard ou ses migrations internes).
-2. **RLS** — Ces tables possèdent des Row Level Security policies gérées par Supabase. Les recréer ou les modifier via Drizzle Kit pourrait supprimer ou altérer ces policies.
-3. **Migrations** — `drizzle-kit generate` et `drizzle-kit migrate` ne doivent couvrir que les tables dont Drizzle est propriétaire (`db/schema.ts`). Exécuter une migration Drizzle sur des tables Supabase provoquerait des conflits de schéma.
-4. **Typage** — `supabase-schema.ts` existe uniquement pour permettre des requêtes typées via `drizzle-orm` dans le code applicatif. Le client Drizzle (`db/client.ts`) combine les deux schémas (`schema` + `supabaseSchema`) pour offrir un accès typé complet.
-
-### Règle
-
-> **Ne jamais ajouter `supabase-schema.ts` dans `drizzle.config.ts`.**
-> Si une nouvelle table doit être gérée par Drizzle, elle doit être ajoutée dans `db/schema.ts`.
-> Si une nouvelle table est gérée par Supabase, elle doit être ajoutée dans `db/supabase-schema.ts`.
+**Solution appliquée** : La table `projects` a été déplacée vers `db/schema.ts` pour être gérée par Drizzle. Cela garantit que :
+- La table est créée automatiquement lors de l'exécution de `npm run db:migrate`
+- Les foreign keys vers `projects` fonctionnent correctement
+- Le workspace s'ouvre sans erreur
 
 ### Règle sur `lib/db.ts`
 

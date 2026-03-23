@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { projects } from "@/db/supabase-schema";
+import { projects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { orchestrate } from "@/lib/ai/orchestrator";
 import { parseAIMultiPreview } from "@/lib/ai/parseMultiPreview";

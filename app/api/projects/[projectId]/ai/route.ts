@@ -1,8 +1,7 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { files } from "@/db/schema";
-import { projects } from "@/db/supabase-schema";
+import { files, projects } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { orchestrate, type OrchestrationAction } from "@/lib/ai/orchestrator";
 import { validateActions, type FileAction } from "@/lib/ai/safetyValidator";
