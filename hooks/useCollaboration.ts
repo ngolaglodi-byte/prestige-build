@@ -45,65 +45,75 @@ export function useCollaboration({
   const connect = useCallback(() => {
     if (!enabled) return;
 
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(
-      `${protocol}://${window.location.host}/api/collab?projectId=${projectId}`
-    );
+    // Check if we're in a browser environment with WebSocket support
+    if (typeof window === "undefined" || typeof WebSocket === "undefined") {
+      return;
+    }
 
-    ws.onopen = () => {
-      setConnected(true);
-      ws.send(
-        JSON.stringify({
-          type: "join",
-          userId,
-          projectId,
-          payload: { name: userName },
-        })
+    try {
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(
+        `${protocol}://${window.location.host}/api/collab?projectId=${projectId}`
       );
-    };
 
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
+      ws.onopen = () => {
+        setConnected(true);
+        ws.send(
+          JSON.stringify({
+            type: "join",
+            userId,
+            projectId,
+            payload: { name: userName },
+          })
+        );
+      };
 
-        if (msg.type === "cursor" && msg.userId !== userId) {
-          setCursors((prev) => {
-            const filtered = prev.filter((c) => c.userId !== msg.userId);
-            return [
-              ...filtered,
-              {
-                userId: msg.userId,
-                name: msg.payload?.name ?? msg.userId,
-                color: msg.payload?.color ?? "#6366F1",
-                line: msg.payload?.line ?? 0,
-                column: msg.payload?.column ?? 0,
-                fileId: msg.fileId,
-              },
-            ];
-          });
-        }
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
 
-        if (msg.type === "join" || msg.type === "leave" || msg.type === "sync") {
-          if (Array.isArray(msg.payload?.users)) {
-            setCollaborators(msg.payload.users);
+          if (msg.type === "cursor" && msg.userId !== userId) {
+            setCursors((prev) => {
+              const filtered = prev.filter((c) => c.userId !== msg.userId);
+              return [
+                ...filtered,
+                {
+                  userId: msg.userId,
+                  name: msg.payload?.name ?? msg.userId,
+                  color: msg.payload?.color ?? "#6366F1",
+                  line: msg.payload?.line ?? 0,
+                  column: msg.payload?.column ?? 0,
+                  fileId: msg.fileId,
+                },
+              ];
+            });
           }
+
+          if (msg.type === "join" || msg.type === "leave" || msg.type === "sync") {
+            if (Array.isArray(msg.payload?.users)) {
+              setCollaborators(msg.payload.users);
+            }
+          }
+        } catch {
+          // ignore parse errors
         }
-      } catch {
-        // ignore parse errors
-      }
-    };
+      };
 
-    ws.onclose = () => {
-      setConnected(false);
-      // Reconnect after 2 seconds
-      reconnectTimer.current = setTimeout(connect, 2000);
-    };
+      ws.onclose = () => {
+        setConnected(false);
+        // Reconnect after 2 seconds
+        reconnectTimer.current = setTimeout(connect, 2000);
+      };
 
-    ws.onerror = () => {
-      ws.close();
-    };
+      ws.onerror = () => {
+        ws.close();
+      };
 
-    wsRef.current = ws;
+      wsRef.current = ws;
+    } catch {
+      // WebSocket creation failed - ignore and don't retry
+      console.warn("[useCollaboration] WebSocket not available");
+    }
   }, [enabled, projectId, userId, userName]);
 
   useEffect(() => {

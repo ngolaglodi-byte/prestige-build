@@ -32,16 +32,21 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     const { prompt, action, model, code, filePath } = parsed.data;
     const projectId = params.projectId;
 
+    // Only select the columns we need to avoid issues with missing columns
     const projectRows = await db
-      .select()
+      .select({ id: projects.id, userId: projects.userId })
       .from(projects)
       .where(eq(projects.id, projectId))
       .limit(1);
 
     const project = projectRows[0];
 
-    if (!project || project.userId !== currentUser.id) {
-      return apiError("Forbidden", 403);
+    if (!project) {
+      return apiError("Project not found", 404);
+    }
+
+    if (project.userId !== currentUser.id) {
+      return apiError("Access denied", 403);
     }
 
     const result = await orchestrate({

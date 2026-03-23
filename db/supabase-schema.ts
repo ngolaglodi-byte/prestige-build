@@ -14,11 +14,13 @@ import {
 import { sql } from "drizzle-orm";
 
 // PROJECTS (managed by Supabase)
+// NOTE: This schema must match the actual table in Supabase.
+// The is_favorite column is optional to support databases where it may not exist.
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(),
   name: text("name").notNull(),
-  isFavorite: boolean("is_favorite").default(false).notNull(),
+  isFavorite: boolean("is_favorite").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").default(sql`NOW()`).notNull(),
 });

@@ -13,17 +13,24 @@ import {
 
 export async function GET(_req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return new Response("Unauthorized", { status: 401 });
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { projectId } = params;
 
-  // Verify project exists
+  // Verify project exists - only select needed columns
   const [project] = await db
-    .select()
+    .select({ id: projects.id, userId: projects.userId })
     .from(projects)
     .where(eq(projects.id, projectId));
+
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  if (project.userId !== currentUser.id) {
+    return NextResponse.json({ error: "Access denied" }, { status: 403 });
   }
 
   // Get existing domains for this project
@@ -56,7 +63,9 @@ export async function GET(_req: Request, { params }: { params: { projectId: stri
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return new Response("Unauthorized", { status: 401 });
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { projectId } = params;
   const { customDomain } = await req.json();
@@ -103,7 +112,9 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
 
 export async function DELETE(req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
-  if (!currentUser) return new Response("Unauthorized", { status: 401 });
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { projectId } = params;
   const { domainId } = await req.json();
