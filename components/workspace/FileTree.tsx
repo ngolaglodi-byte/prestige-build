@@ -8,7 +8,7 @@ import { useTabs } from "@/lib/store/tabs";
 import { useFileActions } from "@/hooks/useFileActions";
 
 export function FileTree({ projectId }: { projectId: string }) {
-  const { tree, selectedPath, selectFile } = useFileTree();
+  const { tree, selectedPath, selectFile, isLoading, error, clearError, refreshFiles } = useFileTree();
   const loadFile = useLoadFile(projectId);
   const { openTab } = useTabs();
   const { createFile, renameFile, deleteFile } = useFileActions(projectId);
@@ -27,8 +27,34 @@ export function FileTree({ projectId }: { projectId: string }) {
     [draggedPath, renameFile]
   );
 
-  if (!tree) {
-    return <div className="p-2 text-gray-400 text-sm">Chargement…</div>;
+  const handleRetry = useCallback(() => {
+    clearError();
+    refreshFiles(projectId);
+  }, [clearError, refreshFiles, projectId]);
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4 text-center">
+        <div className="text-red-400 text-sm mb-3">{error}</div>
+        <button
+          onClick={handleRetry}
+          className="px-4 py-1.5 text-xs bg-accent hover:bg-accentDark text-white rounded transition-colors"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading || !tree) {
+    return (
+      <div className="p-2 text-gray-400 text-sm flex items-center gap-2">
+        <div className="w-3 h-3 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+        Chargement…
+      </div>
+    );
   }
 
   return (

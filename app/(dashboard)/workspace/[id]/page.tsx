@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useFileTree } from "@/lib/store/fileTree";
 import { useEditor } from "@/lib/store/editor";
 import { useTabs } from "@/lib/store/tabs";
@@ -42,9 +42,9 @@ export default function WorkspacePage() {
   const params = useParams();
   const id = params.id as string;
 
-  const { user } = useUser();
-  const clerkUserId = user?.id ?? "anonymous";
-  const clerkUserName = user?.firstName ?? user?.username ?? "User";
+  const { user } = useUserRole();
+  const localUserId = user?.id ?? "anonymous";
+  const localUserName = user?.name ?? user?.email ?? "User";
 
   const { refreshFiles } = useFileTree();
   const { saveFile } = useEditor();
@@ -53,8 +53,8 @@ export default function WorkspacePage() {
 
   const { cursors, sendCursor, sendEdit } = useCollaboration({
     projectId: id,
-    userId: clerkUserId,
-    userName: clerkUserName,
+    userId: localUserId,
+    userName: localUserName,
     enabled: true,
   });
 
@@ -105,7 +105,7 @@ export default function WorkspacePage() {
             <Tabs />
           </div>
           <div className="px-3 flex-shrink-0">
-            <CollaboratorAvatars projectId={id} userId={clerkUserId} userName={clerkUserName} />
+            <CollaboratorAvatars projectId={id} userId={localUserId} userName={localUserName} />
           </div>
         </div>
 
