@@ -115,69 +115,79 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
  * Gets the current session from cookies.
  */
 export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (!token) return null;
+    if (!token) return null;
 
-  const payload = await verifySessionToken(token);
-  if (!payload) return null;
+    const payload = await verifySessionToken(token);
+    if (!payload) return null;
 
-  // Verify session is still valid in database
-  const [session] = await db
-    .select()
-    .from(sessions)
-    .where(
-      and(
-        eq(sessions.id, payload.sessionId),
-        isNull(sessions.revokedAt),
-        gt(sessions.expiresAt, new Date())
+    // Verify session is still valid in database
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.id, payload.sessionId),
+          isNull(sessions.revokedAt),
+          gt(sessions.expiresAt, new Date())
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  if (!session) return null;
+    if (!session) return null;
 
-  // Verify user status
-  const [user] = await db
-    .select({
-      status: users.status,
-    })
-    .from(users)
-    .where(eq(users.id, payload.userId))
-    .limit(1);
+    // Verify user status
+    const [user] = await db
+      .select({
+        status: users.status,
+      })
+      .from(users)
+      .where(eq(users.id, payload.userId))
+      .limit(1);
 
-  // Reject if user is not ACTIVE
-  if (!user || user.status !== "ACTIVE") {
+    // Reject if user is not ACTIVE
+    if (!user || user.status !== "ACTIVE") {
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    console.error("[session] Error getting session:", error);
     return null;
   }
-
-  return payload;
 }
 
 /**
  * Gets the current user from the session.
  */
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const session = await getSession();
-  if (!session) return null;
+  try {
+    const session = await getSession();
+    if (!session) return null;
 
-  const [user] = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      name: users.name,
-      role: users.role,
-      status: users.status,
-      mustChangePassword: users.mustChangePassword,
-    })
-    .from(users)
-    .where(eq(users.id, session.userId))
-    .limit(1);
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        role: users.role,
+        status: users.status,
+        mustChangePassword: users.mustChangePassword,
+      })
+      .from(users)
+      .where(eq(users.id, session.userId))
+      .limit(1);
 
-  if (!user) return null;
+    if (!user) return null;
 
-  return user as SessionUser;
+    return user as SessionUser;
+  } catch (error) {
+    console.error("[session] Error getting current user:", error);
+    return null;
+  }
 }
 
 /**
