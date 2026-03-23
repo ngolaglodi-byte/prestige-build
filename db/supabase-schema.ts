@@ -16,7 +16,7 @@ import { sql } from "drizzle-orm";
 // PROJECTS (managed by Supabase)
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id").notNull(),
+  userId: uuid("user_id").notNull(),
   name: text("name").notNull(),
   isFavorite: boolean("is_favorite").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

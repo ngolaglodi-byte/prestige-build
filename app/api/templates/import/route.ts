@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 // POST /api/templates/import — Import a template from JSON
 export async function POST(req: Request) {
@@ -29,10 +29,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
   const { data, error } = await supabase
     .from("templates")

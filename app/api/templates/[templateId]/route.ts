@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 // GET /api/templates/[templateId] — Get template details
 export async function GET(
@@ -9,10 +9,7 @@ export async function GET(
 ) {
   const { templateId } = params;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
   const { data, error } = await supabase
     .from("templates")
@@ -47,10 +44,7 @@ export async function DELETE(
 
   const { templateId } = params;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
   const { error } = await supabase
     .from("templates")
