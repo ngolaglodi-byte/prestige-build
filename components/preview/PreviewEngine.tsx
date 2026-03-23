@@ -78,7 +78,11 @@ export function PreviewEngine({ userId, projectId }: Props) {
     async function start() {
       setPreviewError(null);
 
-      const res = await fetch(`/api/projects/${projectId}/preview/start`);
+      const res = await fetch(`/api/projects/${projectId}/preview/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const data = await res.json();
 
       if (cancelled) return;

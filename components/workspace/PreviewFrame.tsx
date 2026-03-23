@@ -63,6 +63,8 @@ export function PreviewFrame({ projectId }: Props) {
       try {
         const res = await fetch(`/api/projects/${projectId}/preview/start`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
         });
         if (!cancelled) {
           if (!res.ok) {

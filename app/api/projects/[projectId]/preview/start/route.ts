@@ -34,12 +34,20 @@ export async function POST(
     const userId = currentUser!.id;
 
     // -----------------------------
-    // 2. Lire le body
+    // 2. Lire le body (optionnel)
     // -----------------------------
-    const body = await req.json();
-    const cpuPercent = body.cpuPercent ?? 10;
-    const memoryMb = body.memoryMb ?? 128;
-    const port = body.port ?? 3000;
+    let body: Record<string, unknown> = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch {
+      // Body is empty or invalid JSON - use defaults
+    }
+    const cpuPercent = (body.cpuPercent as number) ?? 10;
+    const memoryMb = (body.memoryMb as number) ?? 128;
+    const port = (body.port as number) ?? 3000;
 
     // -----------------------------
     // 3. Vérifier le quota PREVIEWS
