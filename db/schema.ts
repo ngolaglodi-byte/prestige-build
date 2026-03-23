@@ -60,10 +60,26 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// ── PROJECTS ──────────────────────────────────────────────────────────────
+// Main projects table - now managed by Drizzle for proper migration support
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  isFavorite: boolean("is_favorite").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // DOMAINS
 export const domains = pgTable("domains", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 20 }).notNull(), // subdomain | custom
   host: varchar("host", { length: 255 }).notNull().unique(),
   verified: boolean("verified").default(false).notNull(),
@@ -101,7 +117,7 @@ export const apiUsageLogs = pgTable("api_usage_logs", {
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
-  projectId: uuid("project_id"),
+  projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
   action: varchar("action", { length: 100 }).notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -110,7 +126,10 @@ export const activityLogs = pgTable("activity_logs", {
 // STORAGE BUCKETS (project_storage_usage + project_db_usage combined)
 export const storageBuckets = pgTable("storage_buckets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .unique()
+    .references(() => projects.id, { onDelete: "cascade" }),
   storageUsedMb: integer("storage_used_mb").notNull().default(0),
   storageLimitMb: integer("storage_limit_mb").notNull(),
   dbUsedMb: integer("db_used_mb").notNull().default(0),
@@ -133,7 +152,10 @@ export const projectTypeEnum = pgEnum("project_type", [
 
 export const projectLimits = pgTable("project_limits", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .unique()
+    .references(() => projects.id, { onDelete: "cascade" }),
   projectType: projectTypeEnum("project_type").notNull().default("website"),
   dbMinMb: integer("db_min_mb").notNull(),
   dbRecommendedMb: integer("db_recommended_mb").notNull(),
@@ -147,7 +169,9 @@ export const projectLimits = pgTable("project_limits", {
 // EXTERNAL API INTEGRATIONS - for third-party APIs
 export const externalApiIntegrations = pgTable("external_api_integrations", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -210,7 +234,9 @@ export const teamProjects = pgTable("team_projects", {
   teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id, { onDelete: "cascade" }),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   addedBy: uuid("added_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -291,7 +317,9 @@ export const adminAiConfig = pgTable("admin_ai_config", {
 // FILES (project files)
 export const files = pgTable("files", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   path: text("path").notNull(),
   content: text("content").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -303,8 +331,12 @@ export const files = pgTable("files", {
 // PREVIEW SESSIONS
 export const previewSessions = pgTable("preview_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
-  userId: uuid("user_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   port: integer("port").notNull(),
   status: varchar("status", { length: 50 }).notNull(),
   cpuPercent: doublePrecision("cpu_percent"),
@@ -346,7 +378,9 @@ export const showcaseStatusEnum = pgEnum("showcase_status", [
 // SHOWCASE PROJECTS — public gallery entries
 export const showcaseProjects = pgTable("showcase_projects", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -411,7 +445,9 @@ export const conversationPhaseEnum = pgEnum("conversation_phase", [
 
 export const conversationSessions = pgTable("conversation_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -432,7 +468,9 @@ export const agentPlanStatusEnum = pgEnum("agent_plan_status", [
 
 export const agentPlans = pgTable("agent_plans", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -453,7 +491,10 @@ export const githubSyncDirectionEnum = pgEnum("github_sync_direction", [
 
 export const githubSyncConfigs = pgTable("github_sync_configs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull().unique(),
+  projectId: uuid("project_id")
+    .notNull()
+    .unique()
+    .references(() => projects.id, { onDelete: "cascade" }),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -486,7 +527,9 @@ export const envStatusEnum = pgEnum("env_status", [
 
 export const deploymentEnvironments = pgTable("deployment_environments", {
   id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").notNull(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   type: envTypeEnum("type").notNull(),
   status: envStatusEnum("status").notNull().default("stopped"),
   url: text("url"),

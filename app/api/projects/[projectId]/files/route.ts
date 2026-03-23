@@ -3,8 +3,7 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { users, files } from "@/db/schema";
-import { projects } from "@/db/supabase-schema";
+import { users, files, projects } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 
 // -----------------------------
