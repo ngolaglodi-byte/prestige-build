@@ -14,7 +14,7 @@ import {
 export async function GET(_req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const { projectId } = params;
@@ -26,11 +26,11 @@ export async function GET(_req: Request, { params }: { params: { projectId: stri
     .where(eq(projects.id, projectId));
 
   if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
   }
 
   if (project.userId !== currentUser.id) {
-    return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    return NextResponse.json({ ok: false, error: "Access denied" }, { status: 403 });
   }
 
   // Get existing domains for this project
@@ -58,26 +58,26 @@ export async function GET(_req: Request, { params }: { params: { projectId: stri
     }
   }
 
-  return NextResponse.json({ domains: projectDomains });
+  return NextResponse.json({ ok: true, domains: projectDomains });
 }
 
 export async function POST(req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const { projectId } = params;
   const { customDomain } = await req.json();
 
   if (!customDomain || typeof customDomain !== "string") {
-    return NextResponse.json({ error: "Domain is required" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Domain is required" }, { status: 400 });
   }
 
   const normalized = normalizeDomain(customDomain);
 
   if (!isValidCustomDomain(normalized)) {
-    return NextResponse.json({ error: "Invalid domain" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Invalid domain" }, { status: 400 });
   }
 
   // Check if domain already exists
@@ -86,7 +86,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     .from(domains)
     .where(eq(domains.host, normalized));
   if (existing) {
-    return NextResponse.json({ error: "This domain is already in use" }, { status: 409 });
+    return NextResponse.json({ ok: false, error: "This domain is already in use" }, { status: 409 });
   }
 
   // Insert custom domain
@@ -101,6 +101,7 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
     .returning();
 
   return NextResponse.json({
+    ok: true,
     domain: created,
     dnsInstructions: {
       type: "CNAME",
@@ -113,14 +114,14 @@ export async function POST(req: Request, { params }: { params: { projectId: stri
 export async function DELETE(req: Request, { params }: { params: { projectId: string } }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const { projectId } = params;
   const { domainId } = await req.json();
 
   if (!domainId) {
-    return NextResponse.json({ error: "Domain ID is required" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Domain ID is required" }, { status: 400 });
   }
 
   // Only allow deleting custom domains
@@ -130,17 +131,17 @@ export async function DELETE(req: Request, { params }: { params: { projectId: st
     .where(and(eq(domains.id, domainId), eq(domains.projectId, projectId)));
 
   if (!domain) {
-    return NextResponse.json({ error: "Domain not found" }, { status: 404 });
+    return NextResponse.json({ ok: false, error: "Domain not found" }, { status: 404 });
   }
 
   if (domain.type === "subdomain") {
     return NextResponse.json(
-      { error: "Cannot delete the default subdomain" },
+      { ok: false, error: "Cannot delete the default subdomain" },
       { status: 400 }
     );
   }
 
   await db.delete(domains).where(eq(domains.id, domainId));
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ ok: true });
 }

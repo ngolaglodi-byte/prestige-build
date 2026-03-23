@@ -112,7 +112,7 @@ export function useCollaboration({
       wsRef.current = ws;
     } catch {
       // WebSocket creation failed - ignore and don't retry
-      console.warn("[useCollaboration] WebSocket not available");
+      // This is expected in environments without WebSocket support (e.g., Vercel)
     }
   }, [enabled, projectId, userId, userName]);
 
