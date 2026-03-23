@@ -36,7 +36,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/projects/list?page=1&pageSize=6&search=");
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || t("dashboard.loadError"));
+        setError(data.error || t("dashboard.loadErrorDesc"));
         setProjects([]);
       } else {
         const data = await res.json();
