@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "zustand";
 import { buildFileTree, FileNode } from "@/lib/utils/buildFileTree";
 
@@ -27,10 +29,22 @@ export const useFileTree = create<FileTreeStore>((set) => ({
   error: null,
 
   refreshFiles: async (projectId: string) => {
+    // Validate projectId before making API call
+    if (!projectId || projectId.trim() === "") {
+      console.error("[FileTree] refreshFiles called with invalid projectId:", projectId);
+      set({ isLoading: false, error: "ID de projet invalide." });
+      return;
+    }
+
+    console.log("[FileTree] Fetching files for project:", projectId);
     set({ isLoading: true, error: null });
     
     try {
-      const res = await fetch(`/api/projects/${projectId}/files`);
+      const apiUrl = `/api/projects/${projectId}/files`;
+      console.log("[FileTree] API URL:", apiUrl);
+      
+      const res = await fetch(apiUrl);
+      console.log("[FileTree] Response status:", res.status);
       
       if (!res.ok) {
         const errorText = res.status === 401 
@@ -41,20 +55,25 @@ export const useFileTree = create<FileTreeStore>((set) => ({
           ? "Projet non trouvé."
           : `Erreur serveur (${res.status})`;
         
+        console.error("[FileTree] API error:", errorText);
         set({ isLoading: false, error: errorText });
         return;
       }
       
       const data = await res.json();
+      console.log("[FileTree] Response data ok:", data.ok, "files count:", data.files?.length ?? 0);
 
       if (data.ok) {
         const tree = buildFileTree(data.files);
+        console.log("[FileTree] File tree built successfully");
         set({ files: data.files, tree, isLoading: false, error: null });
       } else {
         const errorMessage = data.error || "Impossible de charger les fichiers.";
+        console.error("[FileTree] API returned error:", errorMessage);
         set({ isLoading: false, error: errorMessage });
       }
-    } catch {
+    } catch (err) {
+      console.error("[FileTree] Network error:", err);
       set({ isLoading: false, error: "Erreur réseau. Veuillez réessayer." });
     }
   },
