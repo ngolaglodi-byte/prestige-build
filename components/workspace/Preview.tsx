@@ -70,7 +70,11 @@ export default function Preview({
       setError(null);
       setResourceMessage(null);
 
-      const res = await fetch(`/api/projects/${projectId}/preview/start`);
+      const res = await fetch(`/api/projects/${projectId}/preview/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       const data = await res.json();
 
       if (!data.ok && data.reason === "limit_reached") {

@@ -34,12 +34,23 @@ export async function POST(
     const userId = currentUser!.id;
 
     // -----------------------------
-    // 2. Lire le body
+    // 2. Lire le body (optionnel)
     // -----------------------------
-    const body = await req.json();
-    const cpuPercent = body.cpuPercent ?? 10;
-    const memoryMb = body.memoryMb ?? 128;
-    const port = body.port ?? 3000;
+    let body: Record<string, unknown> = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (parseError) {
+      // Log parse failures for debugging, but use defaults
+      console.warn("[preview/start] Failed to parse request body:", parseError);
+    }
+    
+    // Use runtime type checking for body parameters
+    const cpuPercent = typeof body.cpuPercent === "number" ? body.cpuPercent : 10;
+    const memoryMb = typeof body.memoryMb === "number" ? body.memoryMb : 128;
+    const port = typeof body.port === "number" ? body.port : 3000;
 
     // -----------------------------
     // 3. Vérifier le quota PREVIEWS
