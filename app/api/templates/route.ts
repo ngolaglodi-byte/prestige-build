@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 // GET /api/templates — List templates (public or user's own)
 export async function GET(req: Request) {
@@ -13,10 +13,7 @@ export async function GET(req: Request) {
   const page = Number(searchParams.get("page") || "1");
   const pageSize = Number(searchParams.get("pageSize") || "12");
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
   let query = supabase
     .from("templates")
@@ -71,10 +68,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
   const { data, error } = await supabase
     .from("templates")

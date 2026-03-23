@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
@@ -9,23 +9,9 @@ export async function POST(req: Request) {
   const { id, name } = await req.json();
   if (!id || !name) return NextResponse.json({ error: "Missing id or name" }, { status: 400 });
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = getSupabaseServiceClient();
 
-  // Resolve Clerk ID to internal user UUID
-  const { data: user, error: userError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("id", currentUser.id)
-    .single();
-
-  if (userError || !user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  const userId = currentUser!.id;
+  const userId = currentUser.id;
 
   const { data, error } = await supabase
     .from("projects")
