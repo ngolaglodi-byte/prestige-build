@@ -9,26 +9,60 @@ export function WorkspaceLogs({ projectId }: { projectId: string }) {
   const [activeTab, setActiveTab] = useState<LogTab>("build");
   const { aiLogs, buildLogs, errorLogs, addBuildLog } = useLogsStore();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const esRef = useRef<EventSource | null>(null);
 
   // Connect to build log stream
   useEffect(() => {
-    const es = new EventSource(`/api/projects/${projectId}/preview/logs`);
+    // Check if we're in a browser environment
+    if (typeof window === "undefined" || typeof EventSource === "undefined") {
+      console.log("[WorkspaceLogs] EventSource not available");
+      return;
+    }
 
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        addBuildLog(data.msg || event.data, data.type || "info");
-      } catch {
-        addBuildLog(event.data, "info");
-      }
-    };
+    // Validate projectId
+    if (!projectId) {
+      console.warn("[WorkspaceLogs] No projectId provided");
+      return;
+    }
 
-    es.onerror = () => {
-      addBuildLog("Connexion au flux de logs perdue", "error");
-      es.close();
-    };
+    console.log("[WorkspaceLogs] Connecting to log stream for project:", projectId);
 
-    return () => es.close();
+    try {
+      const es = new EventSource(`/api/projects/${projectId}/preview/logs`);
+      esRef.current = es;
+
+      es.onopen = () => {
+        console.log("[WorkspaceLogs] Connected to log stream");
+      };
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          addBuildLog(data.msg || event.data, data.type || "info");
+        } catch {
+          addBuildLog(event.data, "info");
+        }
+      };
+
+      es.onerror = (err) => {
+        console.warn("[WorkspaceLogs] Log stream error:", err);
+        // Don't show error in production as this endpoint may not be available
+        const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
+        if (!isProduction) {
+          addBuildLog("Connexion au flux de logs perdue", "error");
+        }
+        es.close();
+      };
+
+      return () => {
+        console.log("[WorkspaceLogs] Closing log stream");
+        es.close();
+        esRef.current = null;
+      };
+    } catch (err) {
+      console.error("[WorkspaceLogs] Failed to create EventSource:", err);
+      return;
+    }
   }, [projectId, addBuildLog]);
 
   const tabs: { key: LogTab; label: string }[] = [

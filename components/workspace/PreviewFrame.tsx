@@ -1,7 +1,7 @@
 // components/workspace/PreviewFrame.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   isWebContainerSupported,
   startWebContainerPreview,
@@ -16,82 +16,153 @@ export function PreviewFrame({ projectId }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fallbackWarning, setFallbackWarning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const workspaceFiles = useWorkspaceStore((s) => s.files);
+  const initRef = useRef(false);
 
   useEffect(() => {
+    // Prevent double initialization in strict mode
+    if (initRef.current) return;
+    initRef.current = true;
+
     let cancelled = false;
 
     async function startPreview() {
-      // Try WebContainer first
-      if (isWebContainerSupported()) {
+      console.log("[PreviewFrame] Starting preview for project:", projectId);
+      setIsLoading(true);
+      setError(null);
+
+      // Check if we're in a browser environment
+      if (typeof window === "undefined") {
+        console.log("[PreviewFrame] Not in browser environment, skipping preview");
+        setError("L'aperçu n'est disponible que dans le navigateur.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Try WebContainer first (only in supported environments)
+      const webContainerSupported = isWebContainerSupported();
+      console.log("[PreviewFrame] WebContainer supported:", webContainerSupported);
+
+      if (webContainerSupported) {
         try {
           let files = workspaceFiles;
           if (Object.keys(files).length === 0) {
+            console.log("[PreviewFrame] No workspace files, fetching from API...");
             try {
               const res = await fetch(`/api/projects/${projectId}/files`);
+              console.log("[PreviewFrame] API response status:", res.status);
               if (res.ok) {
-                files = await res.json();
+                const data = await res.json();
+                if (data.ok && Array.isArray(data.files)) {
+                  // Convert array to Record<string, { content: string }>
+                  files = data.files.reduce((acc: Record<string, { content: string }>, f: { path: string; content: string }) => {
+                    acc[f.path] = { content: f.content };
+                    return acc;
+                  }, {});
+                  console.log("[PreviewFrame] Fetched", Object.keys(files).length, "files");
+                }
               }
             } catch (err) {
-              console.warn("Échec du chargement des fichiers du projet :", err);
+              console.warn("[PreviewFrame] Failed to load project files:", err);
             }
           }
 
           if (cancelled) return;
 
+          console.log("[PreviewFrame] Starting WebContainer preview...");
           const { url } = await startWebContainerPreview({
             files,
             onServerReady: (serverUrl) => {
-              if (!cancelled) setPreviewUrl(serverUrl);
+              console.log("[PreviewFrame] Server ready at:", serverUrl);
+              if (!cancelled) {
+                setPreviewUrl(serverUrl);
+                setIsLoading(false);
+              }
             },
             onError: (msg) => {
-              if (!cancelled) setError(msg);
+              console.error("[PreviewFrame] WebContainer error:", msg);
+              if (!cancelled) {
+                setError(msg);
+                setIsLoading(false);
+              }
             },
           });
 
-          if (!cancelled) setPreviewUrl(url);
+          if (!cancelled) {
+            setPreviewUrl(url);
+            setIsLoading(false);
+          }
           return;
-        } catch {
+        } catch (wcError) {
+          console.warn("[PreviewFrame] WebContainer failed, falling back:", wcError);
           if (cancelled) return;
           setFallbackWarning(true);
         }
       } else {
+        console.log("[PreviewFrame] WebContainer not supported, using fallback");
         setFallbackWarning(true);
       }
 
-      // Fall back to localhost
+      // Fall back to localhost preview
+      console.log("[PreviewFrame] Attempting localhost preview...");
       try {
         const res = await fetch(`/api/projects/${projectId}/preview/start`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
         });
+        console.log("[PreviewFrame] Localhost preview response:", res.status);
+        
         if (!cancelled) {
           if (!res.ok) {
-            setError("Impossible de démarrer l\u2019aperçu");
+            // In production, this is expected to fail - show a helpful message
+            const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
+            if (isProduction) {
+              setError("L'aperçu local n'est pas disponible en production. Utilisez 'Déployer' pour voir votre site.");
+            } else {
+              setError("Impossible de démarrer l'aperçu");
+            }
+            setIsLoading(false);
             return;
           }
           const data = await res.json();
           setPreviewUrl(`http://localhost:${data.port}`);
+          setIsLoading(false);
         }
-      } catch {
-        if (!cancelled) setError("Erreur de connexion à l\u2019aperçu");
+      } catch (fetchError) {
+        console.error("[PreviewFrame] Localhost preview failed:", fetchError);
+        if (!cancelled) {
+          const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
+          if (isProduction) {
+            setError("L'aperçu n'est pas disponible en production. Déployez votre projet pour le visualiser.");
+          } else {
+            setError("Erreur de connexion à l'aperçu");
+          }
+          setIsLoading(false);
+        }
       }
     }
 
     startPreview();
-    return () => { cancelled = true; };
+    return () => { 
+      cancelled = true; 
+      initRef.current = false;
+    };
   }, [projectId, workspaceFiles]);
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center text-red-400 text-sm fade-in">
-        {error}
+      <div className="h-full flex items-center justify-center text-red-400 text-sm fade-in p-4 text-center">
+        <div>
+          <div className="text-2xl mb-2">🖥️</div>
+          {error}
+        </div>
       </div>
     );
   }
 
-  if (!previewUrl) {
+  if (isLoading || !previewUrl) {
     return (
       <div className="h-full flex items-center justify-center text-gray-400 text-sm">
         <div className="flex items-center gap-2">

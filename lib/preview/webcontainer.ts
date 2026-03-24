@@ -1,22 +1,44 @@
 "use client";
 
-import { WebContainer, type FileSystemTree } from "@webcontainer/api";
+// Lazy import WebContainer to avoid issues in non-browser environments
+let webContainerApiModule: typeof import("@webcontainer/api") | null = null;
 
-let _instance: WebContainer | null = null;
-let _bootPromise: Promise<WebContainer> | null = null;
+type FileSystemTree = Record<string, { file: { contents: string } } | { directory: FileSystemTree }>;
+
+let _instance: InstanceType<typeof import("@webcontainer/api").WebContainer> | null = null;
+let _bootPromise: Promise<InstanceType<typeof import("@webcontainer/api").WebContainer>> | null = null;
+
+/**
+ * Load the WebContainer module dynamically
+ */
+async function loadWebContainerModule() {
+  if (webContainerApiModule) return webContainerApiModule;
+  
+  try {
+    webContainerApiModule = await import("@webcontainer/api");
+    return webContainerApiModule;
+  } catch (err) {
+    console.error("[WebContainer] Failed to load module:", err);
+    throw new Error("WebContainer module not available");
+  }
+}
 
 /**
  * Boot or reuse a singleton WebContainer instance.
  * The WebContainer API only allows one instance per page.
  */
-export async function getWebContainer(): Promise<WebContainer> {
+export async function getWebContainer() {
   if (_instance) return _instance;
 
   if (!_bootPromise) {
-    _bootPromise = WebContainer.boot().then((wc) => {
+    _bootPromise = (async () => {
+      const wcModule = await loadWebContainerModule();
+      console.log("[WebContainer] Booting WebContainer...");
+      const wc = await wcModule.WebContainer.boot();
       _instance = wc;
+      console.log("[WebContainer] Boot complete");
       return wc;
-    });
+    })();
   }
 
   return _bootPromise;
@@ -27,8 +49,21 @@ export async function getWebContainer(): Promise<WebContainer> {
  * WebContainers require SharedArrayBuffer which needs cross-origin isolation.
  */
 export function isWebContainerSupported(): boolean {
-  if (typeof window === "undefined") return false;
-  return typeof SharedArrayBuffer !== "undefined";
+  if (typeof window === "undefined") {
+    console.log("[WebContainer] Not in browser environment");
+    return false;
+  }
+  
+  const hasSharedArrayBuffer = typeof SharedArrayBuffer !== "undefined";
+  console.log("[WebContainer] SharedArrayBuffer available:", hasSharedArrayBuffer);
+  
+  // Also check for cross-origin isolation (required for SharedArrayBuffer)
+  const crossOriginIsolated = typeof window !== "undefined" && window.crossOriginIsolated === true;
+  console.log("[WebContainer] Cross-origin isolated:", crossOriginIsolated);
+  
+  // WebContainer needs SharedArrayBuffer, but cross-origin isolation isn't always required
+  // depending on browser security policies
+  return hasSharedArrayBuffer;
 }
 
 /**
@@ -94,6 +129,14 @@ export async function startWebContainerPreview(options: {
 
   const log = (msg: string, type: "info" | "error" | "warn" = "info") =>
     onLog?.(msg, type);
+
+  // Check support first
+  if (!isWebContainerSupported()) {
+    const msg = "WebContainer not supported in this environment";
+    log(msg, "error");
+    onError?.(msg);
+    throw new Error(msg);
+  }
 
   const wc = await getWebContainer();
 
