@@ -16,6 +16,7 @@ import { AiDiffViewer } from "@/components/workspace/AiDiffViewer";
 import AIMultiFilePreview from "@/components/workspace/AIMultiFilePreview";
 import AICodePreview from "@/components/workspace/AICodePreview";
 import { WorkspaceLogs } from "@/components/workspace/WorkspaceLogs";
+import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
 
 // Chargement paresseux des composants lourds
 const CodeEditor = lazy(() =>
@@ -182,88 +183,90 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="h-screen w-full flex bg-[#0d0d0d] text-white overflow-hidden">
-      {/* Sidebar - FileTree */}
-      <div className="w-64 h-full bg-[#111] border-r border-white/10 overflow-auto flex-shrink-0 slide-in">
-        <div className="px-3 py-2 border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
-          Explorateur
-        </div>
-        <FileTree projectId={projectId} />
-      </div>
-
-      {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden fade-in">
-        {/* Tabs + Collaboration avatars */}
-        <div className="flex items-center border-b border-white/10">
-          <div className="flex-1">
-            <Tabs />
+    <WorkspaceErrorBoundary>
+      <div className="h-screen w-full flex bg-[#0d0d0d] text-white overflow-hidden">
+        {/* Sidebar - FileTree */}
+        <div className="w-64 h-full bg-[#111] border-r border-white/10 overflow-auto flex-shrink-0 slide-in">
+          <div className="px-3 py-2 border-b border-white/10 text-xs uppercase tracking-wide text-gray-400">
+            Explorateur
           </div>
-          <div className="px-3 flex-shrink-0">
-            <CollaboratorAvatars projectId={projectId} userId={localUserId} userName={localUserName} />
-          </div>
+          <FileTree projectId={projectId} />
         </div>
 
-        {/* Editor + AI Panel */}
-        <div className="flex-1 flex overflow-hidden relative">
-          <div className="flex-1 overflow-hidden flex flex-col">
-            {/* Editor */}
-            <div className="flex-1 overflow-hidden relative">
-              <Suspense fallback={<EditorFallback />}>
-                <CodeEditor projectId={projectId} onCursorChange={handleCursorChange} onContentChange={handleContentChange} />
-              </Suspense>
-              <RemoteCursors cursors={cursors} currentFileId={activeFile ?? undefined} />
+        {/* Main area */}
+        <div className="flex-1 flex flex-col overflow-hidden fade-in">
+          {/* Tabs + Collaboration avatars */}
+          <div className="flex items-center border-b border-white/10">
+            <div className="flex-1">
+              <Tabs />
             </div>
-
-            {/* Bottom panel: Preview / Logs */}
-            <div className="h-56 border-t border-white/10 flex flex-col flex-shrink-0">
-              <div className="flex border-b border-white/10 bg-[#111]">
-                <button
-                  onClick={() => setBottomTab("preview")}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
-                    bottomTab === "preview"
-                      ? "text-accent border-b-2 border-accent"
-                      : "text-gray-400 hover:text-gray-200"
-                  }`}
-                >
-                  Aperçu
-                </button>
-                <button
-                  onClick={() => setBottomTab("logs")}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
-                    bottomTab === "logs"
-                      ? "text-accent border-b-2 border-accent"
-                      : "text-gray-400 hover:text-gray-200"
-                  }`}
-                >
-                  Journaux
-                </button>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                {bottomTab === "preview" && (
-                  <Suspense fallback={<EditorFallback />}>
-                    <PreviewFrame projectId={projectId} />
-                  </Suspense>
-                )}
-                {bottomTab === "logs" && <WorkspaceLogs projectId={projectId} />}
-              </div>
+            <div className="px-3 flex-shrink-0">
+              <CollaboratorAvatars projectId={projectId} userId={localUserId} userName={localUserName} />
             </div>
           </div>
 
-          {/* AI Panel */}
-          <div className="w-80 border-l border-white/10 flex-shrink-0">
-            <AiPanel projectId={projectId} />
+          {/* Editor + AI Panel */}
+          <div className="flex-1 flex overflow-hidden relative">
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {/* Editor */}
+              <div className="flex-1 overflow-hidden relative">
+                <Suspense fallback={<EditorFallback />}>
+                  <CodeEditor projectId={projectId} onCursorChange={handleCursorChange} onContentChange={handleContentChange} />
+                </Suspense>
+                <RemoteCursors cursors={cursors} currentFileId={activeFile ?? undefined} />
+              </div>
+
+              {/* Bottom panel: Preview / Logs */}
+              <div className="h-56 border-t border-white/10 flex flex-col flex-shrink-0">
+                <div className="flex border-b border-white/10 bg-[#111]">
+                  <button
+                    onClick={() => setBottomTab("preview")}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
+                      bottomTab === "preview"
+                        ? "text-accent border-b-2 border-accent"
+                        : "text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Aperçu
+                  </button>
+                  <button
+                    onClick={() => setBottomTab("logs")}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
+                      bottomTab === "logs"
+                        ? "text-accent border-b-2 border-accent"
+                        : "text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    Journaux
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {bottomTab === "preview" && (
+                    <Suspense fallback={<EditorFallback />}>
+                      <PreviewFrame projectId={projectId} />
+                    </Suspense>
+                  )}
+                  {bottomTab === "logs" && <WorkspaceLogs projectId={projectId} />}
+                </div>
+              </div>
+            </div>
+
+            {/* AI Panel */}
+            <div className="w-80 border-l border-white/10 flex-shrink-0">
+              <AiPanel projectId={projectId} />
+            </div>
+
+            {/* Diff Viewer overlay */}
+            <AiDiffViewer onApply={handleApplyDiffs} />
           </div>
-
-          {/* Diff Viewer overlay */}
-          <AiDiffViewer onApply={handleApplyDiffs} />
         </div>
+
+        {/* Multi-file preview modal */}
+        <AIMultiFilePreview />
+
+        {/* Code preview modal */}
+        <AICodePreview />
       </div>
-
-      {/* Multi-file preview modal */}
-      <AIMultiFilePreview />
-
-      {/* Code preview modal */}
-      <AICodePreview />
-    </div>
+    </WorkspaceErrorBoundary>
   );
 }
