@@ -124,8 +124,8 @@ export const useFileTree = create<FileTreeStore>((set) => ({
     } catch (err) {
       console.error("[FileTree] Network error:", err);
       
-      // Check for specific error types
-      if (err instanceof TypeError && err.message.includes("fetch")) {
+      // Check for network/fetch errors
+      if (err instanceof TypeError) {
         set({ isLoading: false, error: "Erreur réseau. Vérifiez votre connexion." });
       } else {
         set({ isLoading: false, error: "Erreur réseau. Veuillez réessayer." });

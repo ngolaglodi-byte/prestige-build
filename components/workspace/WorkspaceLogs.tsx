@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLogsStore, LogEntry } from "@/lib/store/logsStore";
+import { isBrowserEnvironment, isEventSourceAvailable, isProductionEnvironment } from "@/lib/utils/environment";
 
 type LogTab = "ai" | "build" | "error";
 
@@ -13,8 +14,8 @@ export function WorkspaceLogs({ projectId }: { projectId: string }) {
 
   // Connect to build log stream
   useEffect(() => {
-    // Check if we're in a browser environment
-    if (typeof window === "undefined" || typeof EventSource === "undefined") {
+    // Check if we're in a browser environment with EventSource support
+    if (!isBrowserEnvironment() || !isEventSourceAvailable()) {
       console.log("[WorkspaceLogs] EventSource not available");
       return;
     }
@@ -47,8 +48,7 @@ export function WorkspaceLogs({ projectId }: { projectId: string }) {
       es.onerror = (err) => {
         console.warn("[WorkspaceLogs] Log stream error:", err);
         // Don't show error in production as this endpoint may not be available
-        const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
-        if (!isProduction) {
+        if (!isProductionEnvironment()) {
           addBuildLog("Connexion au flux de logs perdue", "error");
         }
         es.close();

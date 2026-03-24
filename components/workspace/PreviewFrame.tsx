@@ -1,12 +1,13 @@
 // components/workspace/PreviewFrame.tsx
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   isWebContainerSupported,
   startWebContainerPreview,
 } from "@/lib/preview/webcontainer";
 import { useWorkspaceStore } from "@/lib/store/useWorkspaceStore";
+import { isProductionEnvironment, isBrowserEnvironment } from "@/lib/utils/environment";
 
 type Props = {
   projectId: string;
@@ -18,13 +19,8 @@ export function PreviewFrame({ projectId }: Props) {
   const [fallbackWarning, setFallbackWarning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const workspaceFiles = useWorkspaceStore((s) => s.files);
-  const initRef = useRef(false);
 
   useEffect(() => {
-    // Prevent double initialization in strict mode
-    if (initRef.current) return;
-    initRef.current = true;
-
     let cancelled = false;
 
     async function startPreview() {
@@ -33,7 +29,7 @@ export function PreviewFrame({ projectId }: Props) {
       setError(null);
 
       // Check if we're in a browser environment
-      if (typeof window === "undefined") {
+      if (!isBrowserEnvironment()) {
         console.log("[PreviewFrame] Not in browser environment, skipping preview");
         setError("L'aperçu n'est disponible que dans le navigateur.");
         setIsLoading(false);
@@ -117,8 +113,7 @@ export function PreviewFrame({ projectId }: Props) {
         if (!cancelled) {
           if (!res.ok) {
             // In production, this is expected to fail - show a helpful message
-            const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
-            if (isProduction) {
+            if (isProductionEnvironment()) {
               setError("L'aperçu local n'est pas disponible en production. Utilisez 'Déployer' pour voir votre site.");
             } else {
               setError("Impossible de démarrer l'aperçu");
@@ -133,8 +128,7 @@ export function PreviewFrame({ projectId }: Props) {
       } catch (fetchError) {
         console.error("[PreviewFrame] Localhost preview failed:", fetchError);
         if (!cancelled) {
-          const isProduction = typeof window !== "undefined" && window.location.hostname !== "localhost";
-          if (isProduction) {
+          if (isProductionEnvironment()) {
             setError("L'aperçu n'est pas disponible en production. Déployez votre projet pour le visualiser.");
           } else {
             setError("Erreur de connexion à l'aperçu");
@@ -146,8 +140,7 @@ export function PreviewFrame({ projectId }: Props) {
 
     startPreview();
     return () => { 
-      cancelled = true; 
-      initRef.current = false;
+      cancelled = true;
     };
   }, [projectId, workspaceFiles]);
 

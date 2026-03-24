@@ -1,11 +1,11 @@
 "use client";
 
 import { Component, ErrorInfo, ReactNode } from "react";
-import { useRouter } from "next/navigation";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -14,16 +14,16 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-// Functional wrapper to use hooks in class component
-function ErrorFallback({ 
+// Functional wrapper to display error state - avoids using hooks in class component context
+function ErrorFallbackUI({ 
   error, 
-  onRetry 
+  onRetry,
+  onGoBack,
 }: { 
   error: Error | null; 
   onRetry: () => void;
+  onGoBack: () => void;
 }) {
-  const router = useRouter();
-
   return (
     <div className="h-screen w-full flex items-center justify-center bg-[#0d0d0d] text-white">
       <div className="text-center max-w-lg p-8 bg-[#111] border border-white/10 rounded-xl">
@@ -44,7 +44,7 @@ function ErrorFallback({
         )}
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => router.push("/projects")}
+            onClick={onGoBack}
             className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
           >
             Retour aux projets
@@ -78,9 +78,11 @@ export class WorkspaceErrorBoundary extends Component<Props, State> {
     
     this.setState({ errorInfo });
 
+    // Call optional error callback
+    this.props.onError?.(error, errorInfo);
+
     // Log to monitoring service in production
     if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
-      // Could send to Sentry or other monitoring service here
       console.error("[WorkspaceErrorBoundary] Production error logged:", {
         error: error.message,
         stack: error.stack,
@@ -90,11 +92,14 @@ export class WorkspaceErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = () => {
+    // Reset error state without full page reload - allows React to re-render children
     this.setState({ hasError: false, error: null, errorInfo: null });
-    
-    // Force a re-render by clearing any cached state
+  };
+
+  private handleGoBack = () => {
+    // Navigate to projects page using standard navigation
     if (typeof window !== "undefined") {
-      window.location.reload();
+      window.location.href = "/projects";
     }
   };
 
@@ -104,9 +109,10 @@ export class WorkspaceErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
       return (
-        <ErrorFallback 
+        <ErrorFallbackUI 
           error={this.state.error} 
-          onRetry={this.handleRetry} 
+          onRetry={this.handleRetry}
+          onGoBack={this.handleGoBack}
         />
       );
     }
